@@ -1,0 +1,121 @@
+export type Dict = Record<string, any>;
+
+export interface PrinterIndexEntry {
+  id: string;
+  vendor: string;
+  model: string;
+  short: string;
+  machine: string;
+  bed: [number, number];
+  height: number;
+  extruders: number;
+  slots: number;
+  slotUnit: string;
+  slicer: string;
+  popular: boolean;
+  processes: number;
+  filamentTypes: string[];
+}
+
+export interface ProcessPreset {
+  name: string;
+  layer_height: number;
+  default: boolean;
+  values: Dict;
+}
+
+export interface FilamentPreset {
+  name: string;
+  id: string;
+  generic?: boolean;
+  values: Dict;
+}
+
+export interface PrinterProfile extends PrinterIndexEntry {
+  printer_model: string;
+  printer_variant: string;
+  minFilaments: number;
+  flavor: string;
+  defaultProcess: string;
+  machineValues: Dict;
+  processes: any;
+  filaments: Record<string, FilamentPreset>;
+}
+
+export type SourceKind = "bambu" | "orca" | "prusa" | "plain" | "invalid";
+
+export interface SourceFilament {
+  index: number; // 1-based
+  color: string; // #RRGGBB
+  type: string;
+  preset: string;
+  used: boolean;
+  usage: number; // rough weight: parts + painted triangles
+}
+
+export interface PlateInfo {
+  id: number;
+  name: string;
+  objectIds: string[];
+  thumbnail?: string; // zip path
+}
+
+export interface Analysis {
+  fileName: string;
+  fileSize: number;
+  kind: SourceKind;
+  app: string;
+  sourcePrinter: string;
+  sourcePrinterModel: string;
+  sourceBed: [number, number] | null;
+  layerHeight: number;
+  supports: boolean;
+  primeTower: boolean;
+  hasPaint: boolean;
+  hasSlicedGcode: boolean;
+  colorChangeLayers: boolean;
+  filaments: SourceFilament[];
+  usedKnown: boolean;
+  usedWhy?: string;
+  plates: PlateInfo[];
+  objectCount: number;
+  thumbnail?: string; // zip path of the best thumbnail
+  notes: string[];
+  error?: string;
+}
+
+export interface SlotAssignment {
+  /** for each source filament (1-based index -> position in array index-1): output slot (1-based) or 0 = drop */
+  map: number[];
+}
+
+export interface ConvertOptions {
+  map: number[];
+  keepSpeeds: boolean;
+  recenter: boolean;
+  slotColors?: Record<number, string>;
+}
+
+export interface ReportLine {
+  level: "info" | "warn" | "ok";
+  text: string;
+}
+
+export interface ConvertReport {
+  target: string;
+  process: string;
+  filaments: { slot: number; color: string; type: string; preset: string; from: number[] }[];
+  kept: string[];
+  replaced: string[];
+  discarded: string[];
+  speeds: string[];
+  lines: ReportLine[];
+  removedFiles: string[];
+  paintRemapped: number;
+  outputName: string;
+}
+
+export interface ConvertResult {
+  bytes: Uint8Array;
+  report: ConvertReport;
+}
