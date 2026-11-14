@@ -11,7 +11,10 @@ const FEATURED = ["snapmaker-u1", "flashforge-ad5x", "flashforge-adventurer-5m",
 
 export function slotLabel(p: Pick<PrinterIndexEntry, "slots" | "slotUnit">) {
   if (p.slots <= 1) return "1 filament";
-  return `${p.slots} ${p.slotUnit || "slots"}`;
+  const u = p.slotUnit || "";
+  if (/\d/.test(u)) return u;
+  if (/extruder|toolchanger|IDEX|multi-color/i.test(u)) return `${p.slots} slots · ${u}`;
+  return `${p.slots} slots · ${u || "multi-material"}`;
 }
 
 export function PrinterPicker({
@@ -74,7 +77,7 @@ export function PrinterPicker({
             <span className="flex min-w-0 flex-col">
               <span className="truncate font-medium">{current.model}</span>
               <span className="truncate text-xs font-normal text-muted-foreground">
-                {current.bed[0]} × {current.bed[1]} × {current.height} mm · {slotLabel(current)}
+                {Math.round(current.bed[0])} × {Math.round(current.bed[1])} × {Math.round(current.height)} mm · {slotLabel(current)}
               </span>
             </span>
           ) : (

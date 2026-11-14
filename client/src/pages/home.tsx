@@ -363,7 +363,7 @@ export default function Home() {
                 <dl className="grid grid-cols-2 gap-x-3 gap-y-1 border-t border-card-border pt-4 text-xs">
                   <dt className="text-muted-foreground">Build volume</dt>
                   <dd className="text-right font-mono">
-                    {target.bed[0]}×{target.bed[1]}×{target.height}
+                    {Math.round(target.bed[0])}×{Math.round(target.bed[1])}×{Math.round(target.height)} mm
                   </dd>
                   <dt className="text-muted-foreground">Open in</dt>
                   <dd className="text-right">{target.slicer}</dd>
