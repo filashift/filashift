@@ -3,7 +3,7 @@
 PlateShift is a static site: HTML, JavaScript and JSON printer profiles (~18 MB). Conversion runs in the visitor's browser, so the server only hands out files. No Node.js, database or backend process is needed on the server.
 
 ## DigitalOcean quick path
-1. Create Droplet: Ubuntu 24.04 LTS, Basic, Regular SSD, the smallest size ($4–6/mo) is enough; region Chicago isn't offered, so pick New York or Toronto (closest to Wisconsin).
+1. Create Droplet: Ubuntu 24.04 LTS, Basic, Regular SSD, the smallest size ($4–6/mo) is enough; pick the closest US region (e.g. New York).
 2. Authentication: choose **SSH Key** (add yours).
 3. Advanced options → **Add initialization scripts** → paste `digitalocean-cloud-init.yaml`.
 4. Create, wait ~3 minutes, then upload the site (replace IP):
