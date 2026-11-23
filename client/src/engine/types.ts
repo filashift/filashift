@@ -65,6 +65,8 @@ export interface Analysis {
   fileSize: number;
   kind: SourceKind;
   app: string;
+  /** friendly name of the slicer that saved the file, e.g. "OrcaSlicer 2.5.2" */
+  sourceSlicer: string;
   sourcePrinter: string;
   sourcePrinterModel: string;
   sourceBed: [number, number] | null;

@@ -11,7 +11,7 @@ import type { PrinterIndexEntry, PrinterProfile } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PRINTER = "snapmaker-u1";
-const QUICK = ["snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu-lab-x1-carbon"];
+const QUICK = ["snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu-lab-x1-carbon", "bambu-lab-a1", "bambu-lab-p1s", "creality-k2-plus"];
 
 function Logo() {
   return (
@@ -200,7 +200,8 @@ export default function Home() {
         <section className="mb-8 max-w-2xl">
           <h1 className="text-xl font-bold tracking-tight">Move a 3MF project to a different printer</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Drop a MakerWorld, Bambu Studio or OrcaSlicer project, choose the printer you own, and map the colours to its slots.
+            Drop a project from any Bambu Studio or Orca-family slicer, choose the printer you own, and map the colours to its slots.
+            It works in every direction: Bambu to Flashforge, Snapmaker, Creality or Prusa, and back to Bambu again.
             PlateShift swaps in that printer's profiles, keeps the designer's model, painting and print settings, and removes
             anything unsafe for your machine. Everything runs in this browser tab.
           </p>
@@ -230,7 +231,7 @@ export default function Home() {
               <Upload className="mb-3 h-7 w-7 text-primary" />
               <span className="font-medium">{jobs.length ? "Add more 3MF projects" : "Drop your 3MF project here"}</span>
               <span className="mt-1 text-sm text-muted-foreground">or click to choose files · several at once is fine</span>
-              <span className="mt-3 font-mono text-xs text-muted-foreground">MakerWorld · Bambu Studio · OrcaSlicer</span>
+              <span className="mt-3 font-mono text-xs text-muted-foreground">MakerWorld · Bambu Studio · OrcaSlicer · Creality Print · Orca-Flashforge · Snapmaker Orca</span>
               <input
                 id="file-input"
                 ref={inputRef}
@@ -389,11 +390,15 @@ export default function Home() {
             <a className="underline hover:text-foreground" href="https://github.com/SoftFever/OrcaSlicer" target="_blank" rel="noreferrer">
               OrcaSlicer
             </a>{" "}
+            and{" "}
+            <a className="underline hover:text-foreground" href="https://github.com/bambulab/BambuStudio" target="_blank" rel="noreferrer">
+              Bambu Studio
+            </a>{" "}
             system profiles (AGPL-3.0). Conversion approach informed by{" "}
             <a className="underline hover:text-foreground" href="https://github.com/iChristGit/3MF-to-AD5X" target="_blank" rel="noreferrer">
               3MF-to-AD5X
             </a>{" "}
-            (MIT). Not affiliated with Bambu Lab, Snapmaker, Flashforge or MakerWorld. © {new Date().getFullYear()} Jackson Technology Solutions.
+            (MIT). Not affiliated with Bambu Lab, Snapmaker, Flashforge, Creality, Prusa or MakerWorld. © {new Date().getFullYear()} Jackson Technology Solutions.
           </p>
         </div>
       </footer>
@@ -403,8 +408,8 @@ export default function Home() {
 
 function HowItWorks() {
   const steps = [
-    { icon: FolderOpen, title: "Drop the project", text: "Bambu Studio and OrcaSlicer 3MF files, including MakerWorld downloads with several plates and painted colours." },
-    { icon: Cpu, title: "Pick your printer", text: "224 printers from 15 brands. Colours are matched to your slots, and extra colours share the closest slot." },
+    { icon: FolderOpen, title: "Drop the project", text: "3MF projects from Bambu Studio, OrcaSlicer and its forks, including MakerWorld downloads with several plates and painted colours." },
+    { icon: Cpu, title: "Pick your printer", text: "225 printers from 15 brands, in either direction. Colours are matched to your slots, and extra colours share the closest slot." },
     { icon: ShieldCheck, title: "Review and print", text: "Open the new file with File → Open Project, check the warnings in the report, then slice." },
   ];
   return (

@@ -13,6 +13,7 @@
  */
 import { unzipSync, zipSync, strFromU8, strToU8, type Zippable } from "fflate";
 import RULES from "../rules.json";
+import SLICER_KEYS from "./slicer-keys.json";
 import { scanPaint, remapPaintText } from "./paint";
 import type {
   Analysis,
@@ -48,8 +49,36 @@ const RANGES: Record<string, [number | null, number | null]> = RULES.RANGES as a
 const FIX_DEFAULT: Record<string, string> = RULES.FIX_DEFAULT;
 const FIL_OVERRIDES: string[] = RULES.FIL_OVERRIDES;
 const MOTION_RE = /(_speed|_acceleration|_jerk)$/;
+const PLATE_KEYS: Record<string, string> = {
+  "Textured PEI Plate": "textured_plate_temp",
+  "High Temp Plate": "hot_plate_temp",
+  "Cool Plate": "cool_plate_temp",
+  "Engineering Plate": "eng_plate_temp",
+  "Textured Cool Plate": "textured_cool_plate_temp",
+  "Supertack Plate": "supertack_plate_temp",
+};
 const BED_RE = /(cool|hot|textured|textured_cool|supertack)_plate_temp(_initial_layer)?$/;
 const TEMP_KEYS = new Set(["nozzle_temperature", "nozzle_temperature_initial_layer"]);
+// Keys each destination slicer writes into its own project files (taken from projects saved by
+// Bambu Studio 2.9 and OrcaSlicer 2.5). Anything else is a legacy or foreign key; some legacy keys
+// make OrcaSlicer quietly reset the print settings to defaults, so they are never written.
+const KEYSET = { bambu: new Set<string>(SLICER_KEYS.bambu), orca: new Set<string>(SLICER_KEYS.orca) };
+const META_KEYS = new Set(["name", "from", "version", "different_settings_to_system", "print_compatible_printers", "inherits_group"]);
+// Bambu Studio limits that differ from OrcaSlicer's
+const BAMBU_RANGES: Record<string, [number | null, number | null]> = {
+  top_color_penetration_layers: [1, null],
+  bottom_color_penetration_layers: [1, null],
+};
+// What each slicer stamps into the files it saves. OrcaSlicer reads its own tag first and refuses
+// files that claim a newer version than it has, so Orca outputs carry a conservative Orca tag.
+export const STAMP = {
+  bambu: { app: "BambuStudio-02.09.01.70", client: "02.09.01.70" },
+  orca: { app: "BambuStudio-02.08.01.55", client: "02.08.01.55", orca: "2.3.1" },
+};
+export function targetFamily(profile: PrinterProfile): "bambu" | "orca" {
+  return /bambu/i.test(profile.slicer) ? "bambu" : "orca";
+}
+
 const GCODE_CACHE_RE = /^Metadata\/plate_\d+\.(json|gcode)(\.md5)?$/;
 const DROP_FILES = new Set(["Metadata/filament_sequence.json"]);
 
@@ -347,6 +376,36 @@ function detectApp(e: Entries): string {
   return m ? m[1].trim() : "";
 }
 
+function metaValue(e: Entries, name: string): string {
+  const k = findEntry(e, ROOT_MODEL);
+  if (!k) return "";
+  const m = new RegExp(`name="${name}">([^<]+)<`).exec(readHead(e[k]));
+  return m ? m[1].trim() : "";
+}
+
+// Orca-family forks write their own Application name; OrcaSlicer itself writes a Bambu
+// Application string plus a separate "OrcaSlicer" version tag.
+const FORKS: [RegExp, string][] = [
+  [/creality/i, "Creality Print"],
+  [/flash|orca-ff|ffslicer/i, "Orca-Flashforge"],
+  [/snapmaker/i, "Snapmaker Orca"],
+  [/elegoo/i, "ElegooSlicer"],
+  [/anycubic/i, "Anycubic Slicer Next"],
+  [/qidi/i, "QIDI Studio"],
+  [/prusa/i, "PrusaSlicer"],
+  [/orca/i, "OrcaSlicer"],
+  [/bambu/i, "Bambu Studio"],
+];
+export function slicerLabel(app: string, orcaTag: string): string {
+  const ver = (s: string) => {
+    const m = /(\d+)\.(\d+)\.(\d+)(?:\.(\d+))?/.exec(s);
+    return m ? `${+m[1]}.${+m[2]}.${+m[3]}` : "";
+  };
+  if (orcaTag && (!app || /bambu/i.test(app))) return `OrcaSlicer ${ver(orcaTag) || orcaTag}`.trim();
+  for (const [re, label] of FORKS) if (re.test(app)) return `${label} ${ver(app)}`.trim();
+  return app ? app.replace(/-/g, " ") : "";
+}
+
 export function loadSettings(e: Entries): Dict | null {
   const k = findEntry(e, SETTINGS);
   if (!k) return null;
@@ -442,6 +501,7 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
     fileSize: bytes.length,
     kind: "invalid",
     app: "",
+    sourceSlicer: "",
     sourcePrinter: "",
     sourcePrinterModel: "",
     sourceBed: null,
@@ -470,6 +530,8 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   }
   const a = base;
   a.app = detectApp(e);
+  const orcaTag = metaValue(e, "OrcaSlicer");
+  a.sourceSlicer = slicerLabel(a.app, orcaTag);
   const S = loadSettings(e);
   const names = Object.keys(e);
   const isPrusa = names.some((n) => /Slic3r_PE\.config$|PrusaSlicer\.config$/i.test(n));
@@ -478,7 +540,8 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   else if (isPrusa) a.kind = "prusa";
   else if (msKey) a.kind = "bambu";
   else a.kind = "plain";
-  if (/orca/i.test(a.app)) a.kind = a.kind === "bambu" ? "orca" : a.kind;
+  const isOrcaFamily = !!orcaTag || (!!a.app && !/^bambu/i.test(a.app));
+  if (isOrcaFamily && a.kind === "bambu") a.kind = "orca";
 
   a.hasSlicedGcode = names.some((n) => /^Metadata\/plate_\d+\.gcode$/.test(n));
   const thumbs = ["Metadata/plate_1.png", "Metadata/thumbnail.png", "Metadata/plate_1_small.png", "Metadata/top_1.png"];
@@ -487,7 +550,7 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   if (a.kind === "prusa" || a.kind === "plain") {
     a.notes.push(
       a.kind === "prusa"
-        ? "PrusaSlicer project detected. This release converts Bambu Studio and OrcaSlicer projects; open this file in OrcaSlicer first (it imports PrusaSlicer projects), save it as a project, then convert that file."
+        ? "PrusaSlicer project detected. This release converts Bambu Studio and Orca-family projects (OrcaSlicer, Creality Print, Orca-Flashforge, Snapmaker Orca, ElegooSlicer and others). Open this file in OrcaSlicer first (it imports PrusaSlicer projects), save it as a project, then convert that file."
         : "This 3MF contains geometry only, with no slicer settings to carry over. Import it directly in your slicer and pick your printer there."
     );
     return { entries: e, S, analysis: a };
@@ -617,6 +680,30 @@ export function defaultMapping(a: Analysis, slots: number, pruneUnused = true): 
 }
 
 // ---------- conversion ----------
+function setMeta(xml: string, key: string, value: string | null): string {
+  const re = new RegExp(`\\s*<metadata name="${key.replace(/[:]/g, "\\$&")}">[^<]*</metadata>`);
+  if (re.test(xml)) return value === null ? xml.replace(re, "") : xml.replace(re, (m) => m.replace(/>[^<]*</, `>${value}<`));
+  if (value === null) return xml;
+  return xml.replace(/(<model\b[^>]*>)/, `$1\n <metadata name="${key}">${value}</metadata>`);
+}
+
+function stampModel(xml: string, fam: "bambu" | "orca"): string {
+  const b = xml.indexOf("<resources");
+  const head = b >= 0 ? xml.slice(0, b) : xml;
+  const tail = b >= 0 ? xml.slice(b) : "";
+  let h = setMeta(head, "Application", fam === "bambu" ? STAMP.bambu.app : STAMP.orca.app);
+  h = setMeta(h, "OrcaSlicer", fam === "orca" ? STAMP.orca.orca : null);
+  if (!/name="BambuStudio:3mfVersion"/.test(h)) h = setMeta(h, "BambuStudio:3mfVersion", "1");
+  return h + tail;
+}
+
+function stampSliceInfo(xml: string, fam: "bambu" | "orca"): string {
+  let x = xml.replace(/(<header_item key="X-BBL-Client-Version" value=")[^"]*(")/, `$1${fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client}$2`);
+  x = x.replace(/\s*<header_item key="OrcaSlicer-Version" value="[^"]*"\/>/, "");
+  if (fam === "orca") x = x.replace(/(<header_item key="X-BBL-Client-Version"[^>]*\/>)/, `$1\n    <header_item key="OrcaSlicer-Version" value="${STAMP.orca.orca}"/>`);
+  return x;
+}
+
 function buildDiffLists(copied: Set<string>, nfil: number): string[] {
   const proc = [...copied].filter((k) => S_PRINT.has(k) || S_EXTRA_PROC.has(k) || k === "best_object_pos").sort();
   const fil = [...copied].filter((k) => S_FIL.has(k)).sort();
@@ -625,7 +712,7 @@ function buildDiffLists(copied: Set<string>, nfil: number): string[] {
 
 export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOptions): ConvertResult {
   const { entries: e, analysis: a } = loaded;
-  if (a.kind !== "bambu" && a.kind !== "orca") throw new Error("Only Bambu Studio and OrcaSlicer projects can be converted in this release.");
+  if (a.kind !== "bambu" && a.kind !== "orca") throw new Error("Only Bambu Studio and Orca-family projects can be converted in this release.");
   const S: Dict = loaded.S || {};
   const lines: ReportLine[] = [];
   const kept: string[] = [], replaced: string[] = [], discarded: string[] = [], speeds: string[] = [];
@@ -837,12 +924,82 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     info("Only one filament remains, so the prime tower was switched off.");
   }
 
+  // ---- bed / build plate: every slot needs a temperature for the chosen plate ----
+  {
+    const srcBed = String(first(S.curr_bed_type ?? "") || "");
+    const cands = [srcBed, String(first(profile.machineValues.default_bed_type ?? "") || ""), String(first(T.curr_bed_type ?? "") || ""), ...Object.keys(PLATE_KEYS)].filter((b, i, arr) => b && PLATE_KEYS[b] && arr.indexOf(b) === i);
+    const ok = (b: string) => {
+      const k = PLATE_KEYS[b];
+      const v = R[k];
+      if (!Array.isArray(v) || v.length < nOut) return false;
+      return v.slice(0, nOut).every((x: any) => (num(x) || 0) > 0);
+    };
+    const bed = cands.find(ok);
+    if (bed) {
+      R.curr_bed_type = bed;
+      if (srcBed && bed !== srcBed) warn(`Build plate changed from “${srcBed}” to “${bed}”: the ${profile.model} filament presets have no bed temperature for the original plate. Fit that plate before printing, or pick another plate in the slicer.`);
+      else if (!srcBed) info(`Build plate set to “${bed}”.`);
+    } else {
+      warn(`No build plate suits every filament in the ${profile.model} presets. Pick a plate in the slicer and check the bed temperatures.`);
+    }
+  }
+
   // painted supports need support generation on
   const hasPaintedSupports = Object.keys(e).some((n) => n.toLowerCase().endsWith(".model") && /paint_supports="[^"]/.test(dec(e[n])));
   if (hasPaintedSupports && ["0", "false"].includes(String(first(R.enable_support ?? "0")))) {
     R.enable_support = "1";
     copied.add("enable_support");
     info("The model has hand-painted supports, so support generation was switched on.");
+  }
+  // ---- keep only keys the destination slicer understands ----
+  const fam = targetFamily(profile);
+  const allowed = KEYSET[fam];
+  const dropped0: string[] = [];
+  for (const k of Object.keys(R)) {
+    if (META_KEYS.has(k) || allowed.has(k)) continue;
+    delete R[k];
+    copied.delete(k);
+    dropped0.push(k);
+  }
+  if (fam === "bambu") {
+    // Bambu Studio only accepts line widths in mm; OrcaSlicer allows % of the nozzle diameter
+    const nd = num(first(R.nozzle_diameter)) || 0.4;
+    for (const k of Object.keys(R)) {
+      if (!/(^|_)line_width$/.test(k)) continue;
+      const conv = (x: any) => {
+        const t = String(x);
+        if (!t.endsWith("%")) return x;
+        const pct = parseFloat(t);
+        return isFinite(pct) ? fmt((pct / 100) * nd, 3) : x;
+      };
+      R[k] = Array.isArray(R[k]) ? R[k].map(conv) : conv(R[k]);
+    }
+    for (const [k, [lo, hi]] of Object.entries(BAMBU_RANGES)) {
+      if (!(k in R)) continue;
+      const fix = (x: any) => {
+        const n = num(x);
+        if (n === null) return x;
+        if (lo !== null && n < lo) return String(lo);
+        if (hi !== null && n > hi) return String(hi);
+        return x;
+      };
+      R[k] = Array.isArray(R[k]) ? R[k].map(fix) : fix(R[k]);
+    }
+  }
+  // OrcaSlicer refuses single-nozzle mixes where a filament's nozzle temperature sits outside
+  // another filament's recommended range (unless the user turns that safety check off).
+  if (fam === "orca" && profile.extruders < 2 && nOut > 1) {
+    const used = reps.map((r, j) => ({ j, r })).filter((x) => x.r && (a.filaments[x.r - 1]?.used || !a.usedKnown));
+    const t = (k: string, j: number) => num(Array.isArray(R[k]) ? R[k][j] : R[k]) || 0;
+    const bad: string[] = [];
+    for (let x = 0; x < used.length; x++)
+      for (let y = x + 1; y < used.length; y++) {
+        const i = used[x].j, j = used[y].j;
+        const ok = (p: number, q: number) => t("nozzle_temperature", p) >= t("nozzle_temperature_range_low", q) && t("nozzle_temperature", p) <= t("nozzle_temperature_range_high", q);
+        if (!(ok(i, j) && ok(j, i))) bad.push(`slot ${i + 1} ${outTypes[i]} ${t("nozzle_temperature", i)} °C vs slot ${j + 1} ${outTypes[j]} ${t("nozzle_temperature", j)} °C`);
+      }
+    if (bad.length)
+      warn(`OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges (${bad.slice(0, 2).join("; ")}). Use materials that print at similar temperatures, or turn on Preferences → Control → Slicing → Remove mixed temperature restriction if you accept the risk.`);
   }
   R.different_settings_to_system = buildDiffLists(copied, nOut);
 
@@ -860,6 +1017,8 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   let rootText = dec(e[rootKey]);
 
   const boxes = new Map<number, [number, number, number, number] | null>();
+  // individual object footprints, so the prime tower may sit in a gap between objects
+  const parts = new Map<number, [number, number, number, number][]>();
   let itemBox: Map<string, [number, number, number, number]> | null = null;
   pids.forEach((pid, i) => {
     let fit: [number, number, number, number] | null = null;
@@ -868,6 +1027,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       try {
         const j = JSON.parse(dec(e[pj]));
         const bo = (j.bbox_objects || []).map((o: any) => o.bbox).filter(Boolean);
+        if (bo.length) parts.set(pid, bo.map((b: number[]) => [b[0], b[1], b[2], b[3]]));
         if (bo.length) fit = [Math.min(...bo.map((b: number[]) => b[0])), Math.min(...bo.map((b: number[]) => b[1])), Math.max(...bo.map((b: number[]) => b[2])), Math.max(...bo.map((b: number[]) => b[3]))];
       } catch { /* ignore */ }
     }
@@ -877,6 +1037,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       const bs = ids.map((id) => itemBox!.get(id)).filter(Boolean) as [number, number, number, number][];
       if (bs.length) {
         const [ox, oy] = plateOrigin(i, pids.length, srcArea.w, srcArea.h);
+        parts.set(pid, bs.map((b) => [b[0] - ox, b[1] - oy, b[2] - ox, b[3] - oy]));
         fit = [Math.min(...bs.map((b) => b[0])) - ox, Math.min(...bs.map((b) => b[1])) - oy, Math.max(...bs.map((b) => b[2])) - ox, Math.max(...bs.map((b) => b[3])) - oy];
       }
     }
@@ -899,19 +1060,60 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   });
   if (multi) info(`${pids.length} plates: each plate was re-centred on the ${profile.model} bed and laid out on its plate grid.`);
 
-  // prime tower position per plate
+  // prime tower: its width is tuned per printer (toolchangers use small towers, single-nozzle
+  // MMU printers wide ones), so the destination printer's width is used
+  if (T.prime_tower_width !== undefined && S.printer_settings_id !== profile.machine) {
+    if (String(first(S.prime_tower_width ?? "")) && String(first(S.prime_tower_width)) !== String(first(T.prime_tower_width)))
+      info(`Prime tower width set to the ${profile.model} default (${first(T.prime_tower_width)} mm).`);
+    R.prime_tower_width = T.prime_tower_width;
+  }
   const tw = num(first(R.prime_tower_width)) || 35;
-  for (const [ai, ax] of [[0, "x"], [1, "y"]] as const) {
-    const k = "wipe_tower_" + ax;
-    const sv = S[k];
-    if (sv === undefined) continue;
-    const arr = Array.isArray(sv) ? sv : [sv];
-    const lo = ai === 0 ? dstArea.minx : dstArea.miny;
-    const hi = (ai === 0 ? dstArea.minx + dstArea.w : dstArea.miny + dstArea.h) - tw - 4;
-    R[k] = pids.map((pid, i) => {
-      const v = num(arr[Math.min(i, arr.length - 1)]) ?? 15;
-      return fmt(Math.min(Math.max(v + shifts.get(pid)![ai], lo + 4), hi), 2);
+  const towerDepth = Math.max(tw, 60);
+  if (S.wipe_tower_x !== undefined || S.wipe_tower_y !== undefined) {
+    const ax = Array.isArray(S.wipe_tower_x) ? S.wipe_tower_x : [S.wipe_tower_x ?? 15];
+    const ay = Array.isArray(S.wipe_tower_y) ? S.wipe_tower_y : [S.wipe_tower_y ?? 15];
+    // keep well clear of the edges: slicers grow the tower (brim, skirt, extra wipe depth) beyond
+    // its nominal footprint, and multi-nozzle printers can only reach part of the bed with each nozzle
+    // try a generous footprint first, then tighter ones so small beds still find a free spot
+    const tries: [number, number][] = [[15, towerDepth], [10, Math.max(tw, 45)], [6, tw]];
+    let moved = 0;
+    const outX: string[] = [], outY: string[] = [];
+    pids.forEach((pid, i) => {
+      const [dx, dy] = shifts.get(pid)!;
+      const sx = num(ax[Math.min(i, ax.length - 1)]) ?? 15, sy = num(ay[Math.min(i, ay.length - 1)]) ?? 15;
+      const fit = boxes.get(pid);
+      const obj = fit ? [fit[0] + dx - 5, fit[1] + dy - 5, fit[2] + dx + 5, fit[3] + dy + 5] : null;
+      let pick: [number, number] | undefined, first0: [number, number] | undefined, fallback: [number, number] | undefined;
+      for (const [m, depth] of tries) {
+        const xlo = dstArea.minx + m, xhi = dstArea.minx + dstArea.w - tw - 2 * m;
+        const ylo = dstArea.miny + m, yhi = dstArea.miny + dstArea.h - depth - m;
+        const clampX = (v: number) => Math.min(Math.max(v, xlo), xhi);
+        const clampY = (v: number) => Math.min(Math.max(v, ylo), yhi);
+        const pb = (parts.get(pid) || (obj ? [obj] : [])).map((b) => (b === obj ? b : [b[0] + dx - 5, b[1] + dy - 5, b[2] + dx + 5, b[3] + dy + 5]));
+        const hits = (x: number, y: number) => pb.some((o) => x < o[2] && x + tw > o[0] && y < o[3] && y + depth > o[1]);
+        const cands: [number, number][] = [
+          [clampX(sx + dx), clampY(sy + dy)],
+          [clampX(sx), clampY(sy)],
+          [clampX(sx + dx), clampY(obj ? obj[3] : yhi)], [clampX(sx + dx), clampY(obj ? obj[1] - depth : ylo)],
+          [clampX(obj ? obj[2] : xhi), clampY(sy + dy)], [clampX(obj ? obj[0] - tw : xlo), clampY(sy + dy)],
+          [xhi, yhi], [xlo, yhi], [xhi, ylo], [xlo, ylo],
+        ];
+        first0 ??= cands[0];
+        const overlap = ([x, y]: [number, number]) =>
+          pb.reduce((a, o) => a + Math.max(0, Math.min(x + tw, o[2]) - Math.max(x, o[0])) * Math.max(0, Math.min(y + depth, o[3]) - Math.max(y, o[1])), 0);
+        fallback ??= cands.slice().sort((p1, p2) => overlap(p1) - overlap(p2))[0];
+        pick = cands.find(([x, y]) => !hits(x, y));
+        if (pick) break;
+      }
+      const [x, y] = pick || fallback!;
+      if (pick && (pick[0] !== first0![0] || pick[1] !== first0![1])) moved++;
+      if (!pick && R.enable_prime_tower !== "0") warn(`${multi ? `Plate ${pid}: ` : ""}the model leaves no clear spot for the prime tower; it was put where it overlaps least. Check it in the slicer, or scale or rotate the model, before slicing.`);
+      outX.push(fmt(x, 2));
+      outY.push(fmt(y, 2));
     });
+    R.wipe_tower_x = outX;
+    R.wipe_tower_y = outY;
+    if (moved && ["1", "true"].includes(String(first(R.enable_prime_tower ?? "0")))) info(`The prime tower was moved to a free corner on ${moved} plate${moved > 1 ? "s" : ""} so it does not overlap the model.`);
   }
 
   const guessPlate = (x: number, y: number): number | null => {
@@ -1001,7 +1203,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       continue;
     }
     if (name === rootKey) {
-      let txt = rootText;
+      let txt = stampModel(rootText, fam);
       if (paintNeedsRemap && /paint_color=|mmu_segmentation=/.test(txt)) {
         const r = remapPaintText(txt, newIdx);
         txt = r.text;
@@ -1019,12 +1221,17 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
         continue;
       }
     }
+    if (name === "Metadata/slice_info.config") {
+      outFiles[name] = strToU8(stampSliceInfo(dec(data), fam));
+      continue;
+    }
     if (name === "Metadata/custom_gcode_per_layer.xml") {
       outFiles[name] = strToU8(dec(data).replace(/(<layer\b[^>]*\bextruder=")(\d+)(")/g, (_m, a1, v, c) => a1 + String(newIdx(parseInt(v))) + c));
       continue;
     }
     outFiles[name] = /\.(png|jpe?g)$/i.test(name) ? [data, { level: 0 }] : data;
   }
+  R.version = fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client;
   outFiles[SETTINGS] = strToU8(JSON.stringify(R, null, 4));
   if (removed.some((r) => r.endsWith(".gcode"))) info("Removed the pre-sliced G-code for the original printer. Slice again before printing.");
   if (paintRemapped) info(`Re-mapped painted colours on ${paintRemapped.toLocaleString()} triangles to the new slot numbers.`);

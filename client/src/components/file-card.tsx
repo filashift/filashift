@@ -113,8 +113,8 @@ export function FileCard({
             {job.name}
           </h3>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {job.status === "reading" ? "Reading…" : a ? KIND_LABEL[a.kind] : ""}
-            {a?.app ? <span className="font-mono text-xs"> · {a.app.replace(/-/g, " ")}</span> : null}
+            {job.status === "reading" ? "Reading…" : a ? (convertible && a.sourceSlicer ? `${a.sourceSlicer.replace(/\s[\d.]+$/, "")} project` : KIND_LABEL[a.kind]) : ""}
+            {a?.sourceSlicer && /\d/.test(a.sourceSlicer) ? <span className="font-mono text-xs"> · v{a.sourceSlicer.match(/[\d.]+$/)?.[0]}</span> : null}
           </p>
           {a && convertible && (
             <div className="mt-2 flex flex-wrap gap-1.5 text-xs">

@@ -1,8 +1,9 @@
 """Build the printer-profile database from OrcaSlicer system profiles (AGPL-3.0 data, used as factual preset names/values).
 Output: client/public/profiles/index.json + client/public/profiles/<id>.json"""
 import json, os, re, glob, sys
-ROOT = sys.argv[1]  # .../resources/profiles
+ROOT = sys.argv[1]  # OrcaSlicer .../resources/profiles
 OUT = sys.argv[2]
+BAMBU_ROOT = sys.argv[3] if len(sys.argv) > 3 else None  # Bambu Studio .../resources/profiles (used for Bambu Lab printers)
 os.makedirs(OUT, exist_ok=True)
 
 VENDORS = ["BBL", "Snapmaker", "Flashforge", "Creality", "Elegoo", "Anycubic", "Prusa", "Qidi", "Sovol", "Voron", "Anker", "Artillery", "Kingroon", "Ratrig", "UltiMaker"]
@@ -95,11 +96,12 @@ def compatible(P, pick, M):
 
 index = []
 for vendor in VENDORS:
-    vdir = os.path.join(ROOT, vendor)
+    vroot = BAMBU_ROOT if (vendor == "BBL" and BAMBU_ROOT) else ROOT
+    vdir = os.path.join(vroot, vendor)
     if not os.path.isdir(vdir): continue
     pool = load_dir(vdir)
-    res = resolver(pool, lib)
-    vj = json.load(open(os.path.join(ROOT, vendor + ".json")))
+    res = resolver(pool, lib) if vroot == ROOT else resolver(pool)
+    vj = json.load(open(os.path.join(vroot, vendor + ".json")))
     models = [m["name"] for m in vj.get("machine_model_list", [])]
     machines = {n: j for n, j in pool.get("machine", {}).items() if str(j.get("instantiation")) == "true"}
     for model in models:
@@ -175,7 +177,8 @@ for vendor in VENDORS:
         rec = {"id": pid, "vendor": label, "model": model, "short": short, "machine": pick, "printer_model": M.get("printer_model", model),
                "printer_variant": M.get("printer_variant", "0.4"), "bed": bed, "height": float(M.get("printable_height", 0) or 0),
                "extruders": extruders, "slots": slots, "slotUnit": unit, "minFilaments": MIN_FIL.get(model, 0),
-               "flavor": M.get("gcode_flavor", ""), "slicer": "Bambu Studio or OrcaSlicer" if vendor == "BBL" else "OrcaSlicer",
+               "flavor": M.get("gcode_flavor", ""), "slicer": "Bambu Studio" if vendor == "BBL" else "OrcaSlicer",
+               "profileVersion": vj.get("version", ""),
                "popular": model in POPULAR, "defaultProcess": dflt,
                "machineValues": machine_values, "processes": proc_out, "filaments": fil_out}
         json.dump(rec, open(os.path.join(OUT, pid + ".json"), "w"), separators=(",", ":"))
