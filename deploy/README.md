@@ -2,6 +2,18 @@
 
 PlateShift is a static site: HTML, JavaScript and JSON printer profiles (~18 MB). Conversion runs in the visitor's browser, so the server only hands out files. No Node.js, database or backend process is needed on the server.
 
+## DigitalOcean quick path
+1. Create Droplet: Ubuntu 24.04 LTS, Basic, Regular SSD, the smallest size ($4–6/mo) is enough; region Chicago isn't offered, so pick New York or Toronto (closest to Wisconsin).
+2. Authentication: choose **SSH Key** (add yours).
+3. Advanced options → **Add initialization scripts** → paste `digitalocean-cloud-init.yaml`.
+4. Create, wait ~3 minutes, then upload the site (replace IP):
+   ```bash
+   scp plateshift-site.zip root@YOUR_DROPLET_IP:/tmp/
+   ssh root@YOUR_DROPLET_IP 'unzip -o /tmp/plateshift-site.zip -d /var/www/plateshift'
+   ```
+5. Open http://YOUR_DROPLET_IP — PlateShift should load.
+6. Domain + HTTPS: add an A record pointing your domain at the droplet IP, then on the server edit `/etc/caddy/Caddyfile`, replace `:80` with the domain and run `systemctl reload caddy`. Caddy obtains the certificate automatically.
+
 ## 1. Server
 Any small Linux VPS (1 vCPU, 512 MB–1 GB RAM, Ubuntu 24.04 LTS) is plenty. Point your domain's DNS A record (and AAAA for IPv6) at the server's IP address.
 

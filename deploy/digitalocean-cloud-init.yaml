@@ -1,0 +1,43 @@
+#cloud-config
+# Paste this into DigitalOcean → Create Droplet → Advanced options → "Add initialization scripts (free)".
+# It installs Caddy, opens only SSH/HTTP/HTTPS, enables automatic security updates,
+# and serves /var/www/plateshift on port 80 (by IP) until you add a domain.
+package_update: true
+package_upgrade: true
+packages:
+  - caddy
+  - unzip
+  - ufw
+  - unattended-upgrades
+write_files:
+  - path: /etc/caddy/Caddyfile
+    content: |
+      # To use a domain with automatic HTTPS: replace ":80" with your domain
+      # (e.g. plateshift.example.com), then run: systemctl reload caddy
+      :80 {
+        root * /var/www/plateshift
+        encode zstd gzip
+        file_server
+        @assets path /assets/*
+        header @assets Cache-Control "public, max-age=31536000, immutable"
+        @profiles path /profiles/*
+        header @profiles Cache-Control "public, max-age=86400"
+        header /index.html Cache-Control "no-cache"
+        header {
+          X-Content-Type-Options nosniff
+          Referrer-Policy strict-origin-when-cross-origin
+          -Server
+        }
+      }
+  - path: /var/www/plateshift/index.html
+    content: |
+      <!doctype html><title>PlateShift</title><p>Server ready. Upload plateshift-site.zip to finish.</p>
+runcmd:
+  - ufw allow OpenSSH
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+  - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  - systemctl enable --now caddy
+  - systemctl reload caddy
