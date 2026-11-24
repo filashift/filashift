@@ -15,6 +15,11 @@ export interface PrinterIndexEntry {
   popular: boolean;
   processes: number;
   filamentTypes: string[];
+  /** nozzle sizes with their own presets; variant profiles are `<id>-n02`, `-n06`, `-n08` */
+  nozzles?: string[];
+  /** set on profile files: nozzle of this variant and the base printer id */
+  nozzle?: string;
+  base?: string;
 }
 
 export interface ProcessPreset {

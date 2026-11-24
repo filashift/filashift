@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { cn } from "@/lib/utils";
-import { amazonSearch, colourHex, hasAnyAffiliate, loadShopConfig, loadShopData, readQuery, shopUrl, type Item, type ShopConfig, type ShopData } from "@/lib/shop";
+import { amazonSearch, colourHex, storeCode, hasAnyAffiliate, loadShopConfig, loadShopData, readQuery, shopUrl, type Item, type ShopConfig, type ShopData } from "@/lib/shop";
 
 type Data = ShopData;
 type Config = ShopConfig;
@@ -258,6 +258,7 @@ export default function Filament() {
 
 function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
   const link = shopUrl(it.u, cfg);
+  const code = storeCode(it.u, cfg);
   const off = it.was ? Math.round((1 - it.p / it.was) * 100) : 0;
   const colours = it.c.slice(0, 6);
   return (
@@ -292,6 +293,12 @@ function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
             return h ? <span key={i} title={c} className="h-3 w-3 rounded-full border border-black/15 dark:border-white/20" style={{ background: h }} /> : null;
           })}
         </div>
+        {code && (
+          <div className="mt-1.5 text-xs" data-testid={`code-offer-${rank}`}>
+            <span className="text-muted-foreground">Discount code at checkout:</span>{" "}
+            <span className="select-all rounded border border-dashed border-primary/50 bg-primary/5 px-1.5 py-0.5 font-mono font-medium text-primary">{code}</span>
+          </div>
+        )}
       </div>
       <div className="text-right">
         <div className="font-mono text-base font-semibold tabular-nums">{usd(it.ppk)}<span className="text-xs font-normal text-muted-foreground">/kg</span></div>

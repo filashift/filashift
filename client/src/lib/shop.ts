@@ -27,11 +27,12 @@ export type ShopData = { updated: string; stores: Record<string, number | string
  *   "amazonTag": "filashift-20",
  *   "affiliates": {
  *     "us.polymaker.com": { "params": { "ref": "abc" } },               // appended to the product URL
- *     "us.elegoo.com":    { "template": "https://x.sjv.io/c/1/2/3?u={url}" } // {url} = encoded product URL
+ *     "us.elegoo.com":    { "template": "https://x.sjv.io/c/1/2/3?u={url}" }, // {url} = encoded product URL
+ *     "store.sunlu.com":  { "params": { "sca_ref": "1.abc" }, "code": "ABC" }   // code = discount code shown with offers
  *   }
  * }
  */
-export type Affiliate = { params?: Record<string, string>; template?: string };
+export type Affiliate = { params?: Record<string, string>; template?: string; code?: string };
 export type ShopConfig = { amazonTag?: string; affiliates?: Record<string, Affiliate> };
 
 let dataP: Promise<ShopData> | null = null;
@@ -75,6 +76,8 @@ export function shopUrl(url: string, cfg: ShopConfig): { href: string; sponsored
   for (const [k, v] of Object.entries(a.params || {})) u.searchParams.set(k, v);
   return { href: u.toString(), sponsored: true };
 }
+/** store discount code (affiliate coupon) shown next to that store's offers */
+export const storeCode = (url: string, cfg: ShopConfig) => cfg.affiliates?.[hostOf(url)]?.code || "";
 export const hasAnyAffiliate = (cfg: ShopConfig) => Object.keys(cfg.affiliates || {}).length > 0;
 
 export function amazonSearch(q: string, tag: string) {

@@ -13,6 +13,7 @@ import {
   matchOffers,
   nearestName,
   shopUrl,
+  storeCode,
   type Match,
   type ShopConfig,
   type ShopData,
@@ -74,6 +75,7 @@ function NeedRow({ need, data, cfg, testId }: { need: Need; data: ShopData | nul
   const fam = familyOf(need.type);
   const word = nearestName(need.color);
   const matches: Match[] = data ? matchOffers(data.items, need.type, need.color, 2) : [];
+  const codes = [...new Set(matches.map((m) => storeCode(m.item.u, cfg) && `${m.item.r}: ${storeCode(m.item.u, cfg)}`).filter(Boolean))];
   const more = filamentLink({ f: fam === "Other" ? "All" : fam, q: word });
   return (
     <li className="py-2.5" data-testid={testId}>
@@ -108,6 +110,13 @@ function NeedRow({ need, data, cfg, testId }: { need: Need; data: ShopData | nul
         </ul>
       ) : (
         <p className="mt-1 text-xs text-muted-foreground">No close match in stock right now.</p>
+      )}
+      {codes.length > 0 && (
+        <p className="mt-1 text-xs text-muted-foreground" data-testid={`${testId}-code`}>
+          Discount code {codes.map((c, i) => (
+            <span key={i} className="mr-1 select-all rounded border border-dashed border-primary/50 px-1 font-mono text-primary">{c}</span>
+          ))}
+        </p>
       )}
       <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
         <Link href={more} className="text-primary hover:underline" data-testid={`${testId}-more`}>

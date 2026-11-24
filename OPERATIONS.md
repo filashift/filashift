@@ -63,3 +63,20 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 - Reports land in `/var/lib/filashift/reports/<id>.json` with `"status": "new"`. There is no outgoing email: the Ops Teammate checks daily (`ls /var/lib/filashift/reports`), triages, sets `status` to `seen`/`fixed`, and tells David about anything needing a reply (reply from support@jacksoncgc.com). Delete reports older than 12 months (privacy page promise): `find /var/lib/filashift/reports -name '*.json' -mtime +365 -delete`.
 - The 3MF file is never sent; "conversion details" (file name, source/target, counts, warnings, browser) are included only if the visitor leaves the box ticked.
 - Pages: /about, /privacy, /terms, /contact (client/src/pages/info.tsx). Privacy page states no analytics, no cookies, no access logs — keep Caddy without a `log` directive, and update the page if that ever changes.
+
+## Affiliates live (Nov 23 2026)
+
+- Overture: affiliate ID 324, params `aff=324&utm_source=affiliate&utm_medium=referral&utm_campaign=filashift` on www.overture3d.com links.
+- Sunlu (UpPromote): `sca_ref=12828197.QbmatDQcgu` + sunluaffiliate UTM params on store.sunlu.com links; discount code `QBMATDQCGU` shown next to Sunlu offers (`"code"` field). Sunlu affiliate dashboard: https://af.uppromote.com/sunlu/register?ref=QbmatDQcgu&p=8208
+- Amazon Associates: `filashift-20`.
+- Backup of the previous config: `/var/www/filashift-data/config.json.bak`.
+
+## Nozzle variants
+
+- `scripts/build_profiles.py` now also writes `<id>-n02/-n06/-n08.json` from each printer's own 0.2/0.6/0.8 mm presets (index entries list `nozzles`). Rebuild with OrcaSlicer 2.5.2 profiles (`/tmp/orca252/resources/profiles`) + Bambu Studio (`/tmp/slicers/b/squashfs-root/resources/profiles`).
+- When the nozzle differs from the project's, layer height scales with it and line widths/layer heights come from the preset; the report says so. Prime tower depth estimate grows for thin layers.
+- Tested: 0.6 AD5X/U1, 0.8 P1S, 0.2 A1 mini slice in the CLIs; a busy 4-colour plate on the 0.2 mm A1 mini can leave too little room for the tower (warned in the report).
+
+## Installable app
+
+- `client/public/manifest.webmanifest`, `sw.js` (registered only on filashift.com over HTTPS). Pages are network-first with an offline copy; /assets, /fonts and /profiles are cached; /data and /api are never cached. Bump `V` in sw.js to force-clear caches. OG image `og-image.png`, JSON-LD in index.html.

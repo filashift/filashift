@@ -22,4 +22,9 @@ if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) {
   document.documentElement.classList.add("dark");
 }
 
+// installable app: only on the real site (not previews or local files)
+if ("serviceWorker" in navigator && location.protocol === "https:" && /(^|\.)filashift\.com$/.test(location.hostname)) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
+
 createRoot(document.getElementById("root")!).render(<App />);

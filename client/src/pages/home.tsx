@@ -37,6 +37,8 @@ const tick = () => new Promise((r) => setTimeout(r, 30));
 export default function Home() {
   const [printers, setPrinters] = useState<PrinterIndexEntry[]>([]);
   const [targetId, setTargetId] = useState(DEFAULT_PRINTER);
+  const [nozzle, setNozzle] = useState("0.4");
+  const lastBase = useRef("");
   const [profile, setProfile] = useState<PrinterProfile | null>(null);
   const [slots, setSlots] = useState(4);
   const [keepSpeeds, setKeepSpeeds] = useState(false);
@@ -58,21 +60,29 @@ export default function Home() {
   }, []);
 
   const target = printers.find((p) => p.id === targetId);
+  const nozzles = target?.nozzles || ["0.4"];
+  useEffect(() => {
+    if (target && !nozzles.includes(nozzle)) setNozzle("0.4");
+  }, [targetId, printers]);
+  const nz = nozzles.includes(nozzle) ? nozzle : "0.4";
+  const profileId = nz === "0.4" ? targetId : `${targetId}-n${nz.replace(".", "")}`;
 
   useEffect(() => {
     let live = true;
     setProfile(null);
-    getProfile(targetId)
+    getProfile(profileId)
       .then((p) => {
         if (!live) return;
         setProfile(p);
-        setSlots(p.slots);
+        // switching only the nozzle keeps a slot count the visitor changed
+        if (lastBase.current !== (p.base || p.id)) setSlots(p.slots);
+        lastBase.current = p.base || p.id;
       })
       .catch((e) => live && setLoadErr(e.message));
     return () => {
       live = false;
     };
-  }, [targetId]);
+  }, [profileId]);
 
   // reset mappings when the target or slot count changes
   useEffect(() => {
@@ -83,7 +93,7 @@ export default function Home() {
         return { ...j, map: defaultMapping(j.analysis, slots), result: undefined, status: j.status === "error" ? j.status : "ready" };
       }),
     );
-  }, [slots, targetId]);
+  }, [slots, targetId, nz]);
 
   const patch = (id: string, p: Partial<Job>) => setJobs((js) => js.map((j) => (j.id === id ? { ...j, ...p } : j)));
 
@@ -299,6 +309,31 @@ export default function Home() {
                 </div>
               </div>
 
+              {nozzles.length > 1 && (
+                <div>
+                  <h2 className="mb-2 text-sm font-medium">Nozzle</h2>
+                  <div className="inline-flex rounded-lg border border-border p-0.5" role="radiogroup" aria-label="Nozzle diameter">
+                    {nozzles.map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        role="radio"
+                        aria-checked={d === nz}
+                        onClick={() => setNozzle(d)}
+                        className={cn(
+                          "rounded-md px-3 py-1 font-mono text-xs transition-colors",
+                          d === nz ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                        )}
+                        data-testid={`nozzle-${d}`}
+                      >
+                        {d} mm
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1.5 text-xs text-muted-foreground">The nozzle fitted to your printer. Layer height and line widths follow it.</p>
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="slots" className="text-sm font-medium">
                   Filament slots
@@ -349,8 +384,8 @@ export default function Home() {
                   <dt className="text-muted-foreground">Open in</dt>
                   <dd className="text-right">{target.slicer}</dd>
                   <dt className="text-muted-foreground">Profile</dt>
-                  <dd className="truncate text-right font-mono" title={target.machine}>
-                    {profile ? target.machine : "loading…"}
+                  <dd className="truncate text-right font-mono" title={profile?.machine || target.machine}>
+                    {profile ? profile.machine : "loading…"}
                   </dd>
                 </dl>
               )}

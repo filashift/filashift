@@ -1,7 +1,7 @@
 import { openReport } from "@/components/report-dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Lock, Moon, Sun } from "lucide-react";
+import { Download, Lock, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -109,6 +109,7 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
               <span className="mr-2 hidden lg:inline">Files stay on your device</span>
             </>
           )}
+          <InstallButton />
           <Button size="icon" variant="ghost" onClick={() => setDark((d) => !d)} aria-label="Toggle dark mode" data-testid="button-theme">
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
@@ -166,5 +167,46 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
         </div>
       </div>
     </footer>
+  );
+}
+
+// "Install app" appears only when the browser offers installation (Chrome, Edge, Android)
+let deferred: any = null;
+const listeners = new Set<() => void>();
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferred = e;
+    listeners.forEach((f) => f());
+  });
+  window.addEventListener("appinstalled", () => {
+    deferred = null;
+    listeners.forEach((f) => f());
+  });
+}
+function InstallButton() {
+  const [, force] = useState(0);
+  useEffect(() => {
+    const f = () => force((n) => n + 1);
+    listeners.add(f);
+    return () => void listeners.delete(f);
+  }, []);
+  if (!deferred) return null;
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      className="mr-1 h-8 gap-1.5 text-xs"
+      onClick={async () => {
+        const d = deferred;
+        deferred = null;
+        force((n) => n + 1);
+        await d?.prompt?.();
+      }}
+      data-testid="button-install"
+    >
+      <Download className="h-3.5 w-3.5" />
+      <span className="hidden sm:inline">Install app</span>
+    </Button>
   );
 }

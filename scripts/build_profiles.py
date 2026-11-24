@@ -94,6 +94,7 @@ def compatible(P, pick, M):
     if cp: return pick in cp
     return cond_ok(P.get("compatible_printers_condition", ""), M)
 
+NOZZLES = ("0.2", "0.4", "0.6", "0.8")
 index = []
 for vendor in VENDORS:
     vroot = BAMBU_ROOT if (vendor == "BBL" and BAMBU_ROOT) else ROOT
@@ -109,80 +110,88 @@ for vendor in VENDORS:
         cands = [n for n, j in machines.items() if j.get("printer_model") == model or res(n, "machine").get("printer_model") == model]
         def nz(n):
             m = res(n, "machine"); d = m.get("nozzle_diameter", ["0"]); return str(d[0] if isinstance(d, list) else d), m
-        pick = None
+        picks = {}
         for n in cands:
             d, m = nz(n)
             v = str(m.get("printer_variant", ""))
-            if d in ("0.4",) and "+" not in v and "+" not in n: pick = n; break
-        if not pick: continue
-        M = res(pick, "machine")
-        # processes compatible
-        procs = []
-        for pn, pj in pool.get("process", {}).items():
-            if str(pj.get("instantiation")) != "true": continue
-            P = res(pn, "process")
-            if compatible(P, pick, M):
-                try: lh = float(P.get("layer_height", "0"))
-                except: continue
-                procs.append((pn, lh, P))
-        if not procs: continue
-        dflt = M.get("default_print_profile", "")
-        # filaments compatible
-        fils = {}
-        for fn, fj in list(pool.get("filament", {}).items()):
-            if str(fj.get("instantiation")) != "true": continue
-            F = res(fn, "filament")
-            if not compatible(F, pick, M) or not (F.get("compatible_printers") or F.get("compatible_printers_condition")): continue
-            t = (F.get("filament_type") or ["PLA"]); t = t[0] if isinstance(t, list) else t
-            fils.setdefault(t.upper(), []).append((fn, F))
-        def score(fn):
-            s = 0; l = fn.lower()
-            if "generic" in l: s -= 3
-            if "basic" in l: s -= 2
-            for bad in ("silk", "matte", "hf", "high speed", "cf", "gf", "translucent", "marble", "sparkle", "glow", "wood", "galaxy", "metal", "aero", "lite", "tough", "+", "pro", "@0.2", "support for", "rapid", "snapspeed"):
-                if bad in l: s += 1
-            return (s, len(fn))
-        dff = M.get("default_filament_profile") or []
-        dff = dff[0] if isinstance(dff, list) and dff else (dff if isinstance(dff, str) else "")
-        fil_out = {}
-        for t, lst in fils.items():
-            lst.sort(key=lambda x: score(x[0]))
-            if dff and any(fn == dff for fn, _ in lst): best = next(x for x in lst if x[0] == dff)
-            else: best = lst[0]
-            fn, F = best
-            fil_out[t] = {"name": fn, "id": F.get("__filament_id") or "", "values": {k: v for k, v in F.items() if not k.startswith("__") and k not in ("compatible_printers", "compatible_printers_condition", "version")}}
-        for t in FIL_TYPES:
-            if t in fil_out: continue
-            gname = f"Generic {t} @System"
-            g = res(gname, "filament")
-            if g: fil_out[t] = {"name": gname, "id": g.get("__filament_id") or "", "generic": True, "values": {k: v for k, v in g.items() if not k.startswith("__") and k not in ("compatible_printers", "compatible_printers_condition", "version")}}
-        procs.sort(key=lambda x: x[1])
-        proc_out = []
-        for pn, lh, P in procs:
-            proc_out.append({"name": pn, "layer_height": lh, "default": pn == dflt,
-                             "values": {k: v for k, v in P.items() if not k.startswith("__") and k not in ("compatible_printers", "compatible_printers_condition", "version")}})
-        machine_values = {k: v for k, v in M.items() if not k.startswith("__")}
-        area = M.get("printable_area") or []
-        try:
-            xs = [float(p.split("x")[0]) for p in area]; ys = [float(p.split("x")[1]) for p in area]
-            bed = [round(max(xs) - min(xs), 1), round(max(ys) - min(ys), 1)]
-        except Exception:
-            bed = [0, 0]
-        nzd = M.get("nozzle_diameter", ["0.4"])
-        extruders = len(nzd) if isinstance(nzd, list) else 1
-        slots, unit = SLOTS.get(model, (extruders if extruders > 1 else 1, f"{extruders} extruders" if extruders > 1 else "single extruder"))
-        pid = re.sub(r"[^a-z0-9]+", "-", model.lower()).strip("-")
-        label = VENDOR_LABEL.get(vendor, vendor)
-        short = model[len(label):].strip() if model.startswith(label) else model
-        rec = {"id": pid, "vendor": label, "model": model, "short": short, "machine": pick, "printer_model": M.get("printer_model", model),
-               "printer_variant": M.get("printer_variant", "0.4"), "bed": bed, "height": float(M.get("printable_height", 0) or 0),
-               "extruders": extruders, "slots": slots, "slotUnit": unit, "minFilaments": MIN_FIL.get(model, 0),
-               "flavor": M.get("gcode_flavor", ""), "slicer": "Bambu Studio" if vendor == "BBL" else "OrcaSlicer",
-               "profileVersion": vj.get("version", ""),
-               "popular": model in POPULAR, "defaultProcess": dflt,
-               "machineValues": machine_values, "processes": proc_out, "filaments": fil_out}
-        json.dump(rec, open(os.path.join(OUT, pid + ".json"), "w"), separators=(",", ":"))
-        index.append({k: rec[k] for k in ("id", "vendor", "model", "short", "machine", "bed", "height", "extruders", "slots", "slotUnit", "slicer", "popular")} | {"processes": len(proc_out), "filamentTypes": sorted(fil_out)})
+            if d in NOZZLES and "+" not in v and "+" not in n and d not in picks: picks[d] = n
+        if "0.4" not in picks: continue
+        built = []
+        for nozzle in sorted(picks, key=lambda d: (d != "0.4", float(d))):
+          pick = picks[nozzle]
+          M = res(pick, "machine")
+          # processes compatible
+          procs = []
+          for pn, pj in pool.get("process", {}).items():
+              if str(pj.get("instantiation")) != "true": continue
+              P = res(pn, "process")
+              if compatible(P, pick, M):
+                  try: lh = float(P.get("layer_height", "0"))
+                  except: continue
+                  procs.append((pn, lh, P))
+          if not procs: continue
+          dflt = M.get("default_print_profile", "")
+          # filaments compatible
+          fils = {}
+          for fn, fj in list(pool.get("filament", {}).items()):
+              if str(fj.get("instantiation")) != "true": continue
+              F = res(fn, "filament")
+              if not compatible(F, pick, M) or not (F.get("compatible_printers") or F.get("compatible_printers_condition")): continue
+              t = (F.get("filament_type") or ["PLA"]); t = t[0] if isinstance(t, list) else t
+              fils.setdefault(t.upper(), []).append((fn, F))
+          def score(fn):
+              s = 0; l = fn.lower()
+              if "generic" in l: s -= 3
+              if "basic" in l: s -= 2
+              for bad in ("silk", "matte", "hf", "high speed", "cf", "gf", "translucent", "marble", "sparkle", "glow", "wood", "galaxy", "metal", "aero", "lite", "tough", "+", "pro", "@0.2", "support for", "rapid", "snapspeed"):
+                  if bad in l: s += 1
+              return (s, len(fn))
+          dff = M.get("default_filament_profile") or []
+          dff = dff[0] if isinstance(dff, list) and dff else (dff if isinstance(dff, str) else "")
+          fil_out = {}
+          for t, lst in fils.items():
+              lst.sort(key=lambda x: score(x[0]))
+              if dff and any(fn == dff for fn, _ in lst): best = next(x for x in lst if x[0] == dff)
+              else: best = lst[0]
+              fn, F = best
+              fil_out[t] = {"name": fn, "id": F.get("__filament_id") or "", "values": {k: v for k, v in F.items() if not k.startswith("__") and k not in ("compatible_printers", "compatible_printers_condition", "version")}}
+          for t in FIL_TYPES:
+              if t in fil_out: continue
+              gname = f"Generic {t} @System"
+              g = res(gname, "filament")
+              if g: fil_out[t] = {"name": gname, "id": g.get("__filament_id") or "", "generic": True, "values": {k: v for k, v in g.items() if not k.startswith("__") and k not in ("compatible_printers", "compatible_printers_condition", "version")}}
+          procs.sort(key=lambda x: x[1])
+          proc_out = []
+          for pn, lh, P in procs:
+              proc_out.append({"name": pn, "layer_height": lh, "default": pn == dflt,
+                               "values": {k: v for k, v in P.items() if not k.startswith("__") and k not in ("compatible_printers", "compatible_printers_condition", "version")}})
+          machine_values = {k: v for k, v in M.items() if not k.startswith("__")}
+          area = M.get("printable_area") or []
+          try:
+              xs = [float(p.split("x")[0]) for p in area]; ys = [float(p.split("x")[1]) for p in area]
+              bed = [round(max(xs) - min(xs), 1), round(max(ys) - min(ys), 1)]
+          except Exception:
+              bed = [0, 0]
+          nzd = M.get("nozzle_diameter", ["0.4"])
+          extruders = len(nzd) if isinstance(nzd, list) else 1
+          slots, unit = SLOTS.get(model, (extruders if extruders > 1 else 1, f"{extruders} extruders" if extruders > 1 else "single extruder"))
+          base = re.sub(r"[^a-z0-9]+", "-", model.lower()).strip("-")
+          pid = base if nozzle == "0.4" else f"{base}-n{nozzle.replace('.', '')}"
+          label = VENDOR_LABEL.get(vendor, vendor)
+          short = model[len(label):].strip() if model.startswith(label) else model
+          rec = {"id": pid, "vendor": label, "model": model, "short": short, "machine": pick, "printer_model": M.get("printer_model", model),
+                 "printer_variant": M.get("printer_variant", "0.4"), "bed": bed, "height": float(M.get("printable_height", 0) or 0),
+                 "extruders": extruders, "slots": slots, "slotUnit": unit, "minFilaments": MIN_FIL.get(model, 0),
+                 "flavor": M.get("gcode_flavor", ""), "slicer": "Bambu Studio" if vendor == "BBL" else "OrcaSlicer",
+                 "profileVersion": vj.get("version", ""),
+                 "popular": model in POPULAR, "defaultProcess": dflt, "nozzle": nozzle, "base": base,
+                 "machineValues": machine_values, "processes": proc_out, "filaments": fil_out}
+          json.dump(rec, open(os.path.join(OUT, pid + ".json"), "w"), separators=(",", ":"))
+          if nozzle == "0.4": main = {k: rec[k] for k in ("id", "vendor", "model", "short", "machine", "bed", "height", "extruders", "slots", "slotUnit", "slicer", "popular")} | {"processes": len(proc_out), "filamentTypes": sorted(fil_out)}
+          built.append(nozzle)
+        if "0.4" not in built: continue
+        if len(built) > 1: main["nozzles"] = sorted(built, key=float)
+        index.append(main)
 index.sort(key=lambda r: (r["vendor"], r["model"]))
 json.dump(index, open(os.path.join(OUT, "index.json"), "w"), indent=0)
 print(len(index), "printers")

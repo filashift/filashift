@@ -758,7 +758,14 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   });
 
   // ---- 1) template = target machine + process + filament presets ----
-  const proc = pickProcess(profile, a.layerHeight);
+  // a different nozzle size than the designer's: scale the layer height and take
+  // line widths and layer heights from the printer's own presets for that nozzle
+  const srcNozzle = num(first(S.nozzle_diameter)) || 0.4;
+  const dstNozzle = num(first(profile.machineValues.nozzle_diameter)) || 0.4;
+  const nozzleChange = Math.abs(srcNozzle - dstNozzle) > 0.001;
+  const proc = pickProcess(profile, nozzleChange ? a.layerHeight * (dstNozzle / srcNozzle) : a.layerHeight);
+  if (nozzleChange)
+    info(`Nozzle changed from ${fmt(srcNozzle)} mm to ${fmt(dstNozzle)} mm: layer height and line widths come from the “${proc.name}” preset; the designer's other settings are kept.`);
   const T: Dict = { ...clone(profile.machineValues), ...clone(proc.values) };
   const filKeys = new Set<string>();
   outPresets.forEach((p) => Object.keys(p.values).forEach((k) => filKeys.add(k)));
@@ -833,6 +840,10 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   for (const [key, sv] of Object.entries(S)) {
     if (S_HANDLED.has(key)) continue;
     const tk = RENAMES[key] || key;
+    if (nozzleChange && (/(^|_)line_width$/.test(tk) || /^(layer_height|initial_layer_print_height|initial_layer_line_width)$/.test(tk))) {
+      replaced.push(key);
+      continue;
+    }
     const inT = tk in T;
     const printOpt = S_PRINT.has(tk) || S_EXTRA_PROC.has(tk);
     if (!inT && !printOpt) {
@@ -901,7 +912,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     copied.add(tk);
     kept.push(tk === key ? key : `${key} → ${tk}`);
   }
-  for (const k of ["layer_height", "initial_layer_print_height"]) if (k in R) copied.add(k);
+  if (!nozzleChange) for (const k of ["layer_height", "initial_layer_print_height"]) if (k in R) copied.add(k);
   for (const [k, v] of Object.entries(slowKeep)) speeds.push(`${k}: kept the designer's slower ${fmt(v)} mm/s`);
   if (!opts.keepSpeeds) {
     for (const key of Object.keys(S)) {
@@ -1085,14 +1096,17 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     R.prime_tower_width = T.prime_tower_width;
   }
   const tw = num(first(R.prime_tower_width)) || 35;
-  const towerDepth = Math.max(tw, 60);
+  // purge volume per layer is fixed, so thin layers (small nozzles) make a deeper tower
+  const lhOut = num(first(R.layer_height)) || 0.2;
+  const tf = Math.min(2.5, Math.max(1, 0.2 / lhOut));
+  const towerDepth = Math.max(tw, 60) * tf;
   if (S.wipe_tower_x !== undefined || S.wipe_tower_y !== undefined) {
     const ax = Array.isArray(S.wipe_tower_x) ? S.wipe_tower_x : [S.wipe_tower_x ?? 15];
     const ay = Array.isArray(S.wipe_tower_y) ? S.wipe_tower_y : [S.wipe_tower_y ?? 15];
     // keep well clear of the edges: slicers grow the tower (brim, skirt, extra wipe depth) beyond
     // its nominal footprint, and multi-nozzle printers can only reach part of the bed with each nozzle
     // try a generous footprint first, then tighter ones so small beds still find a free spot
-    const tries: [number, number][] = [[15, towerDepth], [10, Math.max(tw, 45)], [6, tw]];
+    const tries: [number, number][] = [[15, towerDepth], [10, Math.max(tw, 45) * tf], [6, tw * tf]];
     let moved = 0;
     const outX: string[] = [], outY: string[] = [];
     pids.forEach((pid, i) => {
@@ -1104,7 +1118,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       // the designer's spot, moved with the model, when it is on the bed and clear of every object
       const keep: [number, number] = [sx + dx, sy + dy];
       const pb0 = (parts.get(pid) || (obj ? [obj] : [])).map((b) => (b === obj ? b : [b[0] + dx - 5, b[1] + dy - 5, b[2] + dx + 5, b[3] + dy + 5]));
-      const onBed = keep[0] >= dstArea.minx + 3 && keep[1] >= dstArea.miny + 3 && keep[0] + tw <= dstArea.minx + dstArea.w - 8 && keep[1] + Math.max(tw, 45) <= dstArea.miny + dstArea.h - 3;
+      const onBed = keep[0] >= dstArea.minx + 3 && keep[1] >= dstArea.miny + 3 && keep[0] + tw <= dstArea.minx + dstArea.w - 8 && keep[1] + Math.max(tw, 45) * tf <= dstArea.miny + dstArea.h - 3;
       if (onBed && !pb0.some((o) => keep[0] < o[2] && keep[0] + tw > o[0] && keep[1] < o[3] && keep[1] + tw > o[1])) { pick = keep; first0 = keep; }
       for (const [m, depth] of pick ? [] : tries) {
         const xlo = dstArea.minx + m, xhi = dstArea.minx + dstArea.w - tw - 2 * m;
