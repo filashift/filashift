@@ -92,6 +92,13 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 - When the nozzle differs from the project's, layer height scales with it and line widths/layer heights come from the preset; the report says so. Prime tower depth estimate grows for thin layers.
 - Tested: 0.6 AD5X/U1, 0.8 P1S, 0.2 A1 mini slice in the CLIs; a busy 4-colour plate on the 0.2 mm A1 mini can leave too little room for the tower (warned in the report).
 
+## Tool changers (H3C, P3C, H2C, U1)
+
+- `client/src/engine/tools.ts`: Bambu printers with `extruder_max_nozzle_count > 1` get a per-tool inventory (stock tools: H3C 9 incl. the 2.85 mm TPU PrintTool 8, P3C 5, H2C left + 4 rack hotends) written as `extruder_nozzle_count/_slot/_volume_type/_diameter`, `extruder_nozzle_stats`, and a filament → tool assignment (`filament_map`, `filament_nozzle_map` = physical slot id, `filament_volume_map`, `filament_extruder_variant`). H3C/P3C use `filament_map_mode = Nozzle Manual` (Bambu Studio keeps our tool assignment); H2C uses `Auto For Flush`, because Bambu Studio 2.9.2's CLI rejects Nozzle Manual on the two-extruder rack. Every plate in model_settings gets the same mode/maps; stale per-plate maps in slice_info.config are dropped.
+- Only flexible 2.85 mm filament goes to a TPU285 tool (P3C: an optional 6th tool, with a warning); 2.85 mm flexible sources pick the `TPU-2.85` preset (build_profiles.py adds it for printers with a TPU285 variant). Rigid filament never lands on the TPU tool.
+- Per-tool nozzle sizes: kept for Orca multi-extruder targets (U1, per-tool `nozzle_diameter`); Bambu targets get one diameter and a report warning (the Bambu CLI cannot slice multi-diameter projects without extra CLI presets). Multi-tool → single-nozzle keeps colours as AMS slots (info line).
+- Test: build sources with a TPU 2.85 filament / 10 colours / mixed nozzles (patch project_settings), then `npx tsx scripts/matrix.ts /tmp/tc src.3mf:tag ... -- bambu-lab-h3c bambu-lab-p3c bambu-lab-h2c bambu-lab-x1-carbon snapmaker-u1`, slice with `scripts/slice-matrix.sh`, and check the G-code header (`filament_map_mode`, `filament_nozzle_map`, `extruder_nozzle_diameter`). Round trips: `scripts/roundtrip.ts src.3mf /tmp/rt bambu-lab-h3c snapmaker-u1 bambu-lab-x1-carbon`.
+
 ## Installable app
 
 - `client/public/manifest.webmanifest`, `sw.js` (registered only on filashift.com over HTTPS). Pages are network-first with an offline copy; /assets, /fonts and /profiles are cached; /data and /api are never cached. Bump `V` in sw.js to force-clear caches. OG image `og-image.png`, JSON-LD in index.html.

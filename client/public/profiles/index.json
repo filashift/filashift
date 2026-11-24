@@ -1687,6 +1687,7 @@
 "PPS-CF",
 "PVA",
 "TPU",
+"TPU-2.85",
 "TPU-AMS"
 ],
 "nozzles": [
@@ -1915,6 +1916,7 @@
 "PPA-GF",
 "PVA",
 "TPU",
+"TPU-2.85",
 "TPU-AMS"
 ],
 "nozzles": [

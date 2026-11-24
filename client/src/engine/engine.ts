@@ -18,6 +18,7 @@ export { planPauses, defaultMapping, colorDistance, type PausePlan } from "./map
 import RULES from "../rules.json";
 import SLICER_KEYS from "./slicer-keys.json";
 import { scanPaint, remapPaintText } from "./paint";
+import { readSourceTools, toolTarget, applyTools, nozzleSizesNote, isFlexible } from "./tools";
 import type {
   Analysis,
   ConvertOptions,
@@ -846,11 +847,19 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   const si: string[] = S.filament_self_index || Array.from({ length: nfil }, (_, i) => String(i + 1));
   const fv: string[] = S.filament_extruder_variant || Array(si.length).fill("Direct Drive Standard");
 
+  // per-tool data of the source (tool changers, per-tool nozzle sizes, 2.85 mm filament)
+  const srcTools = readSourceTools(S, nfil, (v) => filVector(v, nfil, si, fv));
+  const tt = toolTarget(profile);
+  const isUsed = (i: number) => !!(a.filaments[i - 1]?.used || !a.usedKnown);
+
   // output filament presets
   const outTypes: string[] = [];
   const outPresets = reps.map((r, j) => {
     const src = r ? a.filaments[r - 1] : null;
-    const { key, exact } = matchFilamentType(src?.type || "PLA", profile);
+    let { key, exact } = matchFilamentType(src?.type || "PLA", profile);
+    const thick = !!r && srcTools.filDia[r - 1] > 2.5;
+    if (thick && isFlexible(src?.type || "") && profile.filaments["TPU-2.85"]) ({ key, exact } = { key: "TPU-2.85", exact: true });
+    else if (thick && src && isUsed(r!)) info(`Slot ${j + 1}: the source filament is 2.85 mm; the ${profile.model} uses 1.75 mm, so the “${profile.filaments[key].name}” preset was used.`);
     const p = profile.filaments[key];
     outTypes.push(src?.type || p.values.filament_type?.[0] || "PLA");
     if (src && !exact)
@@ -948,7 +957,9 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     }
     const inT = tk in T;
     const printOpt = S_PRINT.has(tk) || S_EXTRA_PROC.has(tk);
-    if (!inT && !printOpt) {
+    // machine settings always come from the destination printer
+    const machineOnly = tk in profile.machineValues && !printOpt && !S_FIL.has(tk) && !S_CARRY.has(tk) && !BED_RE.test(tk);
+    if ((!inT && !printOpt) || machineOnly) {
       discarded.push(key);
       continue;
     }
@@ -1065,6 +1076,56 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     copied.add("enable_support");
     info("The model has hand-painted supports, so support generation was switched on.");
   }
+  // ---- tools: per-nozzle data for tool changers, per-tool nozzle sizes ----
+  {
+    const usedSlot = reps.map((r, j) => groups[j].some((i) => isUsed(i)));
+    const usedSrc = a.filaments.filter((f) => isUsed(f.index) && map[f.index - 1]).map((f) => f.index - 1);
+    let perTool = false;
+    if (tt) {
+      const sameModel = !!srcTools.model && srcTools.model === String(profile.printer_model || profile.model);
+      const r = applyTools(R, profile, tt, {
+        types: outTypes,
+        filDia: outPresets.map((p) => num(first(p.values.filament_diameter)) || 1.75),
+        used: usedSlot,
+        prefer: reps.map((r) => (sameModel && r ? srcTools.tool[r - 1] : null)),
+        nozzle: dstNozzle,
+      });
+      r.info.forEach(info);
+      r.warn.forEach(warn);
+    } else if (targetFamily(profile) === "orca" && profile.extruders > 1 && Array.isArray(R.nozzle_diameter) && R.nozzle_diameter.length === profile.extruders) {
+      // separate toolheads (Snapmaker U1): each toolhead keeps the nozzle its filament had
+      const sizes = new Set(usedSrc.map((i) => srcTools.dia[i]).filter((x) => x !== null));
+      const fmap: string[] = Array.isArray(R.filament_map) ? R.filament_map : [];
+      if (sizes.size > 1) {
+        const nd = R.nozzle_diameter.map((x: any) => String(x));
+        const lhTool = num(first(R.layer_height)) || 0.2;
+        reps.forEach((rr, j) => {
+          const e = (parseInt(fmap[j]) || j + 1) - 1;
+          const dd = rr && usedSlot[j] ? srcTools.dia[rr - 1] : null;
+          if (dd !== null && e >= 0 && e < nd.length && fmap.filter((x) => x === fmap[j]).length === 1) {
+            // Orca rejects line widths at or below the layer height, so a nozzle too fine for the layers stays stock
+            if (dd * 0.8 < lhTool) warn(`Toolhead ${e + 1} keeps the ${fmt(dstNozzle)} mm nozzle: the source's ${fmt(dd)} mm nozzle is too fine for ${fmt(lhTool)} mm layers.`);
+            else nd[e] = fmt(dd);
+          }
+        });
+        if (nd.some((x: string) => x !== fmt(dstNozzle))) {
+          R.nozzle_diameter = nd;
+          machDiff.add("nozzle_diameter");
+          perTool = true;
+          // Orca caps bridge width at the smallest nozzle; the preset's percentage resolves against the largest
+          const minD = Math.min(...nd.map(Number));
+          R.bridge_line_width = fmt(minD);
+          copied.add("bridge_line_width");
+        }
+      }
+    }
+    const note = nozzleSizesNote(srcTools, usedSrc, profile.model, perTool ? R.nozzle_diameter.map(Number) : [dstNozzle], perTool);
+    if (note) (perTool ? info : warn)(note);
+    const nUsed = usedSlot.filter(Boolean).length;
+    if (srcTools.multiTool && !tt && profile.extruders === 1 && nUsed > 1)
+      info(`The source printer gave each filament its own tool. The ${profile.model} has one nozzle, so the ${nUsed} filaments keep their colours as ${profile.slotUnit} slots and swap with purging.`);
+  }
+
   // ---- keep only keys the destination slicer understands ----
   const fam = targetFamily(profile);
   const allowed = KEYSET[fam];
@@ -1241,23 +1302,27 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     const tries: [number, number][] = [[15, towerDepth], [10, Math.max(tw, 45) * tf], [6, tw * tf]];
     let moved = 0;
     const outX: string[] = [], outY: string[] = [];
+    // the slicer draws the tower brim (and rib walls) outside the nominal footprint
+    const gap = 5 + (num(first(R.prime_tower_brim_width ?? "3")) ?? 3) + 2;
     pids.forEach((pid, i) => {
       const [dx, dy] = shifts.get(pid)!;
       const sx = num(ax[Math.min(i, ax.length - 1)]) ?? 15, sy = num(ay[Math.min(i, ay.length - 1)]) ?? 15;
       const fit = boxes.get(pid);
-      const obj = fit ? [fit[0] + dx - 5, fit[1] + dy - 5, fit[2] + dx + 5, fit[3] + dy + 5] : null;
+      const obj = fit ? [fit[0] + dx - gap, fit[1] + dy - gap, fit[2] + dx + gap, fit[3] + dy + gap] : null;
       let pick: [number, number] | undefined, first0: [number, number] | undefined, fallback: [number, number] | undefined;
       // the designer's spot, moved with the model, when it is on the bed and clear of every object
       const keep: [number, number] = [sx + dx, sy + dy];
-      const pb0 = (parts.get(pid) || (obj ? [obj] : [])).map((b) => (b === obj ? b : [b[0] + dx - 5, b[1] + dy - 5, b[2] + dx + 5, b[3] + dy + 5]));
+      const pb0 = (parts.get(pid) || (obj ? [obj] : [])).map((b) => (b === obj ? b : [b[0] + dx - gap, b[1] + dy - gap, b[2] + dx + gap, b[3] + dy + gap]));
       const onBed = keep[0] >= dstArea.minx + 3 && keep[1] >= dstArea.miny + 3 && keep[0] + tw <= dstArea.minx + dstArea.w - 8 && keep[1] + Math.max(tw, 45) * tf <= dstArea.miny + dstArea.h - 3;
-      if (onBed && !pb0.some((o) => keep[0] < o[2] && keep[0] + tw > o[0] && keep[1] < o[3] && keep[1] + tw > o[1])) { pick = keep; first0 = keep; }
+      // the tower grows in +y with purge depth, so test that whole footprint, not just a tw × tw square
+      const keepDepth = Math.max(tw, 45) * tf;
+      if (onBed && !pb0.some((o) => keep[0] < o[2] && keep[0] + tw > o[0] && keep[1] < o[3] && keep[1] + keepDepth > o[1])) { pick = keep; first0 = keep; }
       for (const [m, depth] of pick ? [] : tries) {
         const xlo = dstArea.minx + m, xhi = dstArea.minx + dstArea.w - tw - 2 * m;
         const ylo = dstArea.miny + m, yhi = dstArea.miny + dstArea.h - depth - m;
         const clampX = (v: number) => Math.min(Math.max(v, xlo), xhi);
         const clampY = (v: number) => Math.min(Math.max(v, ylo), yhi);
-        const pb = (parts.get(pid) || (obj ? [obj] : [])).map((b) => (b === obj ? b : [b[0] + dx - 5, b[1] + dy - 5, b[2] + dx + 5, b[3] + dy + 5]));
+        const pb = (parts.get(pid) || (obj ? [obj] : [])).map((b) => (b === obj ? b : [b[0] + dx - gap, b[1] + dy - gap, b[2] + dx + gap, b[3] + dy + gap]));
         const hits = (x: number, y: number) => pb.some((o) => x < o[2] && x + tw > o[0] && y < o[3] && y + depth > o[1]);
         const cands: [number, number][] = [
           [clampX(sx + dx), clampY(sy + dy)],
@@ -1361,7 +1426,21 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     msOut = msOut.replace(new RegExp(`(<metadata\\s+key="(?:${keys})"\\s+value=")(\\d+)(")`, "g"), (_m, a1, v, c) => a1 + String(newIdx(parseInt(v))) + c);
     msOut = msOut.replace(/(opt_key="(?:extruder|wall_filament|sparse_infill_filament|solid_infill_filament|support_filament|support_interface_filament)"\s*>\s*)(\d+)(\s*<)/g, (_m, a1, v, c) => a1 + String(newIdx(parseInt(v))) + c);
     msOut = msOut.replace(/(<metadata\s+key="filament_maps"\s+value=")[^"]*(")/g, (_m, a1, c) => a1 + R.filament_map.join(" ") + c);
-    msOut = msOut.replace(/(<metadata\s+key="filament_volume_maps"\s+value=")[^"]*(")/g, (_m, a1, c) => a1 + Array(nOut).fill("0").join(" ") + c);
+    const vmap: string[] = Array.isArray(R.filament_volume_map) && R.filament_volume_map.length === nOut ? R.filament_volume_map : Array(nOut).fill("0");
+    msOut = msOut.replace(/(<metadata\s+key="filament_volume_maps"\s+value=")[^"]*(")/g, (_m, a1, c) => a1 + vmap.join(" ") + c);
+    // plates carry their own filament_map_mode, which wins over the project's
+    // "Nozzle Manual" only exists on Bambu tool changers; elsewhere it makes the slicer reject the plate
+    // (Orca 2.5.2 also fails a plain "Manual" plate on the U1 with -68, so fall back to automatic grouping)
+    if (!tt)
+      msOut = msOut.replace(/(<metadata\s+key="filament_map_mode"\s+value=")Nozzle Manual(")/g, (_m, a1, c) => a1 + "Auto For Flush" + c);
+    // so tool changers get the nozzle assignment written explicitly on every plate
+    if (tt && R.filament_map_mode)
+      msOut = msOut.replace(/(<plate>[\s\S]*?<\/plate>)/g, (blk) => {
+        const ind = /\n(\s*)<metadata/.exec(blk)?.[1] ?? "    ";
+        const body = blk.replace(/\s*<metadata\s+key="(?:filament_map_mode|filament_maps|filament_volume_maps)"\s+value="[^"]*"\s*\/>/g, "");
+        const add = `\n${ind}<metadata key="filament_map_mode" value="${R.filament_map_mode}"/>\n${ind}<metadata key="filament_maps" value="${R.filament_map.join(" ")}"/>\n${ind}<metadata key="filament_volume_maps" value="${vmap.join(" ")}"/>`;
+        return /<metadata\s+key="plater_id"[^>]*\/>/.test(body) ? body.replace(/(<metadata\s+key="plater_id"[^>]*\/>)/, `$1${add}`) : body.replace("<plate>", `<plate>${add}`);
+      });
   }
 
   // ---- 6) paint data ----
@@ -1399,7 +1478,10 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       }
     }
     if (name === "Metadata/slice_info.config") {
-      outFiles[name] = strToU8(stampSliceInfo(dec(data), fam));
+      let si = stampSliceInfo(dec(data), fam);
+      // stale per-plate maps from an earlier slice override the project's tool assignment
+      if (tt) si = si.replace(/\s*<metadata\s+key="(?:filament_maps|limit_filament_maps)"\s+value="[^"]*"\s*\/>/g, "");
+      outFiles[name] = strToU8(si);
       continue;
     }
     if (name === "Metadata/custom_gcode_per_layer.xml") {

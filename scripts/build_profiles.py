@@ -169,7 +169,11 @@ for vendor in VENDORS:
               F = res(fn, "filament")
               if not compatible(F, pick, M) or not (F.get("compatible_printers") or F.get("compatible_printers_condition")): continue
               t = (F.get("filament_type") or ["PLA"]); t = t[0] if isinstance(t, list) else t
-              fils.setdefault(t.upper(), []).append((fn, F))
+              t = t.upper()
+              # 2.85 mm filament (H3C/P3C TPU PrintTool) is its own entry, never the 1.75 mm default
+              dia = F.get("filament_diameter") or ["1.75"]; dia = dia[0] if isinstance(dia, list) else dia
+              if str(dia) == "2.85" and "TPU285" in json.dumps(M.get("extruder_variant_list", "")): t += "-2.85"
+              fils.setdefault(t, []).append((fn, F))
           def score(fn):
               s = 0; l = fn.lower()
               if "generic" in l: s -= 3
