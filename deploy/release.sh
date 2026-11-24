@@ -23,6 +23,8 @@ BASE= npm run test:release:mobile-en:shortcuts
 BASE= npm run test:release:mobile-es:shortcuts
 BASE= npm run test:release:mobile-es
 rm -rf dist/public/data
+# Shipped in the same atomic directory swap as the site, including on rollback.
+printf '%s\n' "$REV" > dist/public/release-commit.txt
 rm -f /tmp/filashift-site.zip; (cd dist/public && zip -qr /tmp/filashift-site.zip .)
 scp -i "$KEY" -q /tmp/filashift-site.zip "$HOST":/tmp/site.zip
 $SSH "$HOST" 'set -e; cd /var/www; rm -rf plateshift.new; mkdir plateshift.new; unzip -q /tmp/site.zip -d plateshift.new; chown -R caddy:caddy plateshift.new; rm -rf plateshift.old; mv plateshift plateshift.old; mv plateshift.new plateshift'

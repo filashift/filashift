@@ -1,0 +1,65 @@
+name: FilaShift live release checks
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  production:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      BASE: https://filashift.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify deployed commit
+        id: before
+        run: bash scripts/assert-live-release.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked test dependencies and browsers
+        id: setup
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          ./node_modules/.bin/playwright-core install --with-deps chromium webkit
+          echo "CHROME=$(node -p "require('playwright-core').chromium.executablePath()")" >> "$GITHUB_ENV"
+      - name: Mobile converter layout (English and Spanish)
+        id: layout
+        run: node scripts/check-converter-width.mjs
+      - name: English mobile buying guide
+        id: english
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: npm run test:release:mobile-en:shortcuts
+      - name: Spanish mobile shortcuts
+        id: shortcuts
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: npm run test:release:mobile-es:shortcuts
+      - name: Spanish mobile buying guide
+        id: spanish
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: npm run test:release:mobile-es
+      - name: Desktop guide, FAQ and search metadata
+        id: guide
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: node scripts/check-guide-seo.mjs
+      - name: Verify production did not change during checks
+        id: after
+        if: ${{ !cancelled() && steps.before.outcome == 'success' }}
+        run: bash scripts/assert-live-release.sh
+      - name: Report release results
+        if: always()
+        env:
+          RESULTS: ${{ toJSON(steps) }}
+        run: |
+          {
+            printf '## FilaShift production verification\n\nCommit: `%s` | Site: %s\n\n' "$GITHUB_SHA" "$BASE"
+            printf '| Check | Result |\n|---|---|\n'
+            jq -r 'to_entries[] | "| \(.key) | \(.value.outcome) |"' <<< "$RESULTS"
+          } >> "$GITHUB_STEP_SUMMARY"
