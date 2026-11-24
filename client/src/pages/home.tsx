@@ -11,6 +11,9 @@ import type { PrinterIndexEntry, PrinterProfile } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PRINTER = "snapmaker-u1";
+// public source repository (AGPL-3.0). Set VITE_SOURCE_URL at build time; the link is hidden until then.
+const SOURCE_URL: string = (import.meta as any).env?.VITE_SOURCE_URL || "";
+const COMPANY = "Jackson Technology Solutions LLC, a subsidiary of Jackson Consolidated Group of Companies LLC";
 const QUICK = ["snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu-lab-x1-carbon", "bambu-lab-a1", "bambu-lab-p1s", "creality-k2-plus"];
 
 function Logo() {
@@ -398,7 +401,19 @@ export default function Home() {
             <a className="underline hover:text-foreground" href="https://github.com/iChristGit/3MF-to-AD5X" target="_blank" rel="noreferrer">
               3MF-to-AD5X
             </a>{" "}
-            (MIT). Not affiliated with Bambu Lab, Snapmaker, Flashforge, Creality, Prusa or MakerWorld. © {new Date().getFullYear()} Jackson Technology Solutions.
+            (MIT). Not affiliated with Bambu Lab, Snapmaker, Flashforge, Creality, Prusa or MakerWorld.
+          </p>
+          <p>
+            {SOURCE_URL && (
+              <>
+                FilaShift is free software under the AGPL-3.0.{" "}
+                <a className="underline hover:text-foreground" href={SOURCE_URL} target="_blank" rel="noreferrer" data-testid="link-source">
+                  Source code on GitHub
+                </a>
+                .{" "}
+              </>
+            )}
+            © {new Date().getFullYear()} {COMPANY}.
           </p>
         </div>
       </footer>

@@ -14,3 +14,7 @@ data.db-journal
 
 *.log
 .DS_Store
+
+# build/deploy artifacts
+deploy/*.zip
+scripts/result.json
