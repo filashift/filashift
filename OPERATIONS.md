@@ -32,7 +32,7 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 - Backups/history in /root (caddy-backup-*.tgz, Caddyfile.pre-*). Release log: /var/log/filashift-releases.log.
 
 ## Release / rollback
-`./deploy/release.sh` (typecheck, build, prerender, upload, atomic swap, smoke test). `scripts/prerender.mjs` (playwright-core + local Chrome; set `CHROME=` if it isn't found) renders every public route to `dist/public/<route>/index.html` plus `404.html`, `sitemap.xml` and `robots.txt`. Add new routes to its `ROUTES` list (guides are picked up from `client/src/lib/guides.ts` automatically). Caddy serves `{path}/index.html` for pages and `404.html` with status 404 for anything else. `./deploy/release.sh --rollback` restores the previous release instantly. After a release, push the commit to the Droplet git repo.
+`./deploy/release.sh` (typecheck, build, prerender, upload, atomic swap, smoke test). `scripts/prerender.mjs` (playwright-core + local Chrome; set `CHROME=` if it isn't found) renders every public route to `dist/public/<route>/index.html` plus `404.html`, `sitemap.xml` and `robots.txt`. Add new routes to its `ROUTES` list (guides are picked up from `client/src/lib/guides.ts` automatically). Caddy serves `{path}/index.html` for pages and `404.html` with status 404 for anything else. `./deploy/release.sh --rollback` restores the previous release instantly. After a release, push the commit to both remotes: the Droplet git repo and the public GitHub mirror (scan the diff for secrets and data first).
 
 ## Routine health check
 1. `curl -sI https://filashift.com` 200, `https://www.filashift.com` 301, `http://filashift.com` 308; profiles/index.json and fonts/fonts.css 200.
