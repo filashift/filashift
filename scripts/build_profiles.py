@@ -28,6 +28,37 @@ POPULAR = {"Bambu Lab X1 Carbon", "Bambu Lab P1S", "Bambu Lab A1", "Bambu Lab A1
            "Creality K1C", "Creality K2 Plus", "Creality Ender-3 V3 SE", "Creality Hi", "Elegoo Centauri Carbon", "Elegoo Neptune 4 Pro", "Anycubic Kobra S1", "Anycubic Kobra 3",
            "Prusa MK4S", "Prusa CORE One", "Prusa MINI", "Qidi Q1 Pro", "Qidi X-Plus 4", "Sovol SV08"}
 MIN_FIL = {"Snapmaker U1": 4}
+
+
+def frame_to_strips(area):
+    """OrcaSlicer's Kobra 3 profile excludes the bed border as one "frame" polygon: the outer
+    rectangle followed by the inner one (0x0,255x0,255x255,0x255,0x0,2x2,2x253,253x253,253x2,2x2).
+    OrcaSlicer accepts it, but Anycubic Slicer Next fills that polygon, so every object is
+    "too close to exclusion area" and the CLI refuses to slice. Rewrite it as the four border
+    strips chained into one polygon, the form Anycubic Slicer Next's own Kobra 3 / 3 Max
+    profiles and OrcaSlicer's Kobra 3 Max profile use. Other values are returned unchanged."""
+    if not isinstance(area, list) or len(area) != 10:
+        return area
+    try:
+        pts = [tuple(float(v) for v in p.split("x")) for p in area]
+    except ValueError:
+        return area
+    outer, inner = pts[:4], pts[5:9]
+    if pts[4] != pts[0] or pts[9] != pts[5]:
+        return area
+    box = lambda q: (min(x for x, _ in q), min(y for _, y in q), max(x for x, _ in q), max(y for _, y in q))
+    X0, Y0, X1, Y1 = box(outer)
+    a, b, c, d = box(inner)
+    # both must be axis-aligned rectangles, the inner one strictly inside the outer one
+    if {(x, y) for x, y in outer} != {(X0, Y0), (X1, Y0), (X1, Y1), (X0, Y1)}:
+        return area
+    if {(x, y) for x, y in inner} != {(a, b), (c, b), (c, d), (a, d)} or not (X0 < a < c < X1 and Y0 < b < d < Y1):
+        return area
+    f = lambda x, y: f"{x:g}x{y:g}"
+    return [f(X0, Y0), f(a, Y0), f(a, Y1), f(X0, Y1),      # left strip
+            f(X0, Y1), f(X1, Y1), f(X1, d), f(X0, d),      # top strip
+            f(X1, Y1), f(c, Y1), f(c, Y0), f(X1, Y0),      # right strip
+            f(X0, Y0), f(X0, b), f(X1, b), f(X1, Y0)]      # bottom strip
 FIL_TYPES = ["PLA", "PETG", "ABS", "ASA", "TPU", "PLA-CF", "PETG-CF", "PA", "PA-CF", "PC", "PVA", "HIPS", "PET", "PCTG", "PP", "PPS", "BVOH", "PLA-AERO", "SUPPORT"]
 MOTION_RE = re.compile(r"(_speed|_acceleration|_jerk)$")
 
@@ -170,6 +201,8 @@ for vendor in VENDORS:
           for vk in ("printable_area", "bed_exclude_area", "extruder_offset", "thumbnails", "head_wrap_detect_zone", "wrapping_exclude_area"):
               if isinstance(machine_values.get(vk), str):
                   machine_values[vk] = [x.strip() for x in machine_values[vk].split(",") if x.strip()]
+          if vendor == "Anycubic" and "bed_exclude_area" in machine_values:
+              machine_values["bed_exclude_area"] = frame_to_strips(machine_values.get("bed_exclude_area"))
           M = dict(M, **{k: machine_values[k] for k in ("printable_area",) if k in machine_values})
           area = M.get("printable_area") or []
           try:
