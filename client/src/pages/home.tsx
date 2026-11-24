@@ -223,7 +223,7 @@ export default function Home() {
           ]}
         />
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="order-2 min-w-0 space-y-4 lg:order-1">
             <details className="rounded-xl border border-card-border bg-card p-4 text-sm" data-testid="mobile-import-help">
               <summary className="cursor-pointer font-semibold">Start with a download from a printer app</summary>
@@ -343,7 +343,7 @@ export default function Home() {
 
           </div>
 
-          <aside id="settings" className="order-1 scroll-mt-24 lg:order-2">
+          <aside id="settings" className="order-1 min-w-0 scroll-mt-24 lg:order-2">
             <div className="space-y-5 rounded-xl border border-card-border bg-card p-4 shadow-sm lg:sticky lg:top-20">
               <div>
                 <h2 className="mb-2 text-sm font-medium">Target printer</h2>

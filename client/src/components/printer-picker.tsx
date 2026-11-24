@@ -132,8 +132,8 @@ export function PrinterPicker({
         >
           {current ? (
             <span className="flex min-w-0 flex-col">
-              <span className="flex items-center gap-2">
-                <span className="truncate font-medium">{current.model}</span>
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="whitespace-normal break-words font-medium">{current.model}</span>
                 <TestedBadge id={current.id} slicer={current.slicer} />
               </span>
               <span className="truncate text-xs font-normal text-muted-foreground">
@@ -146,7 +146,7 @@ export function PrinterPicker({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] min-w-[300px] p-0" align="start">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-1rem)] p-0" collisionPadding={8} align="start">
         <Command>
           <CommandInput placeholder={`Search ${printers.length} printers…`} data-testid="input-printer-search" />
           <CommandList className="max-h-[360px]">
