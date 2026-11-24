@@ -5,6 +5,7 @@ import { Download, Lock, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { setLang, useLang } from "@/lib/i18n";
+import { Assistant } from "./assistant";
 
 // public source repository (AGPL-3.0). VITE_SOURCE_URL overrides it at build time.
 export const SOURCE_URL: string = (import.meta as any).env?.VITE_SOURCE_URL || "https://github.com/filashift/filashift";
@@ -111,6 +112,7 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
               <span className="mr-2 hidden lg:inline">Files stay on your device</span>
             </>
           )}
+          <Assistant />
           <InstallButton />
           <LangToggle />
           <Button size="icon" variant="ghost" onClick={() => setDark((d) => !d)} aria-label="Toggle dark mode" data-testid="button-theme">

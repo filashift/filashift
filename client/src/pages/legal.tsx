@@ -33,6 +33,10 @@ export function privacySections(lang: Lang): Sec[] {
   if (lang === "es") return PRIVACY_ES();
   return [
     {
+      h: "Ask FilaShift: private visitor help",
+      body: <p>The helper matches what you type or paste against the FilaShift guides on your device. If your browser already has a compatible local AI model, you can ask it to explain a match. Neither option sends your question to FilaShift or an external AI provider. The helper cannot read your project or conversion report automatically. FilaShift keeps no chat history; closing the helper clears its text. Sending a problem report is a separate action described below.</p>,
+    },
+    {
       h: "Who we are",
       body: (
         <p>
@@ -398,6 +402,10 @@ const ES_NOTE: Sec = {
 function PRIVACY_ES(): Sec[] {
   return [
     ES_NOTE,
+    {
+      h: "Pregunta a FilaShift: ayuda privada",
+      body: <p>El asistente busca en las guías de FilaShift en tu dispositivo a partir del texto que escribes o pegas. Si tu navegador ya tiene un modelo de IA local compatible, puedes pedirle que explique un resultado. Ninguna de las dos opciones envía tu pregunta a FilaShift ni a un proveedor externo de IA. El asistente no puede leer automáticamente tu proyecto ni tu informe de conversión. FilaShift no guarda un historial; al cerrar el asistente se borra el texto. Enviar un informe de problemas es una acción distinta que se describe más abajo.</p>,
+    },
     {
       h: "Quiénes somos",
       body: (
