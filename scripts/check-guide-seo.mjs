@@ -44,6 +44,13 @@ try {
     assert.equal(await page.evaluate(()=>document.activeElement.id),"snapmaker-u1");
     assert.match(await page.locator("article h1").innerText(),lang==="es"?/filamento/:/buying guide/);
     assert(sitemap.includes("/guides/filament-buying-guide-five-printers</loc>"));
+    const note = page.getByTestId("guide-editorial-note");
+    assert.match(await note.innerText(),/ElegooSlicer.*Anycubic Slicer Next/);
+    assert.match(await note.innerText(),lang==="es"?/importar proyectos 3MF/:/import 3MF projects/);
+    assert.equal(await note.locator("a").getAttribute("href"),`/guides/flashforge-creality-to-bambu${lang==="es"?"?lang=es":""}`);
+    const buyingDate = await page.locator("article time").getAttribute("datetime");
+    assert.equal(JSON.parse(await page.locator("#ld-guide").textContent())["@graph"][0].dateModified,buyingDate);
+    assert(sitemap.includes(`/guides/filament-buying-guide-five-printers</loc><lastmod>${buyingDate}</lastmod>`));
     assert(await page.locator("article").evaluate(el=>el.scrollWidth<=el.clientWidth));
     for(const [i, material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
       const card=cards.nth(i);

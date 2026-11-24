@@ -216,11 +216,11 @@ export const GUIDES_ES: Record<string, GuideText> = {
   "flashforge-creality-to-bambu": {
     title: "Pasar proyectos de Flashforge, Creality y Snapmaker de vuelta a Bambu Lab",
     meta: "Convierte proyectos 3MF de Flashforge, Creality u Orca a Bambu Studio | FilaShift",
-    desc: "Convierte proyectos de OrcaSlicer, Orca-Flashforge, Creality Print y Snapmaker Orca a Bambu Studio para la X1, P1S, A1, H2D y otras impresoras Bambu Lab.",
+    desc: "Convierte proyectos 3MF de OrcaSlicer, Orca-Flashforge, Creality Print, ElegooSlicer, Anycubic Slicer Next y Snapmaker Orca para Bambu Studio.",
     intro:
       "La conversión funciona en los dos sentidos. Los proyectos de la familia OrcaSlicer se pueden pasar a impresoras Bambu Lab con los perfiles y las ranuras AMS propios de Bambu.",
     steps: [
-      "Guarda el proyecto como 3MF en OrcaSlicer, Orca-Flashforge, Creality Print o Snapmaker Orca.",
+      "Guarda el proyecto como 3MF en OrcaSlicer, Orca-Flashforge, Creality Print, ElegooSlicer, Anycubic Slicer Next o Snapmaker Orca.",
       "Suéltalo en FilaShift y elige tu impresora Bambu Lab.",
       "Asigna cada color a una ranura del AMS.",
       "Convierte, descarga y lee el informe.",

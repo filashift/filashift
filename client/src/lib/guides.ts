@@ -14,6 +14,7 @@ export interface Guide {
   printer?: string; // preselected in the converter link
   cta?: string;
   shopping?: boolean;
+  editorialNote?: string;
   sections: { h: string; p?: string[]; list?: string[]; model?:string; material?:string; source?:string; warning?:{title:string;items:string[]} }[];
   faq: { q: string; a: string }[];
   updated: string;
@@ -232,11 +233,11 @@ export const GUIDES: Guide[] = [
     slug: "flashforge-creality-to-bambu",
     title: "Move Flashforge, Creality and Snapmaker projects back to Bambu Lab",
     meta: "Convert Flashforge, Creality or Orca 3MF projects to Bambu Studio | FilaShift",
-    desc: "Convert OrcaSlicer, Orca-Flashforge, Creality Print and Snapmaker Orca projects to Bambu Studio for the X1, P1S, A1, H2D and other Bambu Lab printers.",
+    desc: "Convert 3MF projects from OrcaSlicer, Orca-Flashforge, Creality Print, ElegooSlicer, Anycubic Slicer Next and Snapmaker Orca for Bambu Studio.",
     intro: "Conversion works both ways. Projects from the OrcaSlicer family can be moved to Bambu Lab printers with Bambu's own profiles and AMS slots.",
     printer: "bambu-lab-p1s",
     steps: [
-      "Save the project as a 3MF in OrcaSlicer, Orca-Flashforge, Creality Print or Snapmaker Orca.",
+      "Save the project as a 3MF in OrcaSlicer, Orca-Flashforge, Creality Print, ElegooSlicer, Anycubic Slicer Next or Snapmaker Orca.",
       "Drop it into FilaShift and pick your Bambu Lab printer.",
       "Match each colour to an AMS slot.",
       "Convert, download and read the report.",
@@ -254,7 +255,7 @@ export const GUIDES: Guide[] = [
       },
     ],
     faq: [{ q: "Will Bambu Studio show the project as modified?", a: "Yes, settings that differ from the Bambu presets are shown as changes, which is expected." }],
-    updated: "2026-11-23",
+    updated: "2026-11-24",
   },
   {
     slug: "multicolor-3mf",

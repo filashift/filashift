@@ -51,6 +51,9 @@ export function buyingGuide(es:boolean): Omit<Guide,"slug"> {
     cta:es?"Comparar bobinas disponibles":"Compare in-stock single spools", shopping:true,
     sections:models.map(m=>({h:m.name,p:es?m.es:m.en,model:m.id,material:m.buy,source:m.url,warning:m.warning?.[es?"es":"en"]})),
     faq:es?[{q:"¿La lista garantiza que una bobina sirve para mi alimentador?",a:"No. Los enlaces filtran por material, diámetro y formato, no por dimensiones del carrete. Confirma el ancho, el orificio y el recorrido de alimentación antes de comprar."},{q:"¿Y si ya tengo un proyecto multicolor?",a:"Convierte el archivo y elige «Una bobina para esta impresión» bajo cada color. El comparador usa el material, el diámetro y un color aproximado; comprueba la foto y la variante en la tienda."}]:[{q:"Does a finder result guarantee that the reel fits my feeder?",a:"No. The links filter by material, filament diameter, and packaging, not reel dimensions. Confirm the reel width, hub opening, and feed path before ordering."},{q:"What if I already have a multicolor project?",a:"Convert it first, then choose “One spool for this print” under each color. The finder carries over the material, diameter, and approximate color; confirm the swatch and variant at the store."}],
-    updated:"2026-11-24"
+    updated:"2026-11-24",
+    editorialNote:es
+      ? "Ahora puedes importar proyectos 3MF guardados en ElegooSlicer y Anycubic Slicer Next. Las recomendaciones de filamento para las cinco impresoras no han cambiado."
+      : "You can now import 3MF projects saved in ElegooSlicer and Anycubic Slicer Next. The filament recommendations for the five printers are unchanged."
   };
 }

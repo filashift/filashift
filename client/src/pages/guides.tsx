@@ -224,6 +224,12 @@ export function GuidePage() {
         <p className="mt-8 text-xs text-muted-foreground">
           {es ? "Actualizado el " : "Updated "}
           <time dateTime={g.updated}>{new Date(g.updated + "T12:00:00Z").toLocaleDateString(es ? "es-ES" : "en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}</time>.
+          {g.editorialNote && <span className="mt-1 block" data-testid="guide-editorial-note">
+            {g.editorialNote}{" "}
+            <Link href={`/guides/flashforge-creality-to-bambu${es ? "?lang=es" : ""}`} className="text-primary underline">
+              {L("How to convert these projects for Bambu Studio", "Cómo convertir estos proyectos para Bambu Studio")}
+            </Link>
+          </span>}
         </p>
       </article>
 
