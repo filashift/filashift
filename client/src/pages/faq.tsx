@@ -14,7 +14,7 @@ const FAQ = [
   },
   {
     q: "Which files can I convert?",
-    a: "3MF projects saved by Bambu Studio, the OrcaSlicer family (OrcaSlicer, Creality Print, Orca-Flashforge, Snapmaker Orca) and PrusaSlicer 2.4 or newer, including MakerWorld and Printables downloads. PrusaSlicer projects keep their parts, painted colours, colour changes and main print settings; speeds and line widths use the new printer's defaults because PrusaSlicer stores them differently.",
+    a: "3MF projects saved by Bambu Studio, the OrcaSlicer family (OrcaSlicer, Creality Print, ElegooSlicer, Anycubic Slicer Next, Orca-Flashforge, Snapmaker Orca) and PrusaSlicer 2.4 or newer, including MakerWorld and Printables downloads. PrusaSlicer projects keep their parts, painted colours, colour changes and main print settings; speeds and line widths use the new printer's defaults because PrusaSlicer stores them differently.",
   },
   {
     q: "Can I convert 3MF to STL or OBJ?",

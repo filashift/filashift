@@ -256,7 +256,7 @@ export default function Home() {
               <span className="font-medium">{jobs.length ? "Add another 3MF or STL" : "Choose a 3MF project or STL model"}</span>
               <span className="mt-1 text-sm text-muted-foreground">or click to choose files · several at once is fine</span>
               <span className="mt-1 text-xs text-muted-foreground">STL: up to 16 MiB and 100,000 triangles · dimensions assumed to be in millimeters</span>
-              <span className="mt-3 font-mono text-xs text-muted-foreground">MakerWorld · Printables · Bambu Studio · OrcaSlicer · PrusaSlicer · Creality Print · Orca-Flashforge · Snapmaker Orca</span>
+              <span className="mt-3 font-mono text-xs text-muted-foreground">MakerWorld · Printables · Bambu Studio · OrcaSlicer · PrusaSlicer · Creality Print · ElegooSlicer · Anycubic Slicer Next · Orca-Flashforge · Snapmaker Orca</span>
               <input
                 id="file-input"
                 ref={inputRef}

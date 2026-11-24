@@ -83,7 +83,8 @@ export function targetFamily(profile: PrinterProfile): "bambu" | "orca" {
 }
 
 const GCODE_CACHE_RE = /^Metadata\/plate_\d+\.(json|gcode)(\.md5)?$/;
-const DROP_FILES = new Set(["Metadata/filament_sequence.json"]);
+// creality.config only names the source app (Creality Print); keeping it would mislabel the output.
+const DROP_FILES = new Set(["Metadata/filament_sequence.json", "Metadata/creality.config"]);
 
 // ---------- small helpers ----------
 const first = (v: any) => (Array.isArray(v) ? v[0] : v);
@@ -110,6 +111,8 @@ export function normalizeColor(c: string | undefined | null): string {
 }
 
 function parseArea(area: any): { minx: number; miny: number; w: number; h: number } | null {
+  // projects store a point list as ["0x0","256x0",...]; some vendor presets write "0x0,256x0,..."
+  if (typeof area === "string" && area.includes("x")) area = area.split(",");
   if (!Array.isArray(area) || !area.length) return null;
   const pts = area.map((p: string) => String(p).split("x").map(Number));
   if (pts.some((p: number[]) => p.length < 2 || p.some((n) => !Number.isFinite(n)))) return null;
@@ -459,6 +462,27 @@ export function slicerLabel(app: string, orcaTag: string): string {
   return app ? app.replace(/-/g, " ") : "";
 }
 
+// Some forks keep a Bambu/Orca Application string in 3dmodel.model and identify themselves
+// elsewhere: Anycubic Slicer Next writes "BambuStudio-<its own version>" plus an
+// X-ACNext-Client-* header in slice_info.config and app_full_name in the project settings;
+// Creality Print writes X-CX-Client-* headers and Metadata/creality.config; ElegooSlicer
+// and other forks may add X-BBL-Client-Name. Returns e.g. "Anycubic Slicer Next 2.0.0", or "".
+export function detectFork(e: Entries, S: Dict | null): string {
+  const label = (name: string, ver: string) => slicerLabel(`${name}-${ver}`, "");
+  const sk = findEntry(e, "Metadata/slice_info.config");
+  const si = sk ? readHead(e[sk], 4000) : "";
+  const hdr = (k: string) => new RegExp(`key="${k}"\\s+value="([^"]*)"`).exec(si)?.[1] || "";
+  if (hdr("X-ACNext-Client-Type") || hdr("X-ACNext-Client-Version")) return label("Anycubic", hdr("X-ACNext-Client-Version"));
+  if (hdr("X-CX-Client-Type") || hdr("X-CX-Client-Version")) return label("Creality", hdr("X-CX-Client-Version"));
+  const app = String(S?.app_full_name || "");
+  if (app) return label(app, String(S?.app_version || ""));
+  const ck = findEntry(e, "Metadata/creality.config");
+  if (ck) return label("Creality", /key="AppVersion"\s+value="([^"]*)"/.exec(dec(e[ck]))?.[1] || "");
+  const name = hdr("X-BBL-Client-Name");
+  if (name && !/^(bambu|orca)/i.test(name)) return label(name, hdr("X-BBL-Client-Version"));
+  return "";
+}
+
 export function loadSettings(e: Entries): Dict | null {
   const k = findEntry(e, SETTINGS);
   if (!k) return null;
@@ -599,6 +623,8 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   const orcaTag = metaValue(e, "OrcaSlicer");
   a.sourceSlicer = slicerLabel(a.app, orcaTag);
   const S = loadSettings(e);
+  const fork = detectFork(e, S);
+  if (fork && !FORKS.some(([re, l]) => l !== "OrcaSlicer" && l !== "Bambu Studio" && re.test(a.app))) a.sourceSlicer = fork;
   const names = Object.keys(e);
   const isPrusa = names.some((n) => /Slic3r_PE\.config$|PrusaSlicer\.config$/i.test(n));
   const msKey = findEntry(e, MODEL_SETTINGS);
@@ -606,7 +632,7 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   else if (isPrusa) a.kind = "prusa";
   else if (msKey) a.kind = "bambu";
   else a.kind = "plain";
-  const isOrcaFamily = !!orcaTag || (!!a.app && !/^bambu/i.test(a.app));
+  const isOrcaFamily = !!orcaTag || !!fork || (!!a.app && !/^bambu/i.test(a.app));
   if (isOrcaFamily && a.kind === "bambu") a.kind = "orca";
 
   a.hasSlicedGcode = names.some((n) => /^Metadata\/plate_\d+\.gcode$/.test(n));
@@ -702,6 +728,10 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
     used: use.used ? use.used.has(i + 1) : true,
     usage: use.usage.get(i + 1) || 0,
   }));
+  // Creality Print 7 "mixed filaments" are virtual colour blends numbered after the real
+  // filaments; no other slicer can reproduce them.
+  if (String(SS.mixed_filament_definitions || "").trim())
+    a.notes.push("This project uses Creality Print mixed filaments (colour blends). Other slicers cannot print them; parts or painting that use a blend print with slot 1.");
   if (a.hasSlicedGcode)
     a.notes.push("The file contains pre-sliced G-code for the original printer. It will be removed so it can never be sent to the wrong machine.");
   return { entries: e, S, analysis: a };
@@ -759,10 +789,15 @@ function stampModel(xml: string, fam: "bambu" | "orca"): string {
 }
 
 function stampSliceInfo(xml: string, fam: "bambu" | "orca"): string {
-  let x = xml.replace(/(<header_item key="X-BBL-Client-Version" value=")[^"]*(")/, `$1${fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client}$2`);
-  x = x.replace(/\s*<header_item key="OrcaSlicer-Version" value="[^"]*"\/>/, "");
-  if (fam === "orca") x = x.replace(/(<header_item key="X-BBL-Client-Version"[^>]*\/>)/, `$1\n    <header_item key="OrcaSlicer-Version" value="${STAMP.orca.orca}"/>`);
-  return x;
+  // Rewrite the header for the output slicer and drop fork identities (X-ACNext-*, X-CX-*,
+  // X-BBL-Client-Name), otherwise the converted file still claims to be from the source fork.
+  const head =
+    `  <header>\n    <header_item key="X-BBL-Client-Type" value="slicer"/>\n` +
+    `    <header_item key="X-BBL-Client-Version" value="${fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client}"/>\n` +
+    (fam === "orca" ? `    <header_item key="OrcaSlicer-Version" value="${STAMP.orca.orca}"/>\n` : "") +
+    `  </header>`;
+  if (/<header>[\s\S]*?<\/header>/.test(xml)) return xml.replace(/ *<header>[\s\S]*?<\/header>/, head);
+  return xml.replace(/(<config>)/, `$1\n${head}`);
 }
 
 function buildDiffLists(copied: Set<string>, nfil: number, mach: Set<string> = new Set()): string[] {
@@ -1015,7 +1050,8 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     const bed = cands.find(ok);
     if (bed) {
       R.curr_bed_type = bed;
-      if (srcBed && bed !== srcBed) warn(`Build plate changed from “${srcBed}” to “${bed}”: the ${profile.model} filament presets have no bed temperature for the original plate. Fit that plate before printing, or pick another plate in the slicer.`);
+      if (srcBed && !PLATE_KEYS[srcBed]) warn(`Build plate changed from “${srcBed}” to “${bed}”: ${profile.slicer} has no “${srcBed}” type. Fit a matching plate before printing, or pick another plate in the slicer.`);
+      else if (srcBed && bed !== srcBed) warn(`Build plate changed from “${srcBed}” to “${bed}”: the ${profile.model} filament presets have no bed temperature for the original plate. Fit that plate before printing, or pick another plate in the slicer.`);
       else if (!srcBed) info(`Build plate set to “${bed}”.`);
     } else {
       warn(`No build plate suits every filament in the ${profile.model} presets. Pick a plate in the slicer and check the bed temperatures.`);
