@@ -230,7 +230,7 @@ export default function Home() {
       <SiteHeader />
 
       <Hero
-        printers={printers.length || 226}
+        printers={printers.length || 234}
         brands={new Set(printers.map((p) => p.vendor)).size || 15}
         onChoose={() => inputRef.current?.click()}
       />
@@ -385,7 +385,7 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-                {target && <TestedNote id={target.id} slicer={target.slicer} />}
+                {target && <TestedNote id={target.id} slicer={target.slicer} output={usePrusa ? "PrusaSlicer" : target.slicer} />}
               </div>
 
               {nozzles.length > 1 && (

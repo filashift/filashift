@@ -237,3 +237,15 @@ for vendor in VENDORS:
 index.sort(key=lambda r: (r["vendor"], r["model"]))
 json.dump(index, open(os.path.join(OUT, "index.json"), "w"), indent=0)
 print(len(index), "printers")
+
+# PrusaSlicer step: native PrusaSlicer presets (profiles/prusa/), `prusa` flags and the PrusaSlicer-only printers.
+# Without it the Prusa printers would silently fall back to OrcaSlicer output, so it is required
+# (PRUSA_SRC = folder with PrusaResearch-<ver>.ini + Preset.cpp + PrintConfig.cpp, default ~/slicers;
+# needs the prusa-slicer CLI). SKIP_PRUSA=1 skips it on purpose.
+if os.environ.get("SKIP_PRUSA") != "1":
+    import glob, shutil, subprocess
+    psrc = os.path.expanduser(os.environ.get("PRUSA_SRC", "~/slicers"))
+    if not glob.glob(os.path.join(psrc, "PrusaResearch-*.ini")) or not shutil.which("prusa-slicer"):
+        sys.exit(f"PrusaSlicer step needs {psrc}/PrusaResearch-<ver>.ini (+ Preset.cpp, PrintConfig.cpp) and the prusa-slicer CLI; "
+                 "see OPERATIONS.md 'Native PrusaSlicer output', or set SKIP_PRUSA=1")
+    subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "build_prusa_profiles.py"), psrc, OUT], check=True)

@@ -418,6 +418,7 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
   const instCount = new Map<string, number>();
   for (const it of items) instCount.set(it.oid, (instCount.get(it.oid) || 0) + 1);
   const objVolT = new Map<string, Mat>(); // per output object: transform folded into the instance
+  const objBox = new Map<string, number[]>(); // per output object: 3D bbox of its mesh in object coords [x0,y0,z0,x1,y1,z1]
   let painted = { mmu: false, sup: false, seam: false, fuzzy: false };
   let dropped = 0;
   const droppedKeys = new Set<string>();
@@ -447,6 +448,11 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
     objVolT.set(it.oid, single ? vols[0].t : IDENT);
     let vtxOut = "";
     let triOut = "";
+    const bb = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
+    const grow = (x: number, y: number, z: number) => {
+      if (x < bb[0]) bb[0] = x; if (y < bb[1]) bb[1] = y; if (z < bb[2]) bb[2] = z;
+      if (x > bb[3]) bb[3] = x; if (y > bb[4]) bb[4] = y; if (z > bb[5]) bb[5] = z;
+    };
     let vbase = 0, tbase = 0;
     const msObj = ms.get(it.oid);
     const name = msObj?.meta.name || `Object ${id}`;
@@ -464,6 +470,7 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
         const parts: string[] = [];
         while ((m = vre.exec(v.o.vtx!))) {
           const [x, y, z] = ap(v.t, +m[1], +m[2], +m[3]);
+          grow(x, y, z);
           parts.push(`     <vertex x="${num(x)}" y="${num(y)}" z="${num(z)}"/>\n`);
           nv++;
         }
@@ -472,7 +479,11 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
         const vre = /<vertex\b[^>]*\/>/g;
         const parts: string[] = [];
         let m: RegExpExecArray | null;
-        while ((m = vre.exec(v.o.vtx!))) { parts.push("     " + m[0] + "\n"); nv++; }
+        while ((m = vre.exec(v.o.vtx!))) {
+          parts.push("     " + m[0] + "\n"); nv++;
+          const c = /x="([^"]+)"\s+y="([^"]+)"\s+z="([^"]+)"/.exec(m[0]);
+          if (c) grow(+c[1], +c[2], +c[3]);
+        }
         vtxOut += parts.join("");
       }
       // triangles
@@ -516,6 +527,7 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
       tbase += nt;
     }
     triTotal += tbase;
+    if (bb[0] <= bb[3]) objBox.set(it.oid, bb);
     mcfg += ` </object>\n`;
     model += `  <object id="${id}" type="model">\n   <mesh>\n    <vertices>\n${vtxOut}    </vertices>\n    <triangles>\n${triOut}    </triangles>\n   </mesh>\n  </object>\n`;
   }
@@ -523,6 +535,7 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
 
   // instances, moved from Orca's plate grid to PrusaSlicer's bed grid
   const nPlates = Math.max(1, ctx.plateIds.length);
+  const bedRects: number[][][] = Array.from({ length: nPlates }, () => []); // bed-local XY footprints per bed
   for (const it of items) {
     const id = outId.get(it.oid);
     if (!id) continue;
@@ -532,6 +545,15 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
     const [bx, by] = bedTranslation(idx, bw, bh);
     t[9] += bx - ox;
     t[10] += by - oy;
+    const b = objBox.get(it.oid);
+    if (b) {
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const cx of [b[0], b[3]]) for (const cy of [b[1], b[4]]) for (const cz of [b[2], b[5]]) {
+        const [px, py] = ap(t, cx, cy, cz);
+        x0 = Math.min(x0, px - bx); y0 = Math.min(y0, py - by); x1 = Math.max(x1, px - bx); y1 = Math.max(y1, py - by);
+      }
+      bedRects[idx].push([x0, y0, x1, y1]);
+    }
     build.push(`  <item objectid="${id}" transform="${t.map(num).join(" ")}" printable="${it.printable}"/>\n`);
   }
   if (dropped) ctx.warn(`${dropped} object(s) without geometry were left out of the PrusaSlicer project.`);
@@ -553,10 +575,37 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
   // wipe tower per bed (bed-local position)
   const towerX = Array.isArray(R.wipe_tower_x) ? R.wipe_tower_x : R.wipe_tower_x !== undefined ? [R.wipe_tower_x] : [];
   const towerY = Array.isArray(R.wipe_tower_y) ? R.wipe_tower_y : R.wipe_tower_y !== undefined ? [R.wipe_tower_y] : [];
+  // PrusaSlicer's tower is wider than Orca's (wipe_tower_width, 60 mm on Prusa MMU/XL presets) and its corner is
+  // wipe_tower_x/y, so check the spot the converter chose against the objects with PrusaSlicer's footprint and move it
+  // to the nearest free spot (or the least-overlapping one) when it would hit the model
+  const towerOn = N > 1 && truthy(C.wipe_tower);
+  const brim = (parseFloat(C.wipe_tower_brim_width || "2") || 2) + 3;
+  const twW = (parseFloat(C.wipe_tower_width || "60") || 60) + 2 * brim, twD = 30 + 2 * brim;
+  let towerMoved = 0, towerHit = 0;
   const towers = Array.from({ length: nPlates }, (_, i) => {
     const x = parseFloat(towerX[Math.min(i, towerX.length - 1)]), y = parseFloat(towerY[Math.min(i, towerY.length - 1)]);
-    return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : { x: bminx + bw * 0.7, y: bminy + bh * 0.6 };
+    const want = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : { x: bminx + bw * 0.7, y: bminy + bh * 0.6 };
+    if (!towerOn || !bedRects[i].length) return want;
+    const rects = bedRects[i].map((r) => [r[0] - 3, r[1] - 3, r[2] + 3, r[3] + 3]);
+    const overlap = (cx: number, cy: number) =>
+      rects.reduce((a, r) => a + Math.max(0, Math.min(cx - brim + twW, r[2]) - Math.max(cx - brim, r[0])) * Math.max(0, Math.min(cy - brim + twD, r[3]) - Math.max(cy - brim, r[1])), 0);
+    const xlo = bminx + brim + 2, xhi = bminx + bw - twW + brim - 2, ylo = bminy + brim + 2, yhi = bminy + bh - twD + brim - 2;
+    if (xhi < xlo || yhi < ylo) return want;
+    const cl = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
+    const w0 = { x: cl(want.x, xlo, xhi), y: cl(want.y, ylo, yhi) };
+    if (w0.x === want.x && w0.y === want.y && overlap(w0.x, w0.y) === 0) return want;
+    let best = w0, bo = overlap(w0.x, w0.y), bd = 0;
+    for (let cx = xlo; cx <= xhi + 0.01; cx += 5) for (let cy = ylo; cy <= yhi + 0.01; cy += 5) {
+      const o = overlap(cx, cy), d = Math.hypot(cx - want.x, cy - want.y);
+      if (o < bo - 1e-6 || (Math.abs(o - bo) <= 1e-6 && d < bd)) { best = { x: cx, y: cy }; bo = o; bd = d; }
+    }
+    // no free spot (model larger than the bed): keep the converter's least-overlap spot
+    if (bo > 0) { towerHit++; return want; }
+    if (best.x !== want.x || best.y !== want.y) towerMoved++;
+    return { x: +best.x.toFixed(2), y: +best.y.toFixed(2) };
   });
+  if (towerHit) ctx.warn(`PrusaSlicer's wipe tower has no free spot beside the model on ${towerHit} bed${towerHit > 1 ? "s" : ""}; it was placed where it overlaps least. Scale or rearrange the model in PrusaSlicer before slicing.`);
+  else if (towerMoved) ctx.info(`The wipe tower was moved to a free spot on ${towerMoved} bed${towerMoved > 1 ? "s" : ""} to fit PrusaSlicer's ${parseFloat(C.wipe_tower_width || "60") || 60} mm tower.`);
   const wt = `<?xml version="1.0" encoding="utf-8"?>\n` + towers.map((t, i) => `<wipe_tower_information bed_idx="${i}" position_x="${num(t.x)}" position_y="${num(t.y)}" rotation_deg="0"/>`).join("\n") + "\n";
 
   // colour changes / pauses / custom G-code per layer

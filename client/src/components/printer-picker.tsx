@@ -21,7 +21,7 @@ export interface TestedDoc {
   date: string;
   slicers: Record<string, string>;
   samples: string[];
-  printers: Record<string, { ok: boolean; passed: number; tests: number; note?: string }>;
+  printers: Record<string, { ok: boolean; passed: number; tests: number; note?: string; slicer?: string; outputs?: Record<string, { ok: boolean; passed: number; tests: number; note?: string }> }>;
 }
 let testedP: Promise<TestedDoc | null> | null = null;
 /** Results of the last full slicer run (scripts/tested.py): converted sample projects sliced in the real destination slicer CLI. */
@@ -35,10 +35,12 @@ export function useTested(): TestedDoc | null {
   }, []);
   return d;
 }
-export function testedLabel(d: TestedDoc | null, p: Pick<PrinterIndexEntry, "id" | "slicer">): string | null {
+/** `output`: the slicer the converted file is for (Prusa printers can get PrusaSlicer or OrcaSlicer files). */
+export function testedLabel(d: TestedDoc | null, p: Pick<PrinterIndexEntry, "id" | "slicer">, output?: string): string | null {
   const t = d?.printers[p.id];
   if (!d || !t?.ok) return null;
-  const sl = p.slicer || "OrcaSlicer";
+  const sl = output || t.slicer || p.slicer || "OrcaSlicer";
+  if (t.outputs && !t.outputs[sl]?.ok) return null;
   const v = d.slicers[sl] || "";
   const when = new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", year: "numeric" });
   return `Slicer-tested: sample projects converted for this printer sliced without errors in ${sl} ${v.replace(/^0/, "")} (${when}).`;
@@ -56,9 +58,9 @@ export function TestedBadge({ id, slicer, className }: { id: string; slicer?: st
   );
 }
 
-export function TestedNote({ id, slicer }: { id: string; slicer?: string }) {
+export function TestedNote({ id, slicer, output }: { id: string; slicer?: string; output?: string }) {
   const d = useTested();
-  const label = testedLabel(d, { id, slicer: slicer as any });
+  const label = testedLabel(d, { id, slicer: slicer as any }, output);
   if (!label) return null;
   const note = d!.printers[id].note;
   return (

@@ -13,9 +13,16 @@ import json,sys,glob,re,zipfile
 o,b,sl,f=sys.argv[1:]
 try: r=json.load(open(o+'/result.json'))
 except Exception: r={'return_code':'none','error_string':'no result.json'}
+# PrusaSlicer has no "objects over the bed" code like Orca/Bambu's -52: when the converter already warned that the
+# model is larger than the bed and PrusaSlicer fails (it can crash on a wipe tower that overlaps the model), report -52
+if sl=='PrusaSlicer' and r.get('return_code')!=0:
+  try:
+    if any('larger than the' in l['text'] and 'bed' in l['text'] for l in json.load(open(f[:-4]+'.json'))['lines'] if l['level']=='warn'):
+      r={'return_code':-52,'error_string':'model larger than the bed (the converter warned to scale it); PrusaSlicer rc=%s'%r.get('return_code')}
+  except Exception: pass
 g=sorted(glob.glob(o+'/*.gcode'))
 info=''
-if g:
+if g and r.get('return_code')==0:
   t=open(g[0],errors='ignore').read()
   def h(k):
     m=re.search(r'^; '+k+r' = (.*)$',t,re.M); return m.group(1)[:40] if m else '?'

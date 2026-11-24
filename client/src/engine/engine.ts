@@ -1358,10 +1358,10 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     const towerOn = ["1", "true"].includes(String(first(R.enable_prime_tower ?? "0")));
     if (tw !== tw0 && towerOn) {
       R.prime_tower_width = Array.isArray(R.prime_tower_width) ? R.prime_tower_width.map(() => String(tw)) : String(tw);
-      info(`The ${tw0} mm prime tower did not fit beside the model, so it was narrowed to ${tw} mm.`);
+      oinfo(`The ${tw0} mm prime tower did not fit beside the model, so it was narrowed to ${tw} mm.`);
     }
-    if (towerOn) for (const pid of misses) warn(`${multi ? `Plate ${pid}: the` : "The"} model leaves little free space for the prime tower, so it was placed where it overlaps least. Check the tower in the slicer preview; if it touches the model, move it or scale the model.`);
-    if (moved && towerOn) info(`The prime tower was moved to a free corner on ${moved} plate${moved > 1 ? "s" : ""} so it does not overlap the model.`);
+    if (towerOn) for (const pid of misses) owarn(`${multi ? `Plate ${pid}: the` : "The"} model leaves little free space for the prime tower, so it was placed where it overlaps least. Check the tower in the slicer preview; if it touches the model, move it or scale the model.`);
+    if (moved && towerOn) oinfo(`The prime tower was moved to a free corner on ${moved} plate${moved > 1 ? "s" : ""} so it does not overlap the model.`);
     break;
    }
   }

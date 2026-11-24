@@ -24,7 +24,8 @@ import json, os, re, subprocess, sys, tempfile, copy
 
 SRC = sys.argv[1]
 OUT = sys.argv[2] if len(sys.argv) > 2 else "client/public/profiles"
-INI = os.path.join(SRC, "PrusaResearch.ini") if os.path.exists(os.path.join(SRC, "PrusaResearch.ini")) else os.path.join(SRC, "PrusaResearch-2.9.7.ini")
+_inis = sorted(__import__("glob").glob(os.path.join(SRC, "PrusaResearch-*.ini")), key=lambda f: [int(x) for x in re.findall(r"\d+", os.path.basename(f))])
+INI = os.path.join(SRC, "PrusaResearch.ini") if os.path.exists(os.path.join(SRC, "PrusaResearch.ini")) else _inis[-1]
 CLI = os.environ.get("PRUSA_SLICER", "prusa-slicer")
 PRUSA_VERSION = os.environ.get("PRUSA_VERSION", "2.9.7")
 os.makedirs(os.path.join(OUT, "prusa"), exist_ok=True)
@@ -281,7 +282,7 @@ def build(pid, nozzle, file_id):
     return rec
 
 common = {"slicer": f"PrusaSlicer {PRUSA_VERSION}", "bundle": CONFIG_VERSION, "defaults": DEFAULTS,
-          "vector": {k: kind(k) for k in set(DEFAULTS) | set(PRINT_KEYS) | set(FIL_KEYS) | set(PRINTER_KEYS) | set(EXT_KEYS) if kind(k)},
+          "vector": {k: kind(k) for k in sorted(set(DEFAULTS) | set(PRINT_KEYS) | set(FIL_KEYS) | set(PRINTER_KEYS) | set(EXT_KEYS)) if kind(k)},
           "filamentKeys": [k for k in FIL_KEYS if k not in SKIP], "extruderKeys": EXT_KEYS, "printKeys": PRINT_KEYS,
           "printerKeys": PRINTER_KEYS + MACHINE_KEYS + EXT_KEYS}
 json.dump(common, open(os.path.join(OUT, "prusa", "_common.json"), "w"), separators=(",", ":"))
@@ -316,6 +317,7 @@ for pid in MAP:
             bpath = os.path.join(OUT, bfid + ".json")
             if not os.path.exists(bpath): bpath = os.path.join(OUT, basepid + ".json")
             B = json.load(open(bpath))
+            B.pop("prusa", None); B.pop("prusaOnly", None)  # same key order whether or not the base was flagged already
             B.update({"id": fid, "model": model, "short": short, "machine": rec["printer"]["name"], "slicer": "PrusaSlicer", "prusaOnly": True, "prusa": True,
                       "bed": [rec["bed"][2], rec["bed"][3]], "height": rec["height"], "slots": slots, "slotUnit": unit,
                       "extruders": rec["extruders"] if not rec["single_extruder_multi_material"] else 1, "popular": False, "nozzle": n, "base": pid})

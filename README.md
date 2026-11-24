@@ -12,18 +12,18 @@ All conversion happens in the browser tab. Project files are never uploaded; the
 
 ## Supported printers
 
-226 printers from 15 brands. Bambu Lab presets come from Bambu Studio's system profiles; all other brands come from OrcaSlicer's system profiles. Converted files target Bambu Studio 2.9.1 or newer for Bambu printers and OrcaSlicer 2.3.1 or newer for everything else.
+234 printers from 15 brands. Bambu Lab presets come from Bambu Studio's system profiles, Prusa presets for PrusaSlicer output from PrusaSlicer's own PrusaResearch profiles, and all other brands from OrcaSlicer's system profiles. Converted files target Bambu Studio 2.9.1 or newer for Bambu printers, PrusaSlicer 2.9 or newer for Prusa printers (default; an OrcaSlicer file is still available, and 8 Prusa models such as the MK4S MMU3 and XL 2T exist only in PrusaSlicer), and OrcaSlicer 2.3.1 or newer for everything else.
 
 ## How it was tested
 
-`scripts/matrix.ts` converts source projects to a list of target printers, and `scripts/slice-matrix.sh` slices every result with the destination slicer's command-line interface (OrcaSlicer 2.5.2, Bambu Studio 2.9.2) and reads the settings back from the G-code. `scripts/roundtrip.ts` converts a project through a chain of printers and checks the painted colours come back unchanged. The latest run (2026-11-24) sliced 678 of 678 conversions: three sample projects (Bambu Studio, OrcaSlicer, PrusaSlicer) to all 226 printers; all 226 printers are slicer-tested.
+`scripts/matrix.ts` converts source projects to a list of target printers, and `scripts/slice-matrix.sh` slices every result with the destination slicer's command-line interface (OrcaSlicer 2.5.2, Bambu Studio 2.9.2, PrusaSlicer 2.9.4) and reads the settings back from the G-code. `scripts/roundtrip.ts` converts a project through a chain of printers and checks the painted colours come back unchanged. The latest run (2026-11-24) sliced 678 of 678 OrcaSlicer and Bambu Studio conversions (three sample projects from Bambu Studio, OrcaSlicer and PrusaSlicer to all 226 of those printers) and 313 of 315 PrusaSlicer conversions (the three samples plus two painted MakerWorld projects to all 63 Prusa printer and nozzle variants; the other two are a MakerWorld model larger than the CORE One MMU3 bed, which the converter flags with a scale suggestion). All 234 printers are slicer-tested.
 
 ## Known limits
 
 - Always open the converted file in the destination slicer, check the preview and slice it yourself before printing.
 - OrcaSlicer blocks mixing filaments with incompatible temperatures (for example PLA and PETG) on single-nozzle printers; FilaShift warns about this.
 - Models larger than the destination bed must be scaled or split; FilaShift warns with a suggested scale.
-- PrusaSlicer project import is not supported yet.
+- PrusaSlicer projects can be opened and exported (PrusaSlicer 2.4+ in, 2.9 projects out). PrusaSlicer output uses PrusaSlicer's presets for temperatures and speeds; variable layer height and layer-range modifiers are not carried over.
 
 ## Development
 
