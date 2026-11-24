@@ -22,7 +22,8 @@ try {
     await p.goto("https://filashift.com/?lang=en",{waitUntil:"networkidle"});
     await p.getByTestId("nav-guides").click();
     await p.getByTestId("topic-shop").click();
-    await p.evaluate(()=>history.pushState({}, "", "?lang=en#test"));
+    await p.evaluate(()=>history.pushState({}, "", `${location.pathname}?lang=en#test`));
+    assert.equal(new URL(p.url()).pathname,"/guides");
     await p.waitForLoadState("networkidle");
     await p.reload({waitUntil:"networkidle"});
     assert.equal(events.length,mode==="normal"?3:0, mode);
