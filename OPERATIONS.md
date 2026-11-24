@@ -131,3 +131,4 @@ is live. The workflow cannot deploy, push, or roll back a release.
 - Fixed: prerendered pages had `modulepreload` links pointing at the temporary render server (`http://127.0.0.1:<port>/assets/...`); `scripts/prerender.mjs` now rewrites them to site paths and refuses to write HTML containing 127.0.0.1.
 - npm: `overrides.postcss-selector-parser ^6.1.6` clears the last moderate build-time advisory (`npm audit` = 0).
 - Filament collector: Jayo moved to `store.jayo3d.com` (old www store lists $0 prices). Region-only listings (`[EU Only]`, United Kingdom variants, etc.) are skipped.
+- Rebase note: `git pull --rebase` re-commits local work with the sandbox's committer identity; pull with the same GIT_COMMITTER_* env vars (or merge) before releasing. 96fd1be (fork importers) carries committer "filashift" for this reason; history was not rewritten.
