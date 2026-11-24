@@ -46,7 +46,7 @@ Printer profiles are regenerated with `scripts/build_profiles.py` from OrcaSlice
 
 FilaShift is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [LICENSE](LICENSE).
 
-The bundled printer, process and filament profiles in `client/public/profiles/` are derived from OrcaSlicer and Bambu Studio, both licensed under the AGPL-3.0. See [NOTICE.md](NOTICE.md) for third-party credits.
+The bundled profiles and option tables in `client/public/profiles/` derive from OrcaSlicer, Bambu Studio and PrusaSlicer. See [NOTICE.md](NOTICE.md) for upstream credits and licenses.
 
 Copyright © 2026 Jackson Technology Solutions LLC, a subsidiary of Jackson Consolidated Group of Companies LLC.
 
