@@ -63,7 +63,7 @@ const NAV: { label: string; href?: string; section?: string }[] = [
   { href: "/guides", label: "Guides" },
   { section: "how", label: "How it works" },
   { section: "printers", label: "Printers" },
-  { section: "faq", label: "FAQ" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 export function SiteHeader({ note }: { note?: ReactNode }) {
@@ -145,6 +145,7 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
               ["/about", "About"],
               ["/guides", "Guides"],
               ["/creators", "Creators"],
+              ["/faq", "FAQ"],
               ["/privacy", "Privacy"],
               ["/terms", "Terms"],
               ["/contact", "Contact"],

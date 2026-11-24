@@ -13,6 +13,7 @@ const useHashPath = (): [string, (to: string, o?: { replace?: boolean }) => void
 };
 import Home from "@/pages/home";
 const Filament=lazy(()=>import("@/pages/filament"));
+const Faq=lazy(()=>import("@/pages/faq"));
 const About=lazy(()=>import("@/pages/info").then(m=>({default:m.About})));
 const Contact=lazy(()=>import("@/pages/info").then(m=>({default:m.Contact})));
 const Privacy=lazy(()=>import("@/pages/info").then(m=>({default:m.Privacy})));
@@ -28,6 +29,7 @@ function AppRouter() {
     <Suspense fallback={<p role="status" className="p-4">Loading…</p>}><Switch>
       <Route path="/" component={Home} />
       <Route path="/filament" component={Filament} />
+      <Route path="/faq" component={Faq} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/about" component={About} />

@@ -66,6 +66,12 @@ try {
     const date = await page.locator("article time").getAttribute("datetime");
     assert(sitemap.includes(`/guides/3mf-to-stl</loc><lastmod>${date}</lastmod>`));
     await page.goto(`${base}/?lang=${lang}`, {waitUntil:"networkidle"});
+    assert.equal(await page.locator('#ld-faq, [data-testid="faq-0"]').count(),0);
+    await page.getByTestId("nav-faq").click();
+    await page.getByTestId("faq-0").waitFor();
+    assert.equal(new URL(page.url()).pathname,"/faq");
+    assert(sitemap.includes("/faq</loc>"));
+    await page.waitForFunction(date=>document.querySelector("#ld-faq")?.textContent.includes(date),results.date);
     const faq = JSON.parse(await page.locator("#ld-faq").textContent()).mainEntity;
     assert(faq.some(x=>x.acceptedAnswer.text===answer));
     const record = faq.find(x=>x.acceptedAnswer.text.includes(results.date))?.acceptedAnswer.text;

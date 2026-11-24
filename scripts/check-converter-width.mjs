@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
-import { chromium, devices } from "playwright-core";
+import { chromium, webkit, devices } from "playwright-core";
 import { preview } from "vite";
 
 const server=process.env.BASE ? null : await preview({configFile:false,build:{outDir:"dist/public"},preview:{host:"127.0.0.1",port:0}});
@@ -8,14 +8,15 @@ const base=process.env.BASE || `http://127.0.0.1:${server.httpServer.address().p
 const executablePath=[process.env.CHROME,`${process.env.HOME}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`,"/usr/bin/chromium","/usr/bin/google-chrome"].find(p=>p && existsSync(p));
 let browser;
 try {
-  browser=await chromium.launch({executablePath});
+  for(const [engine,device,widths] of [[chromium,"Pixel 7",[320,360,375,390,430]],[webkit,"iPhone 13",[320]]]){
+  browser=await engine.launch(engine===chromium ? {executablePath} : {});
   for(const lang of ["en","es"]){
-    const ctx=await browser.newContext({...devices["Pixel 7"],serviceWorkers:"block"});
+    const ctx=await browser.newContext({...devices[device],serviceWorkers:"block"});
     if(server) await ctx.addInitScript(()=>{window.__PRERENDER=true;});
     const page=await ctx.newPage();
     const errors=[];
     page.on("pageerror",e=>errors.push(e.message));
-    for(const width of [320,360,375,390,430]){
+    for(const width of widths){
       await page.setViewportSize({width,height:844});
       await page.goto(`${base}/?lang=${lang}`);
       const picker=page.getByTestId("button-printer-picker");
@@ -41,8 +42,11 @@ try {
       assert.match(await picker.innerText(),/Snapmaker U1/i);
       await fits("printer selected");
       assert.deepEqual(errors,[]);
-      console.log(`PASS ${lang} ${width}px: page, controls, badges and picker`);
+      console.log(`PASS ${device} / ${engine.name()} ${lang} ${width}px: page, controls, badges and picker`);
     }
     await ctx.close();
+  }
+  await browser.close();
+  browser=null;
   }
 }finally{await browser?.close();await server?.close();}
