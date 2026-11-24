@@ -117,3 +117,9 @@ The **FilaShift live release checks** workflow runs on every push to `master` an
 also be started manually. Read the job summary for the SHA and per-check outcomes.
 A mismatch fails the job; if the push preceded deployment, rerun it once that SHA
 is live. The workflow cannot deploy, push, or roll back a release.
+
+## Security policy and prerender (Nov 24 2026)
+- Full Content-Security-Policy in `deploy/Caddyfile.filashift`: same-origin only (scripts, styles, images incl. data:/blob:, fonts, fetch, workers, manifest, forms), plus a sha256 hash for the one inline script in `index.html` (the `<base href>` writer). If that inline script changes, `scripts/check-csp.mjs` (run by release.sh) fails and prints the new hash to put in the Caddyfile. Live check: `BASE=https://filashift.com node scripts/check-csp.mjs` (injects the repo policy into the live site, visits 13 pages and runs a conversion + download; must report no violations). Anything that would need a third-party origin breaks the privacy promise anyway.
+- Fixed: prerendered pages had `modulepreload` links pointing at the temporary render server (`http://127.0.0.1:<port>/assets/...`); `scripts/prerender.mjs` now rewrites them to site paths and refuses to write HTML containing 127.0.0.1.
+- npm: `overrides.postcss-selector-parser ^6.1.6` clears the last moderate build-time advisory (`npm audit` = 0).
+- Filament collector: Jayo moved to `store.jayo3d.com` (old www store lists $0 prices). Region-only listings (`[EU Only]`, United Kingdom variants, etc.) are skipped.

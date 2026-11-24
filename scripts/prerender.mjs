@@ -65,6 +65,9 @@ for (const route of ROUTES) {
   html = html.replace(/(<\/script>)\s*<base href="\/">/, "$1");
   // nested pages are only served on filashift.com, so their asset URLs can be absolute
   if (route !== "/") html = html.replace(/(^|[\s"',])\.\/(?=[\w./-]+\.(?:js|css|webp|png|svg|woff2|json|webmanifest)\b)/g, "$1/");
+  // lazy-route preloads injected while rendering carry the temporary server origin; make them site-relative
+  html = html.split(base + "/").join(route === "/" ? "./" : "/");
+  if (html.includes("127.0.0.1")) throw new Error(`${route}: prerendered HTML still references the local render server`);
   const file = route === "/" ? "index.html" : route === "/404" ? "404.html" : path.join(route.slice(1), "index.html");
   fs.mkdirSync(path.dirname(path.join(ROOT, file)), { recursive: true });
   fs.writeFileSync(path.join(ROOT, file), html);

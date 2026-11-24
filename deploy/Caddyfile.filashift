@@ -10,7 +10,7 @@
 		Referrer-Policy strict-origin-when-cross-origin
 		X-Frame-Options DENY
 		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
-		Content-Security-Policy "frame-ancestors 'none'; object-src 'none'; base-uri 'self'"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-4GB+togjbPOstglo9IUDssYkVTQmkJw1vfTbs0dWDAk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; upgrade-insecure-requests"
 		Cross-Origin-Opener-Policy same-origin
 		-Server
 	}

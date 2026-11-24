@@ -18,3 +18,4 @@ data.db-journal
 # build/deploy artifacts
 deploy/*.zip
 scripts/result.json
+__pycache__/

@@ -15,7 +15,7 @@ STORES = [
     ("www.overture3d.com", "Overture", "Overture", True),
     ("atomicfilament.com", "Atomic Filament", "Atomic Filament", False),
     ("www.inslogic3d.com", "Inslogic", "Inslogic", False),
-    ("www.jayo3d.com", "Jayo", "Jayo", False),
+    ("store.jayo3d.com", "Jayo", "Jayo", False),  # moved from www.jayo3d.com (prices there are $0) in Nov 2026
     ("www.amolen.com", "Amolen", "Amolen", False),
     ("www.protopasta.com", "Proto-pasta", "Proto-pasta", False),
     ("kingroon.com", "Kingroon", "Kingroon", False),
@@ -65,7 +65,7 @@ EXCLUDE = re.compile(
     r"\blaser\b|\bcnc\b|\bmotor\b|\bbelt\b|\bfan\b|\bboard\b|\bscreen\b|\bwipe|\bglue\b|\btool\b|\bpellet",
     re.I)
 EXCLUDE_TITLE_PREFIX = re.compile(r"^\s*\(bundle\s*sale\)", re.I)
-NON_US = re.compile(r"\b(eu|uk|de|ca|au|jp|mx|mexico|europe|germany|canada|australia)\b(?!.*\bus\b)|to\s+eu\s+only", re.I)
+NON_US = re.compile(r"\b(eu|uk|de|ca|au|jp|mx|mexico|europe|germany|canada|australia|united\s*kingdom|great\s*britain|france|spain|italy|japan)\b(?!.*\bus\b)|to\s+eu\s+only", re.I)
 
 def fetch_store(host, cache=None):
     if cache and os.path.exists(os.path.join(cache, host + ".json")):
@@ -201,6 +201,8 @@ def collect(cache=None):
             tags = " ".join(p.get("tags", [])) if isinstance(p.get("tags"), list) else str(p.get("tags", ""))
             if EXCLUDE_TITLE_PREFIX.search(title):
                 continue
+            if re.search(r"\[\s*(eu|uk|de|ca|au)\s*only\s*\]", title, re.I):
+                continue  # region-only listings (e.g. Jayo "[EU Only]")
             head = f"{title} {ptype}"
             if EXCLUDE.search(head) and "filament" not in title.lower():
                 continue
