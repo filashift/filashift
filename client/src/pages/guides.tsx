@@ -3,36 +3,58 @@ import { ArrowRight, BookOpen, CheckCircle2, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
-import { GUIDES, guideBySlug } from "@/lib/guides";
+import { GUIDES, guideBySlug, type Guide } from "@/lib/guides";
+import { GUIDES_ES } from "@/lib/guides-es";
+import { useLang } from "@/lib/i18n";
+
+/** The guide in the current language (Spanish text when available, English otherwise). */
+function useLocal() {
+  const lang = useLang();
+  const es = lang === "es";
+  const loc = (g: Guide): Guide => (es && GUIDES_ES[g.slug] ? { ...g, ...GUIDES_ES[g.slug] } : g);
+  const L = (en: string, sp: string) => (es ? sp : en);
+  return { es, loc, L };
+}
 import { SITE, useJsonLd, usePageMeta } from "@/lib/seo";
 import NotFound from "./not-found";
 
 function Shell({ children }: { children: React.ReactNode }) {
+  const { es } = useLocal();
   useEffect(() => window.scrollTo(0, 0), []);
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6" lang="en" translate="no">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6" lang={es ? "es" : "en"} translate="no">{children}</main>
       <SiteFooter />
     </div>
   );
 }
 
 export function GuidesIndex() {
+  const { loc, L } = useLocal();
   usePageMeta(
-    "3MF conversion guides: STL, OBJ, MakerWorld to Flashforge, Creality, Prusa | FilaShift",
-    "Step-by-step guides for converting 3MF files: 3MF to STL and OBJ, MakerWorld and Bambu Studio projects to Flashforge, Creality and Snapmaker, PrusaSlicer to Bambu, and keeping multi-colour prints intact.",
+    L(
+      "3MF conversion guides: STL, OBJ, MakerWorld to Flashforge, Creality, Prusa | FilaShift",
+      "Guías de conversión 3MF: STL, OBJ, MakerWorld a Flashforge, Creality, Prusa | FilaShift",
+    ),
+    L(
+      "Step-by-step guides for converting 3MF files: 3MF to STL and OBJ, MakerWorld and Bambu Studio projects to Flashforge, Creality and Snapmaker, PrusaSlicer to Bambu, and keeping multi-colour prints intact.",
+      "Guías paso a paso para convertir archivos 3MF: 3MF a STL y OBJ, proyectos de MakerWorld y Bambu Studio a Flashforge, Creality y Snapmaker, PrusaSlicer a Bambu y cómo conservar las impresiones multicolor.",
+    ),
   );
   return (
     <Shell>
       <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">
-        3MF conversion guides
+        {L("3MF conversion guides", "Guías de conversión 3MF")}
       </h1>
       <p className="mt-3 text-muted-foreground">
-        Short, tested workflows for moving 3D printing projects between slicers and printers, and for turning 3MF files into STL or OBJ.
+        {L(
+          "Short, tested workflows for moving 3D printing projects between slicers and printers, and for turning 3MF files into STL or OBJ.",
+          "Flujos de trabajo breves y probados para pasar proyectos de impresión 3D entre laminadores e impresoras, y para convertir archivos 3MF a STL u OBJ.",
+        )}
       </p>
       <ul className="mt-8 space-y-3" data-testid="list-guides">
-        {GUIDES.map((g) => (
+        {GUIDES.map(loc).map((g) => (
           <li key={g.slug}>
             <Link
               href={`/guides/${g.slug}`}
@@ -55,8 +77,10 @@ export function GuidesIndex() {
 
 export function GuidePage() {
   const [, params] = useRoute("/guides/:slug");
-  const g = guideBySlug(params?.slug || "");
-  usePageMeta(g?.meta || "Guide not found — FilaShift", g?.desc);
+  const { es, loc, L } = useLocal();
+  const g0 = guideBySlug(params?.slug || "");
+  const g = g0 && loc(g0);
+  usePageMeta(g?.meta || L("Guide not found — FilaShift", "Guía no encontrada — FilaShift"), g?.desc);
   useJsonLd(
     "ld-guide",
     g
@@ -78,7 +102,7 @@ export function GuidePage() {
               "@type": "BreadcrumbList",
               itemListElement: [
                 { "@type": "ListItem", position: 1, name: "FilaShift", item: `${SITE}/` },
-                { "@type": "ListItem", position: 2, name: "Guides", item: `${SITE}/guides` },
+                { "@type": "ListItem", position: 2, name: L("Guides", "Guías"), item: `${SITE}/guides` },
                 { "@type": "ListItem", position: 3, name: g.title, item: `${SITE}/guides/${g.slug}` },
               ],
             },
@@ -88,7 +112,7 @@ export function GuidePage() {
   );
   if (!g) return <NotFound />;
   const href = g.printer ? `/?printer=${g.printer}` : "/";
-  const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 4);
+  const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 4).map(loc);
   return (
     <Shell>
       <nav className="mb-4 flex items-center gap-1 text-xs text-muted-foreground" aria-label="Breadcrumb">
@@ -97,7 +121,7 @@ export function GuidePage() {
         </Link>
         <ChevronRight className="h-3 w-3" />
         <Link href="/guides" className="hover:text-foreground">
-          Guides
+          {L("Guides", "Guías")}
         </Link>
       </nav>
       <article>
@@ -108,7 +132,7 @@ export function GuidePage() {
 
         <section className="mt-6 rounded-xl border border-primary/25 bg-primary/[0.04] p-5" aria-labelledby="steps">
           <h2 id="steps" className="text-base font-semibold">
-            Steps
+            {L("Steps", "Pasos")}
           </h2>
           <ol className="mt-3 space-y-2.5">
             {g.steps.map((s, i) => (
@@ -122,11 +146,11 @@ export function GuidePage() {
           </ol>
           <Button asChild className="mt-5 gap-2">
             <Link href={href} data-testid="link-guide-cta">
-              {g.cta || "Open the converter"}
+              {g.cta || L("Open the converter", "Abrir el convertidor")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <p className="mt-2 text-xs text-muted-foreground">Free · no account · your file never leaves your device</p>
+          <p className="mt-2 text-xs text-muted-foreground">{L("Free · no account · your file never leaves your device", "Gratis · sin cuenta · tu archivo nunca sale de tu dispositivo")}</p>
         </section>
 
         <div className="mt-8 space-y-8 text-[15px] leading-relaxed">
@@ -151,7 +175,7 @@ export function GuidePage() {
             </section>
           ))}
           <section>
-            <h2 className="mb-2 text-lg font-semibold">Questions</h2>
+            <h2 className="mb-2 text-lg font-semibold">{L("Questions", "Preguntas")}</h2>
             <dl className="space-y-4">
               {g.faq.map((f) => (
                 <div key={f.q}>
@@ -163,13 +187,14 @@ export function GuidePage() {
           </section>
         </div>
         <p className="mt-8 text-xs text-muted-foreground">
-          Updated {new Date(g.updated + "T12:00:00Z").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Tested with
-          OrcaSlicer 2.5.2, Bambu Studio 2.9 and PrusaSlicer 2.8.
+          {es ? "Actualizado el " : "Updated "}
+          {new Date(g.updated + "T12:00:00Z").toLocaleDateString(es ? "es-ES" : "en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}.{" "}
+          {L("Tested with", "Probado con")} OrcaSlicer 2.5.2, Bambu Studio 2.9 {L("and", "y")} PrusaSlicer 2.8.
         </p>
       </article>
 
       <aside className="mt-10 border-t border-border pt-6">
-        <h2 className="text-sm font-semibold">More guides</h2>
+        <h2 className="text-sm font-semibold">{L("More guides", "Más guías")}</h2>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {others.map((o) => (
             <li key={o.slug}>

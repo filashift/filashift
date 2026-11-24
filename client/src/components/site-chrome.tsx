@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { setLang, useLang } from "@/lib/i18n";
 
-// public source repository (AGPL-3.0). Set VITE_SOURCE_URL at build time; the link is hidden until then.
-export const SOURCE_URL: string = (import.meta as any).env?.VITE_SOURCE_URL || "";
+// public source repository (AGPL-3.0). VITE_SOURCE_URL overrides it at build time.
+export const SOURCE_URL: string = (import.meta as any).env?.VITE_SOURCE_URL || "https://github.com/filashift/filashift";
 export const COMPANY = "Jackson Technology Solutions LLC, a subsidiary of Jackson Consolidated Group of Companies LLC";
 
 export function Logo({ className = "h-8 w-8" }: { className?: string }) {
