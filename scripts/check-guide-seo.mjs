@@ -19,9 +19,35 @@ try {
     await page.goto(`${base}/guides?lang=${lang}`);
     const groups = page.locator('[data-testid="list-guides"] section');
     await groups.first().waitFor();
-    assert.equal(await groups.count(),2);
+    assert.equal(await groups.count(),3);
     assert.equal(await groups.nth(0).locator("li").count(),1);
     assert.equal(await groups.nth(1).locator("li").count(),6);
+    await groups.nth(2).locator("li a").click();
+    const cards = page.locator("article section[id]");
+    await cards.first().waitFor();
+    assert.equal(await cards.count(),5);
+    assert.equal(await cards.first().locator("h2").innerText(),"Flashforge Creator 5 Pro");
+    const jumps=page.locator("article nav button");
+    assert.equal(await jumps.count(),5);
+    await jumps.last().click();
+    assert.equal(await page.evaluate(()=>document.activeElement.id),"snapmaker-u1");
+    assert.match(await page.locator("article h1").innerText(),lang==="es"?/filamento/:/buying guide/);
+    assert(sitemap.includes("/guides/filament-buying-guide-five-printers</loc>"));
+    assert(await page.locator("article").evaluate(el=>el.scrollWidth<=el.clientWidth));
+    for(const [i, material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
+      const card=cards.nth(i);
+      assert.match(await card.locator('a[href^="https:"]').first().getAttribute("href"),/^https:/);
+      assert.equal(await card.locator('a[href^="/filament"]').getAttribute("href"),`/filament?pack=single&d=1.75&f=${material}&t=${material}`);
+    }
+    for(const [i,material] of [[0,"PLA"],[2,"PETG"]]){
+      await cards.nth(i).locator('a[href^="/filament"]').click();
+      await page.getByTestId("offer-1").waitFor();
+      assert.equal(await page.getByTestId("select-type").innerText(),material);
+      assert.match(await page.getByTestId("select-pack").innerText(),/Single spool|Una bobina/);
+      assert.match(await page.getByTestId("select-sort").innerText(),/Lowest total price|Menor precio total/);
+      await page.goBack();
+    }
+    await page.goto(`${base}/guides?lang=${lang}`);
     assert.match(await groups.nth(1).locator("h2").innerText(),lang==="es"?/entre laminadores e impresoras/:/between slicers and printers/);
     await page.goto(`${base}/guides/3mf-to-stl?lang=${lang}`, {waitUntil:"networkidle"});
     const answer = await page.locator("dt").filter({hasText:lang==="es"?"límite de tamaño":"size limit"}).locator("+ dd").innerText();

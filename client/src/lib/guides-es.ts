@@ -2,6 +2,7 @@
 // (same steps, sections and FAQ) and update `updated` in guides.ts when either changes.
 import type { Guide } from "./guides";
 import { FILE_LIMIT } from "./conversion-facts";
+import { buyingGuide, buyingSlug } from "./filament-buying-guide";
 
 export type GuideText = Pick<Guide, "title" | "meta" | "desc" | "intro" | "steps" | "cta" | "sections" | "faq">;
 
@@ -10,6 +11,7 @@ const OPEN =
 const open = (slicer: string) => OPEN.replace("tu laminador", slicer);
 
 export const GUIDES_ES: Record<string, GuideText> = {
+  [buyingSlug]: buyingGuide(true),
   "3mf-to-stl": {
     title: "Cómo convertir 3MF a STL u OBJ",
     meta: "Convierte 3MF a STL u OBJ gratis, en tu navegador | FilaShift",

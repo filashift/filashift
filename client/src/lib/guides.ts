@@ -2,6 +2,7 @@
 // Each guide leads with numbered steps, then explains what is kept, what is lost and how to fix common problems.
 
 import { FILE_LIMIT } from "./conversion-facts";
+import { buyingGuide } from "./filament-buying-guide";
 
 export interface Guide {
   slug: string;
@@ -12,7 +13,8 @@ export interface Guide {
   steps: string[];
   printer?: string; // preselected in the converter link
   cta?: string;
-  sections: { h: string; p?: string[]; list?: string[] }[];
+  shopping?: boolean;
+  sections: { h: string; p?: string[]; list?: string[]; model?:string; material?:string; source?:string }[];
   faq: { q: string; a: string }[];
   updated: string;
 }
@@ -20,6 +22,7 @@ export interface Guide {
 const OPEN = "Open the downloaded file in your slicer with File → Open Project (not Import, which keeps only the shapes), check the preview and slice.";
 
 export const GUIDES: Guide[] = [
+  {slug: "filament-buying-guide-five-printers", ...buyingGuide(false)},
   {
     slug: "3mf-to-stl",
     title: "How to convert 3MF to STL or OBJ",

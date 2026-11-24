@@ -45,7 +45,7 @@ export function GuidesIndex() {
   return (
     <Shell>
       <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">
-        {L("3MF conversion guides", "Guías de conversión 3MF")}
+        {L("3D printing guides", "Guías de impresión 3D")}
       </h1>
       <p className="mt-3 text-muted-foreground">
         {L(
@@ -54,15 +54,15 @@ export function GuidesIndex() {
         )}
       </p>
       <div data-testid="list-guides">
-      {[true, false].map(mesh => <section key={String(mesh)} className="mt-8">
-      <h2 className="mb-2 text-xl font-semibold">{mesh
+      {["mesh", "project", "shop"].map(group => <section key={group} className="mt-8">
+      <h2 className="mb-2 text-xl font-semibold">{group === "shop" ? L("Filament buying guides","Guías de compra de filamento") : group === "mesh"
         ? L("Convert 3MF to STL or OBJ", "Convertir 3MF a STL u OBJ")
         : L("Convert 3MF between slicers and printers", "Convertir 3MF entre laminadores e impresoras")}</h2>
-      <p className="mb-4 text-sm text-muted-foreground">{mesh
+      <p className="mb-4 text-sm text-muted-foreground">{group === "shop" ? L("Choose a first spool for your printer and project.","Elige una primera bobina para tu impresora y tu proyecto.") : group === "mesh"
         ? L("Choose this if you need the model’s shape for another program.", "Elige esta opción si necesitas la geometría del modelo para otro programa.")
         : L("Keep a project in 3MF when you need its plates, colors, and print settings on another printer.", "Mantén el proyecto en formato 3MF si necesitas sus placas, colores y ajustes de impresión en otra impresora.")}</p>
       <ul className="space-y-3">
-        {GUIDES.filter(g => (g.slug === "3mf-to-stl") === mesh).map(loc).map((g) => (
+        {GUIDES.filter(g => group === (g.shopping ? "shop" : g.slug === "3mf-to-stl" ? "mesh" : "project")).map(loc).map((g) => (
           <li key={g.slug}>
             <Link
               href={`/guides/${g.slug}`}
@@ -96,7 +96,7 @@ export function GuidePage() {
       ? {
           "@context": "https://schema.org",
           "@graph": [
-            {
+            g.shopping ? { "@type":"Article", headline:g.title, description:g.desc, dateModified:g.updated, inLanguage:es?"es":"en" } : {
               "@type": "HowTo",
               name: g.title,
               description: g.desc,
@@ -120,7 +120,7 @@ export function GuidePage() {
       : null,
   );
   if (!g) return <NotFound />;
-  const href = g.printer ? `/?printer=${g.printer}` : "/";
+  const href = g.shopping ? "/filament?pack=single&d=1.75" : g.printer ? `/?printer=${g.printer}` : "/";
   const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 4).map(loc);
   return (
     <Shell>
@@ -138,10 +138,11 @@ export function GuidePage() {
           {g.title}
         </h1>
         <p className="mt-3 text-muted-foreground">{g.intro}</p>
+        {g.shopping && <nav aria-label={L("Jump to your printer","Ir a tu impresora")} className="mt-5 flex flex-wrap gap-2">{g.sections.map(s=><button type="button" className="rounded-lg border px-3 py-2 text-sm text-primary hover:underline" onClick={()=>{const target=document.getElementById(s.model!);target?.focus({preventScroll:true});target?.scrollIntoView({block:"start"});}} key={s.model}>{s.h}</button>)}</nav>}
 
         <section className="mt-6 rounded-xl border border-primary/25 bg-primary/[0.04] p-5" aria-labelledby="steps">
           <h2 id="steps" className="text-base font-semibold">
-            {L("Steps", "Pasos")}
+            {g.shopping ? L("Before you buy","Antes de comprar") : L("Steps", "Pasos")}
           </h2>
           <ol className="mt-3 space-y-2.5">
             {g.steps.map((s, i) => (
@@ -159,18 +160,21 @@ export function GuidePage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <p className="mt-2 text-xs text-muted-foreground">{L("Free · no account · your file never leaves your device", "Gratis · sin cuenta · tu archivo nunca sale de tu dispositivo")}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{g.shopping ? L("FilaShift may earn a commission from partner store links at no extra cost to you. Prices and stock can change before checkout.","FilaShift puede recibir una comisión de las tiendas asociadas sin coste adicional para ti. El precio y el inventario pueden cambiar antes del pago.") : L("Free · no account · your file never leaves your device", "Gratis · sin cuenta · tu archivo nunca sale de tu dispositivo")}</p>
         </section>
 
         <div className="mt-8 space-y-8 text-[15px] leading-relaxed">
           {g.sections.map((s) => (
-            <section key={s.h}>
+            <section key={s.h} id={s.model} tabIndex={s.model ? -1 : undefined} aria-label={s.model ? s.h : undefined} className={s.model ? "scroll-mt-20 border-t border-border pt-5" : undefined}>
+              {s.material && <p className="mb-1 text-xs font-semibold text-primary">{L("First spool","Primera bobina")} · {s.material} · 1.75 mm</p>}
               <h2 className="mb-2 text-lg font-semibold">{s.h}</h2>
               {s.p?.map((t, i) => (
                 <p key={i} className="mb-3 text-muted-foreground">
                   {t}
                 </p>
               ))}
+              {s.material && <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Button asChild variant="outline"><Link href={`/filament?pack=single&d=1.75&f=${s.material}&t=${s.material}`}>{L(`Compare ${s.material} spools`,`Comparar bobinas de ${s.material}`)}</Link></Button><a className="text-sm text-primary underline" href={s.source}>{L("Manufacturer’s guide","Guía del fabricante")}<span className="sr-only">: {s.h}</span></a></div>}
+              {s.model === "snapmaker-u1" && <a className="mt-2 inline-block text-sm text-primary underline" href="https://wiki.snapmaker.com/en/FAQ/u1">{L("Snapmaker spool dimensions FAQ","Preguntas frecuentes sobre las dimensiones de bobina")}</a>}
               {s.list && (
                 <ul className="space-y-1.5">
                   {s.list.map((t, i) => (

@@ -1,4 +1,7 @@
 import { usePageMeta } from "@/lib/seo";
+import { buyingSlug } from "@/lib/filament-buying-guide";
+import { useLang } from "@/lib/i18n";
+import { Link } from "wouter";
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Search, Store, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -31,6 +34,7 @@ function size(it: Item) {
 }
 
 export default function Filament() {
+  const es = useLang() === "es";
   const [data, setData] = useState<Data | null>(null);
   const [cfg, setCfg] = useState<Config>({});
   const [err, setErr] = useState("");
@@ -110,6 +114,7 @@ export default function Filament() {
             Compare 3D printing filament across brand stores by price per kg, including bulk packs and sales. Prices are read from each
             store's public listings several times a day.
           </p>
+          <Link href={`/guides/${buyingSlug}`} className="mt-3 inline-block text-sm text-primary underline">{es ? "¿Qué bobina compro? Guía para cinco impresoras" : "Which spool should I buy? A guide for five printers"}</Link>
           {data && (
             <p className="mt-2 text-xs text-muted-foreground" data-testid="text-updated">
               {`${data.count.toLocaleString()} offers from ${storeCount} stores · updated ${ago(data.updated)}`}
