@@ -8,11 +8,15 @@ HOST="${HOST:-root@filashift.com}"; KEY="${SSH_KEY:-$HOME/.ssh/filashift_ops}"
 SSH="ssh -i $KEY -o StrictHostKeyChecking=accept-new"
 cd "$(dirname "$0")/.."
 if [[ "${1:-}" == "--rollback" ]]; then
-  $SSH "$HOST" 'set -e; cd /var/www; [ -d plateshift.old ] || { echo "no previous release"; exit 1; }; mv plateshift plateshift.tmp; mv plateshift.old plateshift; mv plateshift.tmp plateshift.old'
+  $SSH "$HOST" 'set -e; cd /var/www; exec 9>/var/lock/filashift-release.lock; flock -x 9; [ -d plateshift.old ] || { echo "no previous release"; exit 1; }; mv plateshift plateshift.tmp; mv plateshift.old plateshift; mv plateshift.tmp plateshift.old'
   echo "Rolled back."; exit 0
 fi
 [[ -z "$(git status --porcelain --untracked-files=normal)" ]] || { echo "Commit or remove pending changes before releasing." >&2; exit 1; }
 REV=$(git rev-parse --verify HEAD)
+PREVIOUS=$($SSH "$HOST" 'cat /var/www/plateshift/release-commit.txt')
+[[ "$PREVIOUS" =~ ^[0-9a-f]{40}$ ]] && git merge-base --is-ancestor "$PREVIOUS" "$REV" || {
+  echo "Live revision is not an ancestor of this candidate. Fetch and integrate it first." >&2; exit 1;
+}
 python3 scripts/release-attribution.py verify "$REV"
 npx tsc --noEmit -p .
 VITE_RELEASE_SHA="$REV" npm run build
@@ -29,9 +33,23 @@ BASE= npm run test:release:mobile-es
 rm -rf dist/public/data
 # Shipped in the same atomic directory swap as the site, including on rollback.
 printf '%s\n' "$REV" > dist/public/release-commit.txt
-rm -f /tmp/filashift-site.zip; (cd dist/public && zip -qr /tmp/filashift-site.zip .)
-scp -i "$KEY" -q /tmp/filashift-site.zip "$HOST":/tmp/site.zip
-$SSH "$HOST" 'set -e; cd /var/www; rm -rf plateshift.new; mkdir plateshift.new; unzip -q /tmp/site.zip -d plateshift.new; chown -R caddy:caddy plateshift.new; rm -rf plateshift.old; mv plateshift plateshift.old; mv plateshift.new plateshift'
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+(cd dist/public && zip -qr "$TMP/site.zip" .)
+UPLOAD=$($SSH "$HOST" 'mktemp /tmp/filashift-release.XXXXXXXX')
+[[ "$UPLOAD" =~ ^/tmp/filashift-release\.[a-zA-Z0-9]+$ ]]
+scp -i "$KEY" -q "$TMP/site.zip" "$HOST:$UPLOAD"
+$SSH "$HOST" bash -s -- "$PREVIOUS" "$UPLOAD" <<'SWAP'
+set -eu
+cd /var/www
+exec 9>/var/lock/filashift-release.lock
+flock -x 9
+trap 'rm -f "$2"' EXIT
+[[ "$(cat plateshift/release-commit.txt)" == "$1" ]] || { echo "Production changed during validation; stopping." >&2; exit 1; }
+rm -rf plateshift.new; mkdir plateshift.new; unzip -q "$2" -d plateshift.new
+chown -R caddy:caddy plateshift.new; rm -rf plateshift.old
+mv plateshift plateshift.old; mv plateshift.new plateshift
+SWAP
 for u in https://filashift.com/ https://filashift.com/faq https://filashift.com/guides/3mf-to-stl https://filashift.com/sitemap.xml https://filashift.com/profiles/index.json https://filashift.com/fonts/fonts.css; do
   c=$(curl -s -o /dev/null -w '%{http_code}' "$u"); echo "$u $c"; [[ $c == 200 ]] || { echo "CHECK FAILED - run --rollback"; exit 1; }
 done

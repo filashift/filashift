@@ -1,3 +1,4 @@
+import type { PrusaData } from "./prusa-out";
 export type Dict = Record<string, any>;
 
 export interface PrinterIndexEntry {
@@ -20,6 +21,10 @@ export interface PrinterIndexEntry {
   /** set on profile files: nozzle of this variant and the base printer id */
   nozzle?: string;
   base?: string;
+  /** PrusaSlicer system presets exist (profiles/prusa/<id>.json): native PrusaSlicer output is offered */
+  prusa?: boolean;
+  /** only PrusaSlicer has a profile for this printer (no OrcaSlicer output) */
+  prusaOnly?: boolean;
 }
 
 export interface ProcessPreset {
@@ -108,6 +113,9 @@ export interface ConvertOptions {
   slotColors?: Record<number, string>;
   /** filament-change pauses from planPauses(); heights are object-relative */
   pauses?: { plate: number; slot: number; fil: number; z: number; color: string }[];
+  /** "prusa": write a native PrusaSlicer project (needs `prusa`); default is the Orca/Bambu project */
+  output?: "orca" | "prusa";
+  prusa?: PrusaData;
 }
 
 export interface ReportLine {

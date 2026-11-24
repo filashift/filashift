@@ -11,7 +11,8 @@ import { PrinterPicker, slotLabel, TestedNote } from "@/components/printer-picke
 import { FileCard, type Job } from "@/components/file-card";
 import { ProjectWorker } from "@/lib/project-worker";
 import { defaultMapping, planPauses } from "@/engine/mapping";
-import type { PrinterIndexEntry, PrinterProfile } from "@/engine/types";
+import type { ConvertOptions, PrinterIndexEntry, PrinterProfile } from "@/engine/types";
+import type { PrusaData } from "@/engine/prusa-out";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PRINTER = "flashforge-creator-5-pro";
@@ -29,6 +30,24 @@ function getProfile(id: string) {
     );
   }
   return profileCache.get(id)!;
+}
+
+const jsonCache = new Map<string, Promise<any>>();
+function getJson(path: string) {
+  if (!jsonCache.has(path)) {
+    const p = fetch(path).then((r) => {
+      if (!r.ok) throw new Error(`Could not load ${path}.`);
+      return r.json();
+    });
+    p.catch(() => jsonCache.delete(path));
+    jsonCache.set(path, p);
+  }
+  return jsonCache.get(path)!;
+}
+// PrusaSlicer system presets for a Prusa target (built by scripts/build_prusa_profiles.py)
+async function getPrusaData(id: string): Promise<PrusaData> {
+  const [common, target] = await Promise.all([getJson("./profiles/prusa/_common.json"), getJson(`./profiles/prusa/${id}.json`)]);
+  return { common, target };
 }
 
 let seq = 0;
@@ -51,6 +70,7 @@ export default function Home() {
   const [slots, setSlots] = useState(4);
   const [keepSpeeds, setKeepSpeeds] = useState(false);
   const [recenter, setRecenter] = useState(true);
+  const [outFor, setOutFor] = useState<"prusa" | "orca">("prusa");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [drag, setDrag] = useState(false);
   const [loadErr, setLoadErr] = useState("");
@@ -116,7 +136,9 @@ export default function Home() {
   }, [slots, targetId, nz]);
 
   const patch = (id: string, p: Partial<Job>) => setJobs((js) => js.map((j) => (j.id === id ? { ...j, ...p } : j)));
-  const settingsKey=JSON.stringify([profileId,slots,keepSpeeds,recenter]);
+  const prusaChoice = !!target?.prusa && !target?.prusaOnly;
+  const usePrusa = !!target?.prusaOnly || (!!target?.prusa && outFor === "prusa");
+  const settingsKey=JSON.stringify([profileId,slots,keepSpeeds,recenter,usePrusa]);
   const activeSettings=useRef(settingsKey); activeSettings.current=settingsKey;
 
   const addFiles = useCallback(
@@ -158,7 +180,10 @@ export default function Home() {
     patch(id, { status: "converting", error: undefined });
     try {
       const plan = job.pauses && job.analysis ? planPauses(job.analysis, slots) : null;
-      const res = await session.run({kind:"convert",profile:{...profile,slots},options:plan ? { map: plan.map, keepSpeeds, recenter, slotColors: plan.slotColors, pauses: plan.changes } : { map: job.map, keepSpeeds, recenter }},stage=>patch(id,{stage}));
+      const base: ConvertOptions = plan ? { map: plan.map, keepSpeeds, recenter, slotColors: plan.slotColors, pauses: plan.changes } : { map: job.map, keepSpeeds, recenter };
+      const options: ConvertOptions = usePrusa ? { ...base, output: "prusa", prusa: await getPrusaData(profileId) } : base;
+      if(settingsKey!==activeSettings.current){patch(id,{status:"ready",stage:undefined});return}
+      const res = await session.run({kind:"convert",profile:{...profile,slots},options},stage=>patch(id,{stage}));
       session.stop();
       if(!pool.has(id))return;
       if(settingsKey!==activeSettings.current){patch(id,{status:"ready",stage:undefined});return}
@@ -205,7 +230,7 @@ export default function Home() {
       <SiteHeader />
 
       <Hero
-        printers={printers.length || 226}
+        printers={printers.length || 234}
         brands={new Set(printers.map((p) => p.vendor)).size || 15}
         onChoose={() => inputRef.current?.click()}
       />
@@ -360,7 +385,7 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-                {target && <TestedNote id={target.id} slicer={target.slicer} />}
+                {target && <TestedNote id={target.id} slicer={target.slicer} output={usePrusa ? "PrusaSlicer" : target.slicer} />}
               </div>
 
               {nozzles.length > 1 && (
@@ -385,6 +410,30 @@ export default function Home() {
                     ))}
                   </div>
                   <p className="mt-1.5 text-xs text-muted-foreground">The nozzle fitted to your printer. Layer height and line widths follow it.</p>
+                </div>
+              )}
+
+              {prusaChoice && (
+                <div>
+                  <h2 className="mb-2 text-sm font-medium">Output for</h2>
+                  <div className="inline-flex rounded-lg border border-border p-0.5" role="radiogroup" aria-label="Output for">
+                    {(["prusa", "orca"] as const).map((o) => (
+                      <button
+                        key={o}
+                        type="button"
+                        role="radio"
+                        aria-checked={o === outFor}
+                        onClick={() => setOutFor(o)}
+                        className={cn(
+                          "rounded-md px-3 py-1 text-xs transition-colors",
+                          o === outFor ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                        )}
+                        data-testid={`output-${o}`}
+                      >
+                        {o === "prusa" ? "PrusaSlicer" : "OrcaSlicer"}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -436,7 +485,7 @@ export default function Home() {
                     {Math.round(target.bed[0])}×{Math.round(target.bed[1])}×{Math.round(target.height)} mm
                   </dd>
                   <dt className="text-muted-foreground">Open in</dt>
-                  <dd className="text-right">{target.slicer}</dd>
+                  <dd className="text-right">{usePrusa ? "PrusaSlicer" : target.slicer}</dd>
                   <dt className="text-muted-foreground">Profile</dt>
                   <dd className="truncate text-right font-mono" title={profile?.machine || target.machine}>
                     {profile ? profile.machine : "loading…"}
