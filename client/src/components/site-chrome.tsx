@@ -1,3 +1,4 @@
+import { openReport } from "@/components/report-dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { Lock, Moon, Sun } from "lucide-react";
@@ -129,7 +130,27 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
           </div>
         </div>
         <div className="space-y-2 text-xs text-muted-foreground">
+          <nav className="flex flex-wrap gap-x-4 gap-y-1 pb-2 text-sm" aria-label="Site">
+            {[
+              ["/about", "About"],
+              ["/privacy", "Privacy"],
+              ["/terms", "Terms"],
+              ["/contact", "Contact"],
+            ].map(([h, l]) => (
+              <Link key={h} href={h} className="hover:text-foreground" data-testid={`footer-${h.slice(1)}`}>
+                {l}
+              </Link>
+            ))}
+            <button type="button" className="hover:text-foreground" onClick={() => openReport()} data-testid="footer-report">
+              Report a problem
+            </button>
+          </nav>
           {children}
+          <p>
+            FilaShift is an independent tool. Bambu Lab, Bambu Studio, MakerWorld, Snapmaker, Flashforge, Creality, Prusa, PrusaSlicer, Printables,
+            OrcaSlicer, Elegoo, Anycubic, Qidi and other names are trademarks of their owners and are used only to describe compatibility. FilaShift is
+            not affiliated with or endorsed by them.
+          </p>
           <p>
             {SOURCE_URL && (
               <>

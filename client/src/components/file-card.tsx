@@ -20,6 +20,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import type { Analysis, ConvertReport } from "@/engine/types";
 import { cn } from "@/lib/utils";
 import { ProjectFilament } from "@/components/project-filament";
+import { conversionDetails, openReport } from "@/components/report-dialog";
 
 export interface Job {
   id: string;
@@ -252,6 +253,34 @@ export function FileCard({
       )}
 
       {job.result && <ResultPanel job={job} onReset={onReset} />}
+
+      {a && (
+        <div className="border-t border-card-border px-4 py-2 text-right">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            data-testid={`button-report-${job.id}`}
+            onClick={() =>
+              openReport(
+                conversionDetails({
+                  file: job.name,
+                  source: a.sourceSlicer || KIND_LABEL[a.kind],
+                  sourcePrinter: a.sourcePrinterModel,
+                  target: job.result?.report.target || targetName,
+                  plates: a.plates?.length,
+                  objects: a.objectCount,
+                  painted: a.hasPaint,
+                  filaments: usedCount,
+                  error: job.error || a.error,
+                  warnings: job.result?.report.lines.filter((l) => l.level === "warn").map((l) => l.text),
+                }),
+              )
+            }
+          >
+            Something not right? Report a problem
+          </button>
+        </div>
+      )}
     </article>
   );
 }

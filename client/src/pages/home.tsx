@@ -387,7 +387,7 @@ export default function Home() {
             <a className="underline hover:text-foreground" href="https://github.com/iChristGit/3MF-to-AD5X" target="_blank" rel="noreferrer">
               3MF-to-AD5X
             </a>{" "}
-            (MIT). Not affiliated with Bambu Lab, Snapmaker, Flashforge, Creality, Prusa or MakerWorld.
+            (MIT).
           </p>
       </SiteFooter>
     </div>

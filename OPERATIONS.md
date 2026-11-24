@@ -55,3 +55,11 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
   Links that get an affiliate are marked `rel="sponsored"` and the disclosure appears on the prices page and in the converter's "Filament for this print" panel. Keep `amazonTag` alongside. Validate JSON with `python3 -m json.tool` before saving.
 - "Filament for this print" (converter result): per used slot, the two cheapest in-stock 1.75 mm single spools (0.5–1.25 kg) whose colour is close to the project colour, one per store, plus links to `/filament?f=FAMILY&q=COLOUR` and a tagged Amazon search.
 - Stores must be public filament retailers' own listings; only add a store if its product feed is publicly available and terms allow linking. No product images are shown, so visitors make no third-party requests.
+
+## Problem reports (/api)
+
+- Service: `filashift-api.service` runs `/opt/filashift/filashift-api.py` (stdlib Python, user caddy) on 127.0.0.1:8787; Caddy proxies `/api/*` with a 16 KB body cap. Source: `deploy/filashift-api.py`, unit `deploy/filashift-api.service`.
+- Endpoints: `POST /api/report` (message, link, email, details, page; honeypot field `website`), `GET /api/health`. Limits: 5 reports per IP per hour, 200 per day overall. No request logging.
+- Reports land in `/var/lib/filashift/reports/<id>.json` with `"status": "new"`. There is no outgoing email: the Ops Teammate checks daily (`ls /var/lib/filashift/reports`), triages, sets `status` to `seen`/`fixed`, and tells David about anything needing a reply (reply from support@jacksoncgc.com). Delete reports older than 12 months (privacy page promise): `find /var/lib/filashift/reports -name '*.json' -mtime +365 -delete`.
+- The 3MF file is never sent; "conversion details" (file name, source/target, counts, warnings, browser) are included only if the visitor leaves the box ticked.
+- Pages: /about, /privacy, /terms, /contact (client/src/pages/info.tsx). Privacy page states no analytics, no cookies, no access logs — keep Caddy without a `log` directive, and update the page if that ever changes.

@@ -18,6 +18,14 @@
 		file_server
 	}
 
+	# report-a-problem inbox (deploy/filashift-api.py)
+	handle /api/* {
+		request_body {
+			max_size 16KB
+		}
+		reverse_proxy 127.0.0.1:8787
+	}
+
 	handle {
 		root * /var/www/plateshift
 		redir /filament/ /filament permanent
