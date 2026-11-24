@@ -18,3 +18,6 @@ Open-source JavaScript libraries used by the web app (React, Vite, Tailwind CSS,
 
 - JetBrains Mono, SIL Open Font License 1.1 (client/public/fonts/JetBrainsMono-OFL.txt).
 - Satoshi by Indian Type Foundry, distributed by Fontshare under the ITF Free Font License (https://www.fontshare.com/licenses/itf-ffl). It is self-hosted for the website.
+
+## Jackson Technology Solutions emblem
+`client/public/jts-emblem-*.webp` is the logo of Jackson Technology Solutions LLC. It is a trademark of its owner and is not licensed under the AGPL-3.0; forks must remove or replace it.
