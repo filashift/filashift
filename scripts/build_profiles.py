@@ -12,7 +12,7 @@ VENDOR_LABEL = {"BBL": "Bambu Lab"}
 SLOTS = {
  "Bambu Lab A1": (4, "AMS lite"), "Bambu Lab A1 mini": (4, "AMS lite"), "Bambu Lab P1P": (4, "AMS"), "Bambu Lab P1S": (4, "AMS"),
  "Bambu Lab P2S": (4, "AMS"), "Bambu Lab X1": (4, "AMS"), "Bambu Lab X1 Carbon": (4, "AMS"), "Bambu Lab X1E": (4, "AMS"),
- "Bambu Lab H2D": (4, "AMS"), "Bambu Lab H2D Pro": (4, "AMS"), "Bambu Lab H2S": (4, "AMS"), "Bambu Lab H2C": (4, "AMS"), "Bambu Lab X2D": (4, "AMS"), "Bambu Lab A2L": (4, "AMS"),
+ "Bambu Lab H2D": (4, "AMS"), "Bambu Lab H2D Pro": (4, "AMS"), "Bambu Lab H2S": (4, "AMS"), "Bambu Lab H2C": (4, "AMS"), "Bambu Lab X2D": (4, "AMS"), "Bambu Lab A2L": (4, "AMS"), "Bambu Lab H3C": (8, "PrintTools + AMS 3H"), "Bambu Lab P3C": (5, "PrintTools + AMS 3P"),
  "Snapmaker U1": (4, "4 toolheads"), "Snapmaker J1": (2, "IDEX"), "Snapmaker A350 Dual": (2, "dual extruder"), "Snapmaker A250 Dual": (2, "dual extruder"),
  "Flashforge AD5X": (4, "IFS"), "Flashforge Creator 5": (4, "toolchanger"), "Flashforge Creator 5 Pro": (4, "toolchanger"),
  "Creality K1C_CFS-C": (4, "CFS"), "Creality K1_CFS-C": (4, "CFS"), "Creality K1 Max_CFS-C": (4, "CFS"), "Creality K1 SE_CFS-C": (4, "CFS"),
@@ -24,7 +24,7 @@ SLOTS = {
  "Qidi Q2": (4, "QIDI Box"), "Qidi X-Plus 4": (4, "QIDI Box"), "Qidi Q2C": (4, "QIDI Box"), "Qidi X-Max 4": (4, "QIDI Box"),
  "Sovol SV06 ACE": (4, "ACE"), "Sovol SV06 Plus ACE": (4, "ACE"),
 }
-POPULAR = {"Bambu Lab X1 Carbon", "Bambu Lab P1S", "Bambu Lab A1", "Bambu Lab A1 mini", "Bambu Lab H2D", "Bambu Lab P2S", "Snapmaker U1", "Flashforge AD5X", "Flashforge Adventurer 5M", "Flashforge Creator 5",
+POPULAR = {"Bambu Lab X1 Carbon", "Bambu Lab P1S", "Bambu Lab A1", "Bambu Lab A1 mini", "Bambu Lab H2D", "Bambu Lab P2S", "Bambu Lab P3C", "Snapmaker U1", "Flashforge AD5X", "Flashforge Adventurer 5M", "Flashforge Creator 5",
            "Creality K1C", "Creality K2 Plus", "Creality Ender-3 V3 SE", "Creality Hi", "Elegoo Centauri Carbon", "Elegoo Neptune 4 Pro", "Anycubic Kobra S1", "Anycubic Kobra 3",
            "Prusa MK4S", "Prusa CORE One", "Prusa MINI", "Qidi Q1 Pro", "Qidi X-Plus 4", "Sovol SV08"}
 MIN_FIL = {"Snapmaker U1": 4}

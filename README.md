@@ -12,11 +12,11 @@ All conversion happens in the browser tab. Project files are never uploaded; the
 
 ## Supported printers
 
-225 printers from 15 brands. Bambu Lab presets come from Bambu Studio's system profiles; all other brands come from OrcaSlicer's system profiles. Converted files target Bambu Studio 2.9.1 for Bambu printers and OrcaSlicer 2.3.1 or newer for everything else.
+226 printers from 15 brands. Bambu Lab presets come from Bambu Studio's system profiles; all other brands come from OrcaSlicer's system profiles. Converted files target Bambu Studio 2.9.1 or newer for Bambu printers and OrcaSlicer 2.3.1 or newer for everything else.
 
 ## How it was tested
 
-`scripts/matrix.ts` converts source projects to a list of target printers, and `scripts/slice-matrix.sh` slices every result with the destination slicer's command-line interface (OrcaSlicer 2.5.2, Bambu Studio 2.9.1) and reads the settings back from the G-code. `scripts/roundtrip.ts` converts a project through a chain of printers and checks the painted colours come back unchanged. The latest run sliced 154 of 154 conversions, including real MakerWorld projects.
+`scripts/matrix.ts` converts source projects to a list of target printers, and `scripts/slice-matrix.sh` slices every result with the destination slicer's command-line interface (OrcaSlicer 2.5.2, Bambu Studio 2.9.2) and reads the settings back from the G-code. `scripts/roundtrip.ts` converts a project through a chain of printers and checks the painted colours come back unchanged. The latest run (2026-11-24) sliced 678 of 678 conversions: three sample projects (Bambu Studio, OrcaSlicer, PrusaSlicer) to all 226 printers; all 226 printers are slicer-tested.
 
 ## Known limits
 
