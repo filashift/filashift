@@ -14,7 +14,7 @@ export interface Guide {
   printer?: string; // preselected in the converter link
   cta?: string;
   shopping?: boolean;
-  sections: { h: string; p?: string[]; list?: string[]; model?:string; material?:string; source?:string }[];
+  sections: { h: string; p?: string[]; list?: string[]; model?:string; material?:string; source?:string; warning?:{title:string;items:string[]} }[];
   faq: { q: string; a: string }[];
   updated: string;
 }

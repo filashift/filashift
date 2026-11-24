@@ -173,6 +173,10 @@ export function GuidePage() {
                   {t}
                 </p>
               ))}
+              {s.warning && <aside aria-labelledby={`${s.model}-warning`} className="my-4 rounded-md border-l-4 border-amber-600 bg-amber-500/10 p-4">
+                <h3 id={`${s.model}-warning`} className="font-semibold">{s.warning.title}</h3>
+                <ul className="mt-2 list-disc space-y-2 pl-5">{s.warning.items.map(item=><li key={item}>{item}</li>)}</ul>
+              </aside>}
               {s.material && <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Button asChild variant="outline"><Link href={`/filament?pack=single&d=1.75&f=${s.material}&t=${s.material}`}>{L(`Compare ${s.material} spools`,`Comparar bobinas de ${s.material}`)}</Link></Button><a className="text-sm text-primary underline" href={s.source}>{L("Manufacturer’s guide","Guía del fabricante")}<span className="sr-only">: {s.h}</span></a></div>}
               {s.model === "snapmaker-u1" && <a className="mt-2 inline-block text-sm text-primary underline" href="https://wiki.snapmaker.com/en/FAQ/u1">{L("Snapmaker spool dimensions FAQ","Preguntas frecuentes sobre las dimensiones de bobina")}</a>}
               {s.list && (

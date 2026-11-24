@@ -26,6 +26,11 @@ try {
     const cards = page.locator("article section[id]");
     await cards.first().waitFor();
     assert.equal(await cards.count(),5);
+    const warning=page.locator("#bambu-lab-x1-carbon aside");
+    assert.match(await warning.locator("h3").innerText(),lang==="es"?/AMS original/:/Original AMS/);
+    const caution=await warning.innerText();
+    for(const term of (lang==="es"?["50 a 68 mm","cartón","TPU blando","PVA húmedo","soporte externo"]:["50–68 mm","cardboard","soft TPU","damp PVA","external spool holder"])) assert(caution.includes(term));
+    assert(await warning.evaluate(el=>Boolean(el.compareDocumentPosition(el.parentElement.querySelector('a[href*="pack=single"]')) & Node.DOCUMENT_POSITION_FOLLOWING)));
     assert.equal(await cards.first().locator("h2").innerText(),"Flashforge Creator 5 Pro");
     const jumps=page.locator("article nav button");
     assert.equal(await jumps.count(),5);
