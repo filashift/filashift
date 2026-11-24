@@ -11,14 +11,17 @@ if [[ "${1:-}" == "--rollback" ]]; then
   $SSH "$HOST" 'set -e; cd /var/www; [ -d plateshift.old ] || { echo "no previous release"; exit 1; }; mv plateshift plateshift.tmp; mv plateshift.old plateshift; mv plateshift.tmp plateshift.old'
   echo "Rolled back."; exit 0
 fi
+[[ -z "$(git status --porcelain --untracked-files=normal)" ]] || { echo "Commit or remove pending changes before releasing." >&2; exit 1; }
+REV=$(git rev-parse --verify HEAD)
 npx tsc --noEmit -p .
 npm run build
 node scripts/prerender.mjs
 rm -rf dist/public/data
 rm -f /tmp/filashift-site.zip; (cd dist/public && zip -qr /tmp/filashift-site.zip .)
 scp -i "$KEY" -q /tmp/filashift-site.zip "$HOST":/tmp/site.zip
-$SSH "$HOST" 'set -e; cd /var/www; rm -rf plateshift.new; mkdir plateshift.new; unzip -q /tmp/site.zip -d plateshift.new; chown -R caddy:caddy plateshift.new; rm -rf plateshift.old; mv plateshift plateshift.old; mv plateshift.new plateshift; echo "release $(git -C /srv/git/filashift.git rev-parse --short master 2>/dev/null) $(date -u +%FT%TZ)" >> /var/log/filashift-releases.log'
+$SSH "$HOST" 'set -e; cd /var/www; rm -rf plateshift.new; mkdir plateshift.new; unzip -q /tmp/site.zip -d plateshift.new; chown -R caddy:caddy plateshift.new; rm -rf plateshift.old; mv plateshift plateshift.old; mv plateshift.new plateshift'
 for u in https://filashift.com/ https://filashift.com/guides/3mf-to-stl https://filashift.com/sitemap.xml https://filashift.com/profiles/index.json https://filashift.com/fonts/fonts.css; do
   c=$(curl -s -o /dev/null -w '%{http_code}' "$u"); echo "$u $c"; [[ $c == 200 ]] || { echo "CHECK FAILED - run --rollback"; exit 1; }
 done
-echo "Released."
+$SSH "$HOST" "printf 'release %s %s\n' '$REV' \"\$(date -u +%FT%TZ)\" >> /var/log/filashift-releases.log"
+echo "Released $REV."
