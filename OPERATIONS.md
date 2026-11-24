@@ -19,6 +19,8 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 - `scripts/matrix.ts` converts test sources to many targets; `scripts/slice-matrix.sh` slices outputs with the OrcaSlicer and Bambu Studio CLIs (AppImages, run headless; set EXTRA=--allow-mix-temp). Previous baseline: 154/154 slice OK.
 - `scripts/roundtrip.ts` checks A->B->A keeps geometry and paint/colour data identical.
 - Spot-check in a real browser: upload a 3MF, convert, download, no console errors, and confirm no POST/upload requests leave the page.
+- Test corpus (15 real/synthetic 3MFs incl. 5 MakerWorld models, plus baseline results) lives on the Droplet at `/srv/filashift-testdata` (private, not web-served). Copy it to your workspace with scp.
+- Slicer CLIs: download the latest OrcaSlicer and Bambu Studio Linux AppImages from their GitHub releases, `--appimage-extract`, and run headless via xvfb-run with `--datadir` (see `bambu-wrapper.sh` / `orca-wrapper.sh` in the test corpus; OrcaSlicer may need extra GTK/webkit libs extracted from Ubuntu .debs).
 - Never claim a printer is compatible unless its converted output slices in the destination slicer.
 
 ## Hosting
