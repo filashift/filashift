@@ -188,6 +188,8 @@ def collect(cache=None):
             if not is_fil:
                 continue
             for v in p.get("variants", []):
+                if not p.get("handle") or not str(v.get("id", "")).isdigit():
+                    continue  # No reliable destination for this exact variant.
                 vt = v.get("title", "") or ""
                 if NON_US.search(vt) and not re.search(r"\bus\b|u\.s\.", vt, re.I):
                     continue
@@ -218,42 +220,28 @@ def collect(cache=None):
                     compare = float(compare) if compare else None
                 except ValueError:
                     compare = None
+                colour, hex_code = clean_colour(color_of(p, v))
+                available = v.get("available")
                 rows.append({
                     "b": brand or (p.get("vendor") or retailer).strip(),
                     "r": retailer,
                     "t": title.strip(),
                     "v": vt if vt != "Default Title" else "",
-                    "c": clean_colour(color_of(p, v))[0],
-                    "x": clean_colour(color_of(p, v))[1],
+                    "c": [colour] if colour else [],
+                    **({"x": [hex_code]} if colour and hex_code else {}),
                     "f": fam, "m": label,
-                    "d": diameter(f"{title} {vt}"),
+                    "d": diameter(vt if re.search(r"1\.75|2\.85|\b3(?:\.0)?\s*mm\b", vt, re.I) else title),
                     "kg": kg, "n": spools or 1,
                     "p": round(price, 2),
                     "ppk": round(ppk, 2),
                     "was": round(compare, 2) if compare and compare > price else None,
-                    "ok": bool(v.get("available", True)),
+                    "ok": available if isinstance(available, bool) else None,
                     "u": f"https://{host}/products/{p.get('handle')}?variant={v.get('id')}",
                 })
                 kept += 1
         stats[host] = kept
-    # one row per product offer (same store, title, size, price); colours become a list
-    groups = {}
-    for r in rows:
-        key = (r["r"], r["t"], r["m"], r["d"], r["kg"], r["n"], r["p"])
-        g = groups.get(key)
-        if not g:
-            g = dict(r); g["c"] = []; g["x"] = []; g["ok"] = False; g["v"] = r["v"]
-            groups[key] = g
-        if r["c"] and r["c"] not in g["c"]:
-            g["c"].append(r["c"]); g["x"].append(r["x"])
-        if r["ok"] and not g["ok"]:
-            g["ok"] = True; g["u"] = r["u"]
-        if r["was"] and (not g["was"] or r["was"] > g["was"]):
-            g["was"] = r["was"]
-    out = list(groups.values())
-    for g in out:
-        if not any(g["x"]):
-            del g["x"]
+    # Same title, weight and price do not imply the same colour or availability.
+    out = list({r["u"]: r for r in rows}.values())
     out.sort(key=lambda r: (not r["ok"], r["ppk"]))
     return out, stats
 
@@ -261,7 +249,7 @@ def main():
     out = sys.argv[1]
     cache = sys.argv[sys.argv.index("--cache") + 1] if "--cache" in sys.argv else None
     rows, stats = collect(cache)
-    data = {"updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    data = {"schema": 2, "updated": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "stores": stats, "count": len(rows), "items": rows}
     if len(rows) < 50:
         print("too few rows, keeping previous file", stats, file=sys.stderr)

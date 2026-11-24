@@ -17,7 +17,7 @@ export type Item = {
   p: number; // price USD
   ppk: number; // price per kg
   was: number | null; // compare-at price
-  ok: boolean; // in stock
+  ok: boolean | null; // exact variant stock; null means the store did not confirm
   u: string; // product URL
 };
 export type ShopData = { updated: string; stores: Record<string, number | string>; count: number; items: Item[] };
@@ -42,7 +42,10 @@ export function loadShopData(): Promise<ShopData> {
   if (!dataP) {
     dataP = fetch(dataUrl("filament.json"), { cache: "no-cache" }).then((r) => {
       if (!r.ok) throw new Error("prices unavailable");
-      return r.json();
+      return r.json().then((data) => {
+        if (data.schema !== 2) throw new Error("Variant-level prices unavailable");
+        return data;
+      });
     });
     dataP.catch(() => (dataP = null));
   }
@@ -103,11 +106,12 @@ const NAMED: [string, string][] = [
   ["orange", "#f27a1a"], ["yellow", "#f6d21b"], ["green", "#2f9e44"], ["blue", "#1f5bd6"], ["pink", "#f48fb1"],
   ["brown", "#7a4a2a"],
 ];
+const COLOUR_WORDS = NAMED.map(([word, value]) => [new RegExp(`\\b${word}\\b`), value] as const);
 export function colourHex(name: string, hex?: string): string | null {
   if (hex && /^#[0-9a-f]{6}$/i.test(hex)) return hex.toLowerCase();
   const n = name.toLowerCase();
   if (/transparent|clear|translucent|rainbow|multi|gradient|dual|tri[- ]?colou?r|mix|bundle|pack/.test(n)) return null;
-  for (const [k, v] of NAMED) if (new RegExp(`\\b${k}\\b`).test(n)) return v;
+  for (const [word, value] of COLOUR_WORDS) if (word.test(n)) return value;
   return null;
 }
 export function nearestName(hex: string): string {

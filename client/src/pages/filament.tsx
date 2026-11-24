@@ -285,12 +285,12 @@ function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
               <Tag className="mr-1 h-3 w-3" /> {`${off}% off`}
             </Badge>
           )}
-          {!it.ok && <Badge variant="outline">Out of stock</Badge>}
+          {!it.ok && <Badge variant="outline">{it.ok === false ? "Out of stock" : "Stock not confirmed"}</Badge>}
         </div>
         <div className="mt-1 truncate text-sm text-foreground/90" title={it.t} translate="no">{it.t}</div>
         <div className="mt-0.5 truncate text-xs text-muted-foreground" translate="no">
           {size(it)}
-          {colours.length > 0 && <> · {colours.join(", ")}{it.c.length > colours.length && ` +${it.c.length - colours.length}`}</>}
+          {(it.v || colours.length > 0) && <> · {it.v || colours.join(", ")}</>}
         </div>
         <div className="mt-1 flex gap-1" aria-hidden="true" translate="no">
           {it.c.slice(0, 12).map((c, i) => {
