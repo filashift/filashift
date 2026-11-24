@@ -24,7 +24,7 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 - Never claim a printer is compatible unless its converted output slices in the destination slicer.
 
 ## Hosting
-- DigitalOcean Droplet `PlateShift-JTS` id 622732554, SFO2, Ubuntu 24.04, s-1vcpu-1gb-35gb-intel ($8/mo).
+- DigitalOcean Droplet `FilaShift-JTS` id 622732554, SFO2, Ubuntu 24.04, s-1vcpu-1gb-35gb-intel ($8/mo).
 - Public anchor IP 167.99.104.154 (use for SSH). Reserved IP 167.172.9.42 (DNS points here).
 - DNS at Porkbun (no API access): A `@` and A `www` -> 167.172.9.42.
 - Caddy 2.11.9 (cloudsmith apt repo). `/etc/caddy/Caddyfile` = `deploy/Caddyfile.filashift`: global `email support@jacksoncgc.com`, filashift.com with HSTS, www -> apex 301, :80 -> https. Certs auto-renew (Let's Encrypt, ZeroSSL fallback). Web root `/var/www/plateshift` (owner caddy).
