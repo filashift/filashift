@@ -69,7 +69,7 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 - Overture: affiliate ID 324, params `aff=324&utm_source=affiliate&utm_medium=referral&utm_campaign=filashift` on www.overture3d.com links.
 - Sunlu (UpPromote): `sca_ref=12828197.QbmatDQcgu` + sunluaffiliate UTM params on store.sunlu.com links; discount code `QBMATDQCGU` shown next to Sunlu offers (`"code"` field). Sunlu affiliate dashboard: https://af.uppromote.com/sunlu/register?ref=QbmatDQcgu&p=8208
 - Amazon Associates: `filashift-20`.
-- Backup of the previous config: `/var/www/filashift-data/config.json.bak`.
+- Backup of the previous config: `/var/backups/filashift/config.json.bak.*` (kept out of the public /data folder).
 
 ## Nozzle variants
 
