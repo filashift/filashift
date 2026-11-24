@@ -66,7 +66,7 @@ export const GUIDES: Guide[] = [
       { q: "Is there a size limit?", a: FILE_LIMIT.en },
       {
         q: "Can I convert STL back to 3MF?",
-        a: "Import the STL into Bambu Studio, OrcaSlicer or PrusaSlicer and save the project: the result is a 3MF. Colours and settings have to be set up again because the STL never had them.",
+        a: "Yes. Choose an STL in FilaShift, select your printer, then convert and download a new 3MF. STL stores geometry only; check the scale, material and print settings in the destination slicer.",
       },
     ],
     updated: "2026-11-24",

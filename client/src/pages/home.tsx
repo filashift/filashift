@@ -125,9 +125,9 @@ export default function Home() {
 
   const addFiles = useCallback(
     async (list: FileList | File[]) => {
-      const files = Array.from(list).filter((f) => /\.3mf$/i.test(f.name));
+      const files = Array.from(list).filter((f) => /\.(3mf|stl)$/i.test(f.name));
       const rejected = Array.from(list).length - files.length;
-      if (rejected) setLoadErr(`${rejected} file${rejected > 1 ? "s were" : " was"} skipped: only .3mf projects are supported.`);
+      if (rejected) setLoadErr(`${rejected} file${rejected > 1 ? "s were" : " was"} skipped: choose an editable .3mf or .stl, not G-code or a link.`);
       else setLoadErr("");
       for (const f of files) {
         if(!mounted.current) break;
@@ -217,7 +217,7 @@ export default function Home() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         <Stepper
           steps={[
-            { label: "Add a project", short: "Add file", detail: jobs.length ? `${jobs.length} file${jobs.length > 1 ? "s" : ""} added` : "Drop or choose a .3mf", done: jobs.length > 0, target: "add" },
+            { label: "Add a project", short: "Add file", detail: jobs.length ? `${jobs.length} file${jobs.length > 1 ? "s" : ""} added` : "Choose a 3MF or STL", done: jobs.length > 0, target: "add" },
             { label: "Pick your printer", short: "Printer", detail: target ? target.model : "Choose a target", done: jobs.length > 0 && !!profile, target: "settings" },
             { label: "Convert and download", short: "Convert", detail: done ? `${done} ready to download` : "Map colours, then convert", done: done > 0, target: "files" },
           ]}
@@ -225,6 +225,15 @@ export default function Home() {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
           <div className="order-2 min-w-0 space-y-4 lg:order-1">
+            <details className="rounded-xl border border-card-border bg-card p-4 text-sm" data-testid="mobile-import-help">
+              <summary className="cursor-pointer font-semibold">Start with a download from a printer app</summary>
+              <ul className="mt-3 space-y-2">
+                <li><strong>Bambu Handy:</strong> Open the shared MakerWorld listing, select the print profile and choose Download 3MF.</li>
+                <li><strong>Flash Studio:</strong> Save the editable 3MF or STL if the listing offers it. If it only offers Print, get the original file from the creator. A print-history job is not a model file.</li>
+                <li><strong>Prusa App:</strong> In EasyPrint, use the orange project menu to download the 3MF, not G-code.</li>
+              </ul>
+              <p className="mt-3">Save to Files, then choose the file here. A model-page link alone is not a project. STL import starts a new single-material project; STL has no source colors or settings.</p>
+            </details>
             <label
               id="add"
               htmlFor="file-input"
@@ -248,14 +257,15 @@ export default function Home() {
               <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <Upload className="h-6 w-6 text-primary" />
               </span>
-              <span className="font-medium">{jobs.length ? "Add more 3MF projects" : "Drop your 3MF project here"}</span>
+              <span className="font-medium">{jobs.length ? "Add another 3MF or STL" : "Choose a 3MF project or STL model"}</span>
               <span className="mt-1 text-sm text-muted-foreground">or click to choose files · several at once is fine</span>
+              <span className="mt-1 text-xs text-muted-foreground">STL: up to 16 MiB and 100,000 triangles · dimensions assumed to be in millimeters</span>
               <span className="mt-3 font-mono text-xs text-muted-foreground">MakerWorld · Printables · Bambu Studio · OrcaSlicer · PrusaSlicer · Creality Print · Orca-Flashforge · Snapmaker Orca</span>
               <input
                 id="file-input"
                 ref={inputRef}
                 type="file"
-                accept=".3mf"
+                accept=".3mf,.stl"
                 multiple
                 className="sr-only"
                 onChange={(e) => {
@@ -718,7 +728,7 @@ export const FAQ = [
   },
   {
     q: "Can I convert STL back to 3MF?",
-    a: "An STL has no colours or settings to carry over, so there is nothing for FilaShift to translate. Import the STL into your slicer (Bambu Studio, OrcaSlicer or PrusaSlicer), set it up and save it as a project; that file is a 3MF you can convert for other printers later.",
+    a: "Yes. Choose an STL, select your printer, then convert and download the new 3MF. STL contains geometry only, so check the scale, material and print settings in your slicer.",
   },
   {
     q: "How do I keep slicer settings when switching printers?",

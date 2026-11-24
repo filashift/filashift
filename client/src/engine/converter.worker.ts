@@ -1,5 +1,6 @@
 import { analyze, convert, type Loaded } from "./engine";
 import { exportMesh } from "./export";
+import { stlProject } from "./stl-input";
 import type { PrinterProfile, ConvertOptions } from "./types";
 type Request = { file: File; kind: "inspect" | "convert" | "stl" | "obj"; profile?:PrinterProfile; options?:ConvertOptions };
 let loaded: Loaded | undefined;
@@ -8,7 +9,14 @@ self.onmessage = async ({data}:MessageEvent<Request>) => {
   try {
     if (!loaded) {
       stage("Reading project");
-      loaded = analyze(new Uint8Array(await data.file.arrayBuffer()), data.file.name);
+      const mesh=/\.stl$/i.test(data.file.name);
+      if(mesh&&data.file.size>16*1048576)throw Error("STL input exceeds the 16 MiB limit.");
+      const bytes=new Uint8Array(await data.file.arrayBuffer());
+      loaded = analyze(mesh?stlProject(bytes):bytes,data.file.name.replace(/\.stl$/i,".3mf"));
+      if(mesh){
+        loaded.analysis.sourceSlicer="STL";
+        loaded.analysis.notes.unshift("STL geometry only. Units assumed millimeters; a neutral PLA slot was assigned. Check scale and choose your material before printing.");
+      }
       if (loaded.analysis.error) throw Error(loaded.analysis.error);
     }
     if (data.kind==="inspect") {
