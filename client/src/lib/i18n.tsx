@@ -8,8 +8,12 @@ const DICTS: Record<Lang, Record<string, string>> = { en: {}, es: es as Record<s
 
 function initial(): Lang {
   try {
-    const q = new URLSearchParams(window.location.search).get("lang");
-    if (q === "es" || q === "en") return q;
+    const hashQuery = window.location.hash.split("?")[1] || "";
+    const q = new URLSearchParams(hashQuery).get("lang") ?? new URLSearchParams(window.location.search).get("lang");
+    if (q === "es" || q === "en") {
+      try { localStorage.setItem(KEY, q); } catch { /* URL still works without storage */ }
+      return q;
+    }
     const s = localStorage.getItem(KEY);
     if (s === "es" || s === "en") return s;
     return /^es\b/i.test(navigator.language || "") ? "es" : "en";
@@ -40,7 +44,13 @@ export function setLang(l: Lang) {
   // the DOM translator works on rendered text, so a clean reload is the simplest way to switch
   if (typeof window !== "undefined") {
     const u = new URL(window.location.href);
-    u.searchParams.delete("lang");
+    u.searchParams.set("lang", l);
+    if (u.hash.startsWith("#/") && u.hash.includes("?")) {
+      const [path, query] = u.hash.split("?");
+      const p = new URLSearchParams(query);
+      p.delete("lang");
+      u.hash = path + (p.size ? `?${p}` : "");
+    }
     window.location.replace(u.toString());
   }
 }

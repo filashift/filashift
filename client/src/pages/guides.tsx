@@ -20,7 +20,8 @@ import NotFound from "./not-found";
 
 function Shell({ children }: { children: React.ReactNode }) {
   const { es } = useLocal();
-  useEffect(() => window.scrollTo(0, 0), []);
+  // Some browsers return a Promise from scrollTo. It is not an effect cleanup.
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -120,7 +121,8 @@ export function GuidePage() {
       : null,
   );
   if (!g) return <NotFound />;
-  const href = g.shopping ? "/filament?pack=single&d=1.75" : g.printer ? `/?printer=${g.printer}` : "/";
+  const spoolLink = (material?:string) => `/filament?pack=single&d=1.75${material ? `&f=${material}&t=${material}` : ""}${es ? "&lang=es" : ""}`;
+  const href = g.shopping ? spoolLink() : g.printer ? `/?printer=${g.printer}` : "/";
   const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 4).map(loc);
   return (
     <Shell>
@@ -177,7 +179,7 @@ export function GuidePage() {
                 <h3 id={`${s.model}-warning`} className="font-semibold">{s.warning.title}</h3>
                 <ul className="mt-2 list-disc space-y-2 pl-5">{s.warning.items.map(item=><li key={item}>{item}</li>)}</ul>
               </aside>}
-              {s.material && <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Button asChild variant="outline"><Link href={`/filament?pack=single&d=1.75&f=${s.material}&t=${s.material}`}>{L(`Compare ${s.material} spools`,`Comparar bobinas de ${s.material}`)}</Link></Button><a className="text-sm text-primary underline" href={s.source}>{L("Manufacturer’s guide","Guía del fabricante")}<span className="sr-only">: {s.h}</span></a></div>}
+              {s.material && <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Button asChild variant="outline"><Link href={spoolLink(s.material)}>{L(`Compare ${s.material} spools`,`Comparar bobinas de ${s.material}`)}</Link></Button><a className="text-sm text-primary underline" href={s.source}>{L("Manufacturer’s guide","Guía del fabricante")}<span className="sr-only">: {s.h}</span></a></div>}
               {s.model === "snapmaker-u1" && <a className="mt-2 inline-block text-sm text-primary underline" href="https://wiki.snapmaker.com/en/FAQ/u1">{L("Snapmaker spool dimensions FAQ","Preguntas frecuentes sobre las dimensiones de bobina")}</a>}
               {s.list && (
                 <ul className="space-y-1.5">

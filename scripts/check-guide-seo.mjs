@@ -9,6 +9,8 @@ try {
     await ctx.addInitScript(() => { window.__PRERENDER = true; });
   }
   const page = await ctx.newPage();
+  // Exercise the cleanup path even on Chromium versions where scrollTo returns void.
+  await page.addInitScript(()=>{const scroll=window.scrollTo.bind(window);window.scrollTo=(...args)=>{scroll(...args);return Promise.resolve();};});
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
   const results = await (await ctx.request.get(`${base}/profiles/tested.json`)).json();
@@ -42,11 +44,17 @@ try {
     for(const [i, material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
       const card=cards.nth(i);
       assert.match(await card.locator('a[href^="https:"]').first().getAttribute("href"),/^https:/);
-      assert.equal(await card.locator('a[href^="/filament"]').getAttribute("href"),`/filament?pack=single&d=1.75&f=${material}&t=${material}`);
+      assert.equal(await card.locator('a[href^="/filament"]').getAttribute("href"),`/filament?pack=single&d=1.75&f=${material}&t=${material}${lang==="es"?"&lang=es":""}`);
     }
-    for(const [i,material] of [[0,"PLA"],[2,"PETG"]]){
+    for(const [i,material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
       await cards.nth(i).locator('a[href^="/filament"]').click();
       await page.getByTestId("offer-1").waitFor();
+      // Explicit results URLs must survive reload even with no stored preference.
+      await page.evaluate(()=>localStorage.removeItem("filashift-lang"));
+      await page.reload();
+      await page.getByTestId("offer-1").waitFor();
+      assert.equal(await page.locator("html").getAttribute("lang"),lang);
+      assert.equal(await page.getByTestId("select-diameter").innerText(),"1.75 mm");
       assert.equal(await page.getByTestId("select-type").innerText(),material);
       assert.match(await page.getByTestId("select-pack").innerText(),/Single spool|Una bobina/);
       assert.match(await page.getByTestId("select-sort").innerText(),/Lowest total price|Menor precio total/);
