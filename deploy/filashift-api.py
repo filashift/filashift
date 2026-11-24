@@ -11,14 +11,17 @@ import json
 import os
 import re
 import secrets
+import sqlite3
 import sys
 import time
+from contextlib import closing
 from collections import defaultdict, deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOST = os.environ.get("FILASHIFT_API_HOST", "127.0.0.1")
 PORT = int(os.environ.get("FILASHIFT_API_PORT", "8787"))
 REPORT_DIR = os.environ.get("FILASHIFT_REPORT_DIR", "/var/lib/filashift/reports")
+VIEW_DB = os.environ.get("FILASHIFT_VIEW_DB", "/var/lib/filashift/pageviews.sqlite3")
 MAX_BODY = 16 * 1024
 PER_IP = (5, 3600)  # 5 reports per IP per hour
 GLOBAL = (200, 86400)  # 200 reports per day in total
@@ -65,6 +68,22 @@ class H(BaseHTTPRequestHandler):
         self.send(404, {"ok": False})
 
     def do_POST(self):
+        if self.path == "/api/page-view":
+            if self.headers.get("Origin") != "https://filashift.com":
+                return self.send(403, {"ok": False})
+            if self.headers.get("Transfer-Encoding") or self.headers.get("Content-Length", "0") != "0":
+                return self.send(400, {"ok": False})
+            # No request-derived values enter storage; SQLite computes the UTC day.
+            try:
+                with closing(sqlite3.connect(VIEW_DB, timeout=3)) as db, db:
+                    db.execute("CREATE TABLE IF NOT EXISTS daily_views(day TEXT PRIMARY KEY, views INTEGER NOT NULL) WITHOUT ROWID")
+                    db.execute("INSERT INTO daily_views VALUES(date('now'),1) ON CONFLICT(day) DO UPDATE SET views=views+1")
+            except sqlite3.Error:
+                return self.send(503, {"ok": False})
+            self.send_response(204)
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            return
         if self.path.split("?")[0] != "/api/report":
             return self.send(404, {"ok": False})
         if "application/json" not in (self.headers.get("Content-Type") or ""):
@@ -105,6 +124,13 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--daily-views"]:
+        print("date_utc,page_views")
+        if os.path.isfile(VIEW_DB):
+            with closing(sqlite3.connect(f"file:{VIEW_DB}?mode=ro", uri=True)) as db:
+                for day, n in db.execute("SELECT day, views FROM daily_views ORDER BY day"):
+                    print(f"{day},{n}")
+        sys.exit(0)
     if len(sys.argv) > 1:
         REPORT_DIR = sys.argv[1]
     ThreadingHTTPServer((HOST, PORT), H).serve_forever()

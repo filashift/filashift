@@ -1,5 +1,5 @@
-import { Switch, Route, Router } from "wouter";
-import { lazy, Suspense } from "react";
+import { Switch, Route, Router, useLocation } from "wouter";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import { useHashLocation } from "wouter/use-hash-location";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -25,6 +25,18 @@ import { ReportDialog } from "@/components/report-dialog";
 import { PATH_ROUTING } from "./routing";
 
 function AppRouter() {
+  const [path] = useLocation();
+  const lastPath = useRef<string>();
+  useEffect(() => {
+    if (location.origin !== "https://filashift.com" || navigator.webdriver ||
+        navigator.doNotTrack === "1" || (navigator as Navigator & {globalPrivacyControl?: boolean}).globalPrivacyControl) return;
+    const key = path.split(/[?#]/, 1)[0].replace(/\/+$/, "") || "/";
+    if (lastPath.current === key) return;
+    lastPath.current = key;
+    void fetch("/api/page-view", {
+      method: "POST", credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store", keepalive: true,
+    }).catch(() => {}); // No retries or offline queue; never delay conversion.
+  }, [path]);
   return (
     <Suspense fallback={<p role="status" className="p-4">Loading…</p>}><Switch>
       <Route path="/" component={Home} />

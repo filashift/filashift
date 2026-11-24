@@ -67,7 +67,8 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 - Endpoints: `POST /api/report` (message, link, email, details, page; honeypot field `website`), `GET /api/health`. Limits: 5 reports per IP per hour, 200 per day overall. No request logging.
 - Reports land in `/var/lib/filashift/reports/<id>.json` with `"status": "new"`. There is no outgoing email: the Ops Teammate checks daily (`ls /var/lib/filashift/reports`), triages, sets `status` to `seen`/`fixed`, and tells David about anything needing a reply (reply from support@jacksoncgc.com). Reports older than 12 months must be deleted (privacy page promise): `deploy/filashift-reports-cleanup.timer` does it daily once installed; otherwise run `find /var/lib/filashift/reports -name '*.json' -mtime +365 -delete`.
 - The 3MF file is never sent; "conversion details" (file name, source/target, counts, warnings, browser) are included only if the visitor leaves the box ticked.
-- Pages: /about, /privacy, /terms, /contact (client/src/pages/info.tsx). Privacy page states no analytics, no cookies, no access logs — keep Caddy without a `log` directive, and update the page if that ever changes.
+- Keep Caddy access logs disabled. The first-party page-view counter stores only UTC date and a sitewide total, outside the web root. No per-page breakdown, cookies, identifiers or event records. Counts begin at rollout; an absent row is not evidence of historical zero traffic. Offline, blocked, automated release-test, DNT and GPC views are not counted. Totals are approximate and not unique visitors.
+- On the server run `python3 /opt/filashift/filashift-api.py --daily-views` for private CSV output (UTC date, views). The service has no public reporting endpoint. Preserve the SQLite file across releases.
 
 ## Affiliates live (Nov 23 2026)
 

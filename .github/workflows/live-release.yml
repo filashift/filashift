@@ -49,6 +49,12 @@ jobs:
         id: guide
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: node scripts/check-guide-seo.mjs
+      - name: Anonymous page-view privacy checks
+        id: views
+        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+        run: |
+          python3 scripts/test-pageviews.py
+          node scripts/check-pageview-client.mjs
       - name: Verify production did not change during checks
         id: after
         if: ${{ !cancelled() && steps.before.outcome == 'success' }}

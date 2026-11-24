@@ -60,9 +60,10 @@ export function privacySections(lang: Lang): Sec[] {
       body: (
         <>
           <p>
-            Your browser downloads the FilaShift app, printer profiles, fonts and filament price lists from filashift.com only. We don't use
-            analytics, advertising, tracking pixels, social widgets or cookies, and the site doesn't contact other companies' servers while you use
-            it.
+            Your browser downloads the app, profiles, fonts and prices from filashift.com only. We use no third-party analytics, advertising,
+            tracking pixels or cookies. When you open, reload or navigate to a page, an empty request increments a sitewide daily counter.
+            It stores only the UTC date and total views, not IP addresses, page addresses, referrers, visitor identifiers or project information.
+            It does not count unique people. We skip the count when Do Not Track or Global Privacy Control is enabled.
           </p>
           <p>
             So FilaShift can load quickly and work offline, your browser keeps a copy of the app's own files (code, profiles, icons and price lists)
@@ -143,9 +144,8 @@ export function privacySections(lang: Lang): Sec[] {
       h: "Do Not Track",
       body: (
         <p>
-          FilaShift doesn't track visitors over time or across other websites, and doesn't let third parties do so on our pages, so there is no
-          tracking for a "Do Not Track" or Global Privacy Control signal to turn off. We treat every visitor the same way whether or not the signal
-          is on. Stores you visit through our links follow their own policies.
+          FilaShift doesn't track visitors over time or across websites. We also skip the anonymous daily count when your browser signals
+          Do Not Track or Global Privacy Control. Stores you visit through our links follow their own policies.
         </p>
       ),
     },
@@ -431,8 +431,10 @@ function PRIVACY_ES(): Sec[] {
         <>
           <p>
             Tu navegador descarga la aplicación FilaShift, los perfiles de impresoras, las fuentes y las listas de precios de filamento solo desde
-            filashift.com. No usamos analítica, publicidad, píxeles de seguimiento, widgets sociales ni cookies, y el sitio no contacta con servidores
-            de otras empresas mientras lo usas.
+            filashift.com. No usamos analítica de terceros, publicidad, píxeles de seguimiento ni cookies. Al abrir o recargar una página o ir a
+            otra, una solicitud vacía incrementa un contador diario para todo el sitio. Solo se guardan la fecha UTC y el total de vistas, no las
+            direcciones IP, las páginas visitadas, las páginas de origen, los identificadores ni los datos del proyecto. No contamos personas
+            únicas. Si activas «Do Not Track» o «Global Privacy Control», la visita no se cuenta.
           </p>
           <p>
             Para que FilaShift cargue rápido y funcione sin conexión, tu navegador guarda una copia de los archivos propios de la aplicación (código,
@@ -516,9 +518,8 @@ function PRIVACY_ES(): Sec[] {
       h: "Do Not Track",
       body: (
         <p>
-          FilaShift no sigue a los visitantes a lo largo del tiempo ni entre sitios web, ni permite que terceros lo hagan en nuestras páginas, así que
-          no hay seguimiento que una señal "Do Not Track" o Global Privacy Control tenga que desactivar. Tratamos igual a todos los visitantes, con o
-          sin la señal. Las tiendas que visites desde nuestros enlaces siguen sus propias políticas.
+          FilaShift no sigue a los visitantes a lo largo del tiempo ni entre sitios web. También omitimos el recuento diario anónimo si tu navegador
+          indica Do Not Track o Global Privacy Control. Las tiendas que visites desde nuestros enlaces siguen sus propias políticas.
         </p>
       ),
     },
