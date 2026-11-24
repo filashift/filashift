@@ -19,6 +19,7 @@ import RULES from "../rules.json";
 import SLICER_KEYS from "./slicer-keys.json";
 import { scanPaint, remapPaintText } from "./paint";
 import { readSourceTools, toolTarget, applyTools, nozzleSizesNote, isFlexible } from "./tools";
+import { toPrusa } from "./prusa-out";
 import type {
   Analysis,
   ConvertOptions,
@@ -815,6 +816,10 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   const kept: string[] = [], replaced: string[] = [], discarded: string[] = [], speeds: string[] = [];
   const warn = (t: string) => lines.push({ level: "warn", text: t });
   const info = (t: string) => lines.push({ level: "info", text: t });
+  // native PrusaSlicer output: the Orca project is built first, then rewritten by toPrusa()
+  const po = opts.output === "prusa" && !!opts.prusa;
+  const oinfo = (t: string) => { if (!po) info(t); };
+  const owarn = (t: string) => { if (!po) warn(t); };
   if (a.translatedFrom) {
     const tf = a.translatedFrom;
     info(`Translated from ${a.sourceSlicer || tf.slicer}: ${tf.translated.length} settings and features mapped to their Orca/Bambu names (layers, walls, infill, supports, brim, seam, ironing, prime tower, colours, temperatures).`);
@@ -854,16 +859,18 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
 
   // output filament presets
   const outTypes: string[] = [];
+  const outKeys: string[] = [];
   const outPresets = reps.map((r, j) => {
     const src = r ? a.filaments[r - 1] : null;
     let { key, exact } = matchFilamentType(src?.type || "PLA", profile);
     const thick = !!r && srcTools.filDia[r - 1] > 2.5;
     if (thick && isFlexible(src?.type || "") && profile.filaments["TPU-2.85"]) ({ key, exact } = { key: "TPU-2.85", exact: true });
-    else if (thick && src && isUsed(r!)) info(`Slot ${j + 1}: the source filament is 2.85 mm; the ${profile.model} uses 1.75 mm, so the “${profile.filaments[key].name}” preset was used.`);
+    else if (thick && src && isUsed(r!)) oinfo(`Slot ${j + 1}: the source filament is 2.85 mm; the ${profile.model} uses 1.75 mm, so the “${profile.filaments[key].name}” preset was used.`);
+    outKeys.push(key);
     const p = profile.filaments[key];
     outTypes.push(src?.type || p.values.filament_type?.[0] || "PLA");
     if (src && !exact)
-      info(`Slot ${j + 1}: no ${profile.model} preset for “${src.type}”; using “${p.name}” (your temperatures are kept).`);
+      oinfo(`Slot ${j + 1}: no ${profile.model} preset for “${src.type}”; using “${p.name}” (your temperatures are kept).`);
     return p;
   });
 
@@ -904,7 +911,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     R.filament_map = Array(nOut).fill("1");
     if (profile.extruders > 1) R.filament_map_mode = "Auto For Flush";
   }
-  info(`Print preset: “${proc.name}” (closest to the project's ${fmt(a.layerHeight, 3)} mm layers). Machine settings, start/end G-code and limits come from “${profile.machine}”.`);
+  oinfo(`Print preset: “${proc.name}” (closest to the project's ${fmt(a.layerHeight, 3)} mm layers). Machine settings, start/end G-code and limits come from “${profile.machine}”.`);
 
   // ---- 2) colours & flush ----
   const srcCols = filVector(S.filament_colour || a.filaments.map((f) => f.color), nfil, si, fv);
@@ -1061,11 +1068,11 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     const bed = cands.find(ok);
     if (bed) {
       R.curr_bed_type = bed;
-      if (srcBed && !PLATE_KEYS[srcBed]) warn(`Build plate changed from “${srcBed}” to “${bed}”: ${profile.slicer} has no “${srcBed}” type. Fit a matching plate before printing, or pick another plate in the slicer.`);
-      else if (srcBed && bed !== srcBed) warn(`Build plate changed from “${srcBed}” to “${bed}”: the ${profile.model} filament presets have no bed temperature for the original plate. Fit that plate before printing, or pick another plate in the slicer.`);
-      else if (!srcBed) info(`Build plate set to “${bed}”.`);
+      if (srcBed && !PLATE_KEYS[srcBed]) owarn(`Build plate changed from “${srcBed}” to “${bed}”: ${profile.slicer} has no “${srcBed}” type. Fit a matching plate before printing, or pick another plate in the slicer.`);
+      else if (srcBed && bed !== srcBed) owarn(`Build plate changed from “${srcBed}” to “${bed}”: the ${profile.model} filament presets have no bed temperature for the original plate. Fit that plate before printing, or pick another plate in the slicer.`);
+      else if (!srcBed) oinfo(`Build plate set to “${bed}”.`);
     } else {
-      warn(`No build plate suits every filament in the ${profile.model} presets. Pick a plate in the slicer and check the bed temperatures.`);
+      owarn(`No build plate suits every filament in the ${profile.model} presets. Pick a plate in the slicer and check the bed temperatures.`);
     }
   }
 
@@ -1172,7 +1179,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (towerOn && nOut > 1 && !["1", "true"].includes(String(first(R.use_relative_e_distances ?? "1")))) {
       R.use_relative_e_distances = "1";
       machDiff.add("use_relative_e_distances");
-      info("The prime tower needs relative extrusion, so “Use relative E distances” was switched on (the slicer sends M83 for you).");
+      oinfo("The prime tower needs relative extrusion, so “Use relative E distances” was switched on (the slicer sends M83 for you).");
     }
     if (["1", "true"].includes(String(first(R.use_relative_e_distances ?? "1")))) {
       const lg = String(first(R.layer_change_gcode ?? "")), bg = String(first(R.before_layer_change_gcode ?? ""));
@@ -1196,13 +1203,14 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
         if (!(ok(i, j) && ok(j, i))) bad.push(`slot ${i + 1} ${outTypes[i]} ${t("nozzle_temperature", i)} °C vs slot ${j + 1} ${outTypes[j]} ${t("nozzle_temperature", j)} °C`);
       }
     if (bad.length)
-      warn(`OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges (${bad.slice(0, 2).join("; ")}). Use materials that print at similar temperatures, or turn on Preferences → Control → Slicing → Remove mixed temperature restriction if you accept the risk.`);
+      owarn(`OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges (${bad.slice(0, 2).join("; ")}). Use materials that print at similar temperatures, or turn on Preferences → Control → Slicing → Remove mixed temperature restriction if you accept the risk.`);
   }
   R.different_settings_to_system = buildDiffLists(copied, nOut, machDiff);
 
   // ---- 4) plates: re-centre and re-grid ----
   const srcArea = parseArea(S.printable_area);
-  const dstArea = parseArea(R.printable_area) || { minx: 0, miny: 0, w: profile.bed[0], h: profile.bed[1] };
+  const pb = opts.prusa?.target.bed;
+  const dstArea = (po && pb ? { minx: pb[0], miny: pb[1], w: pb[2], h: pb[3] } : null) || parseArea(R.printable_area) || { minx: 0, miny: 0, w: profile.bed[0], h: profile.bed[1] };
   const msKey = findEntry(e, MODEL_SETTINGS);
   const msXml = msKey ? dec(e[msKey]) : "";
   const { plates } = parseModelSettings(msXml);
@@ -1278,7 +1286,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   // MMU printers wide ones), so the destination printer's width is used
   if (T.prime_tower_width !== undefined && S.printer_settings_id !== profile.machine) {
     if (String(first(S.prime_tower_width ?? "")) && String(first(S.prime_tower_width)) !== String(first(T.prime_tower_width)))
-      info(`Prime tower width set to the ${profile.model} default (${first(T.prime_tower_width)} mm).`);
+      oinfo(`Prime tower width set to the ${profile.model} default (${first(T.prime_tower_width)} mm).`);
     R.prime_tower_width = T.prime_tower_width;
   }
   const tw0 = num(first(R.prime_tower_width)) || 35;
@@ -1500,7 +1508,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     const CG = "Metadata/custom_gcode_per_layer.xml";
     const prev = outFiles[CG] ? dec(outFiles[CG] as Uint8Array) : "";
     const mode = opts.map.filter(Boolean).length && Math.max(...opts.map) > 1 ? "MultiAsSingle" : "SingleExtruder";
-    const pauseG = String(first(R.machine_pause_gcode ?? "") || "").trim();
+    const pauseG = po ? "" : String(first(R.machine_pause_gcode ?? "") || "").trim();
     const byPlate = new Map<number, string[]>();
     for (const c of [...opts.pauses].sort((x, y) => x.plate - y.plate || x.z - y.z)) {
       const l = byPlate.get(c.plate) || [];
@@ -1524,7 +1532,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       .slice(0, 6)
       .map((c) => `slot ${c.slot} → ${normalizeColor(c.color)} at ${topZ(c.z)} mm${a.plates.length > 1 ? ` (plate ${c.plate})` : ""}`)
       .join("; ")}${n > 6 ? "; …" : ""}. The printer pauses at each one (${pauseG ? `its pause G-code: ${pauseG.split("\n")[0].slice(0, 30)}` : "M600"}); swap the filament from the printer's screen, then resume.`);
-    if (!pauseG) warn("This printer profile has no pause G-code, so the pauses use M600. Check that your firmware supports it (on Klipper it needs an M600 macro).");
+    if (!pauseG && !po) warn("This printer profile has no pause G-code, so the pauses use M600. Check that your firmware supports it (on Klipper it needs an M600 macro).");
   }
   R.version = fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client;
   outFiles[SETTINGS] = strToU8(JSON.stringify(R, null, 4));
@@ -1543,20 +1551,59 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   if (dropped.length) info(`Removed ${dropped.length} unused filament(s): ${dropped.map((f) => f.index).join(", ")}.`);
   if (a.colorChangeLayers) info("This project has layer colour changes; they were kept and re-numbered. Check them in the slicer's preview.");
   if (S.printer_settings_id === profile.machine) info("The project was already set up for this printer; settings were refreshed anyway.");
-  lines.unshift({ level: "ok", text: `Converted for ${profile.model}. Open it in ${profile.slicer} with File → Open Project (not Import), review, then slice.` });
+  let outZip: Zippable = outFiles;
+  let procName = proc.name;
+  let filNames = outPresets.map((p) => p.name);
+  if (po) {
+    const objPlateIdx = (oid: string, x: number, y: number) => {
+      const p = objPlate.get(oid);
+      if (p !== undefined && pids.includes(p)) return pids.indexOf(p);
+      if (!multi) return 0;
+      const cols = Math.max(1, Math.ceil(Math.sqrt(pids.length) - 1e-9));
+      const col = Math.max(0, Math.floor((x - dstArea.minx) / (dstArea.w * 1.2)));
+      const row = y < dstArea.miny ? Math.ceil((dstArea.miny - y) / (dstArea.h * 1.2)) : 0;
+      return Math.min(pids.length - 1, row * cols + col);
+    };
+    const designer = authorProc.size ? new Set([...authorProc].map((k) => RENAMES[k] || k)) : null;
+    if (designer && hasPaintedSupports) designer.add("enable_support");
+    const used = new Set(a.filaments.filter((f) => f.used || !a.usedKnown).map((f) => map[f.index - 1]).filter(Boolean));
+    const pr = toPrusa(outFiles, R, {
+      data: opts.prusa!,
+      nOut,
+      colours: R.filament_colour,
+      types: outKeys,
+      layerHeight: nozzleChange ? a.layerHeight * (dstNozzle / srcNozzle) : a.layerHeight,
+      keepLayerHeight: !nozzleChange,
+      designerKeys: designer,
+      usedSlots: used.size,
+      plateIds: pids,
+      plateOf: objPlateIdx,
+      orcaOrigin: (i) => newOrg.get(pids[i]) || [0, 0],
+      title: a.fileName.replace(/\.3mf$/i, ""),
+      info,
+      warn,
+    });
+    outZip = pr.files;
+    procName = pr.print;
+    filNames = reps.map((_, j) => pr.filaments[j] || pr.filaments[0]);
+    info(`PrusaSlicer presets: printer “${pr.printer}”, print “${pr.print}” (closest to the project's ${fmt(a.layerHeight, 3)} mm layers), filament ${[...new Set(pr.filaments)].map((n) => `“${n}”`).join(", ")}. Temperatures and speeds come from these presets.`);
+    if (pr.changed.length) info(`Kept the designer's choices on top of the PrusaSlicer presets: ${pr.changed.join(", ")}.`);
+    if (multi) info(`${pids.length} plates became ${pids.length} PrusaSlicer beds.`);
+    lines.unshift({ level: "ok", text: `Converted for ${profile.model} as a PrusaSlicer project. Open it in PrusaSlicer 2.9 or newer with File → Open Project, review, then slice.` });
+  } else lines.unshift({ level: "ok", text: `Converted for ${profile.model}. Open it in ${profile.slicer} with File → Open Project (not Import), review, then slice.` });
 
   onPack?.();
-  const bytes = zipSync(outFiles, { level: 6 });
+  const bytes = zipSync(outZip, { level: 6 });
   const base = a.fileName.replace(/\.3mf$/i, "");
   const tag = profile.model.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const report: ConvertReport = {
     target: profile.model,
-    process: proc.name,
-    filaments: reps.map((r, j) => ({ slot: j + 1, color: R.filament_colour[j], type: outTypes[j], diameter: Number(R.filament_diameter?.[j]) || undefined, preset: outPresets[j].name, from: groups[j] })),
+    process: procName,
+    filaments: reps.map((r, j) => ({ slot: j + 1, color: R.filament_colour[j], type: outTypes[j], diameter: Number(R.filament_diameter?.[j]) || undefined, preset: filNames[j], from: groups[j] })),
     kept, replaced, discarded, speeds, lines,
     removedFiles: removed,
     paintRemapped,
-    outputName: `${base}_${tag}.3mf`,
+    outputName: po ? `${base}_${tag}_PrusaSlicer.3mf` : `${base}_${tag}.3mf`,
   };
   return { bytes, report };
 }

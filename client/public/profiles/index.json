@@ -5830,7 +5830,8 @@
 "0.4",
 "0.6",
 "0.8"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-core-one-hf",
@@ -5873,7 +5874,8 @@
 "0.4",
 "0.6",
 "0.8"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-core-one-indx-4t",
@@ -5983,7 +5985,8 @@
 "0.4",
 "0.6",
 "0.8"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-core-one-l-hf",
@@ -6023,6 +6026,51 @@
 "0.4",
 "0.6",
 "0.8"
+],
+"prusa": true
+},
+{
+"id": "prusa-core-one-l-mmu3",
+"vendor": "Prusa",
+"model": "Prusa CORE One L MMU3",
+"short": "CORE One L MMU3",
+"machine": "Prusa CORE One L MMU3 0.4 nozzle",
+"bed": [
+300.0,
+300.0
+],
+"height": 330.0,
+"extruders": 1,
+"slots": 5,
+"slotUnit": "MMU3",
+"slicer": "PrusaSlicer",
+"popular": false,
+"processes": 12,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"HIPS",
+"PA",
+"PA-CF",
+"PA11-CF",
+"PC",
+"PC-CF",
+"PCTG",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"PVB",
+"TPU"
+],
+"prusa": true,
+"prusaOnly": true,
+"nozzles": [
+"0.4",
+"0.6"
 ]
 },
 {
@@ -6065,7 +6113,8 @@
 "nozzles": [
 "0.4",
 "0.6"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-mini",
@@ -6105,7 +6154,8 @@
 "0.4",
 "0.6",
 "0.8"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-mini-is",
@@ -6145,7 +6195,8 @@
 "0.4",
 "0.6",
 "0.8"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-mk3-5",
@@ -6185,6 +6236,179 @@
 "0.4",
 "0.6",
 "0.8"
+],
+"prusa": true
+},
+{
+"id": "prusa-mk3-5-mmu3",
+"vendor": "Prusa",
+"model": "Prusa MK3.5 MMU3",
+"short": "MK3.5 MMU3",
+"machine": "Original Prusa MK3.5 & MK3.5S MMU3 0.4 nozzle",
+"bed": [
+250.0,
+210.0
+],
+"height": 210.0,
+"extruders": 1,
+"slots": 5,
+"slotUnit": "MMU3",
+"slicer": "PrusaSlicer",
+"popular": false,
+"processes": 1,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"HIPS",
+"PA",
+"PA-CF",
+"PC",
+"PCTG",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"TPU"
+],
+"prusa": true,
+"prusaOnly": true,
+"nozzles": [
+"0.4",
+"0.6"
+]
+},
+{
+"id": "prusa-mk3-9",
+"vendor": "Prusa",
+"model": "Prusa MK3.9",
+"short": "MK3.9",
+"machine": "Original Prusa MK3.9 0.4 nozzle",
+"bed": [
+250.0,
+210.0
+],
+"height": 220.0,
+"extruders": 1,
+"slots": 1,
+"slotUnit": "single extruder",
+"slicer": "PrusaSlicer",
+"popular": false,
+"processes": 7,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"HIPS",
+"PA",
+"PA-CF",
+"PA11-CF",
+"PC",
+"PC-CF",
+"PCTG",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"PVB",
+"TPU"
+],
+"prusa": true,
+"prusaOnly": true,
+"nozzles": [
+"0.4",
+"0.6",
+"0.8"
+]
+},
+{
+"id": "prusa-mk3-9s",
+"vendor": "Prusa",
+"model": "Prusa MK3.9S",
+"short": "MK3.9S",
+"machine": "Original Prusa MK3.9S 0.4 nozzle",
+"bed": [
+250.0,
+210.0
+],
+"height": 220.0,
+"extruders": 1,
+"slots": 1,
+"slotUnit": "single extruder",
+"slicer": "PrusaSlicer",
+"popular": false,
+"processes": 5,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"HIPS",
+"PA",
+"PA-CF",
+"PA11-CF",
+"PC",
+"PC-CF",
+"PCTG",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"PVB",
+"TPU"
+],
+"prusa": true,
+"prusaOnly": true,
+"nozzles": [
+"0.4",
+"0.6",
+"0.8"
+]
+},
+{
+"id": "prusa-mk3-9s-mmu3",
+"vendor": "Prusa",
+"model": "Prusa MK3.9S MMU3",
+"short": "MK3.9S MMU3",
+"machine": "Original Prusa MK3.9S MMU3 0.4 nozzle",
+"bed": [
+250.0,
+210.0
+],
+"height": 220.0,
+"extruders": 1,
+"slots": 5,
+"slotUnit": "MMU3",
+"slicer": "PrusaSlicer",
+"popular": false,
+"processes": 1,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"HIPS",
+"PA",
+"PA-CF",
+"PC",
+"PCTG",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"TPU"
+],
+"prusa": true,
+"prusaOnly": true,
+"nozzles": [
+"0.4",
+"0.6"
 ]
 },
 {
@@ -6228,6 +6452,48 @@
 "0.4",
 "0.6",
 "0.8"
+],
+"prusa": true
+},
+{
+"id": "prusa-mk3s-mmu3",
+"vendor": "Prusa",
+"model": "Prusa MK3S MMU3",
+"short": "MK3S MMU3",
+"machine": "Original Prusa i3 MK3S & MK3S+ MMU3",
+"bed": [
+250.0,
+210.0
+],
+"height": 210.0,
+"extruders": 1,
+"slots": 5,
+"slotUnit": "MMU3",
+"slicer": "PrusaSlicer",
+"popular": false,
+"processes": 1,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"HIPS",
+"PA",
+"PA-CF",
+"PC",
+"PCTG",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"TPU"
+],
+"prusa": true,
+"prusaOnly": true,
+"nozzles": [
+"0.4",
+"0.6"
 ]
 },
 {
@@ -6271,7 +6537,8 @@
 "0.4",
 "0.6",
 "0.8"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-mk4-mmu3",
@@ -6310,7 +6577,8 @@
 "nozzles": [
 "0.4",
 "0.6"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-mk4-mmu3-hf",
@@ -6345,7 +6613,8 @@
 "PP",
 "PVA",
 "TPU"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-mk4s",
@@ -6388,7 +6657,8 @@
 "0.4",
 "0.6",
 "0.8"
-]
+],
+"prusa": true
 },
 {
 "id": "prusa-mk4s-hf",
@@ -6431,6 +6701,48 @@
 "0.4",
 "0.6",
 "0.8"
+],
+"prusa": true
+},
+{
+"id": "prusa-mk4s-mmu3",
+"vendor": "Prusa",
+"model": "Prusa MK4S MMU3",
+"short": "MK4S MMU3",
+"machine": "Original Prusa MK4S MMU3 0.4 nozzle",
+"bed": [
+250.0,
+210.0
+],
+"height": 220.0,
+"extruders": 1,
+"slots": 5,
+"slotUnit": "MMU3",
+"slicer": "PrusaSlicer",
+"popular": false,
+"processes": 1,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"HIPS",
+"PA",
+"PA-CF",
+"PC",
+"PCTG",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"TPU"
+],
+"prusa": true,
+"prusaOnly": true,
+"nozzles": [
+"0.4",
+"0.6"
 ]
 },
 {
@@ -6471,6 +6783,53 @@
 "PVB",
 "TPU"
 ],
+"nozzles": [
+"0.4",
+"0.6",
+"0.8"
+],
+"prusa": true
+},
+{
+"id": "prusa-xl-2t",
+"vendor": "Prusa",
+"model": "Prusa XL 2T",
+"short": "XL 2T",
+"machine": "Original Prusa XL - 2T Input Shaper 0.4 nozzle",
+"bed": [
+360.0,
+360.0
+],
+"height": 360.0,
+"extruders": 2,
+"slots": 2,
+"slotUnit": "2 toolheads",
+"slicer": "PrusaSlicer",
+"popular": false,
+"processes": 6,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"FLEX",
+"HIPS",
+"PA",
+"PA-CF",
+"PA11-CF",
+"PC",
+"PC-CF",
+"PCTG",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"PVB",
+"TPU"
+],
+"prusa": true,
+"prusaOnly": true,
 "nozzles": [
 "0.4",
 "0.6",
@@ -6519,7 +6878,8 @@
 "0.4",
 "0.6",
 "0.8"
-]
+],
+"prusa": true
 },
 {
 "id": "qidi-q1-pro",
