@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { cn } from "@/lib/utils";
-import { amazonSearch, colourHex, storeCode, hasAnyAffiliate, loadShopConfig, loadShopData, readQuery, shopUrl, type Item, type ShopConfig, type ShopData } from "@/lib/shop";
+import { amazonSearch, closeColour, colourHex, nearestName, oneSpool, storeCode, hasAnyAffiliate, loadShopConfig, loadShopData, readQuery, shopUrl, type Item, type ShopConfig, type ShopData } from "@/lib/shop";
 
 type Data = ShopData;
 type Config = ShopConfig;
@@ -36,11 +36,13 @@ export default function Filament() {
   const [err, setErr] = useState("");
   const q0 = useMemo(() => readQuery(), []);
   const [family, setFamily] = useState(() => (FAMILIES.includes(q0.get("f") || "") ? q0.get("f")! : "All"));
-  const [type, setType] = useState("all");
+  const [type, setType] = useState(() => q0.get("t")?.slice(0,40) || "all");
   const [brand, setBrand] = useState("all");
-  const [dia, setDia] = useState("1.75");
-  const [pack, setPack] = useState("any");
-  const [sort, setSort] = useState("ppk");
+  const [dia, setDia] = useState(() => ["2.85","any"].includes(q0.get("d") || "") ? q0.get("d")! : "1.75");
+  const [pack, setPack] = useState(() => ["single","multi"].includes(q0.get("pack") || "") ? q0.get("pack")! : "any");
+  const [sort, setSort] = useState(pack === "single" ? "price" : "ppk");
+  const [color,setColor] = useState(() => /^[0-9a-f]{6}$/i.test(q0.get("color") || "") ? "#"+q0.get("color") : "");
+  const changePack = (p:string) => {setPack(p); setSort(p === "single" ? "price" : "ppk");};
   const [inStock, setInStock] = useState(true);
   const [q, setQ] = useState(() => q0.get("q") || "");
   const [shown, setShown] = useState(PAGE);
@@ -54,18 +56,7 @@ export default function Filament() {
   }, []);
   usePageMeta("Filament prices per kg — compare brand stores | FilaShift", "Compare PLA, PETG, ABS, TPU and other 3D printer filament prices per kilogram across Bambu Lab, Elegoo, Sunlu, Overture, Polymaker and more, updated four times a day.");
 
-  useEffect(() => setShown(PAGE), [family, type, brand, dia, pack, sort, inStock, q]);
-  const firstFamily = useMemo(() => ({ done: false }), []);
-  useEffect(() => {
-    // keep a type passed in the link (?t=) on first render, reset it when the family changes later
-    if (!firstFamily.done) {
-      firstFamily.done = true;
-      const t = q0.get("t");
-      if (t) setType(t);
-      return;
-    }
-    setType("all");
-  }, [family]);
+  useEffect(() => setShown(PAGE), [family, type, brand, dia, pack, sort, inStock, q, color]);
 
   const items = data?.items ?? [];
   const types = useMemo(
@@ -80,10 +71,11 @@ export default function Filament() {
     const out = items.filter((i) => {
       if (inStock && !i.ok) return false;
       if (family !== "All" && i.f !== family) return false;
-      if (type !== "all" && i.m !== type) return false;
+      if (type !== "all" && i.m.toLowerCase() !== type.toLowerCase()) return false;
       if (brand !== "all" && i.b !== brand) return false;
       if (dia !== "any" && String(i.d) !== dia) return false;
-      if (pack === "single" && i.kg > 1.25) return false;
+      if (pack === "single" && !oneSpool(i)) return false;
+      if (color && !closeColour(i,color)) return false;
       if (pack === "multi" && i.kg < 2) return false;
       if (words.length) {
         const hay = `${i.b} ${i.t} ${i.v} ${i.m} ${i.c.join(" ")}`.toLowerCase();
@@ -96,12 +88,12 @@ export default function Filament() {
       sort === "price" ? a.p - b.p : sort === "deal" ? off(b) - off(a) || a.ppk - b.ppk : a.ppk - b.ppk,
     );
     return out;
-  }, [items, family, type, brand, dia, pack, sort, inStock, q]);
+  }, [items, family, type, brand, dia, pack, sort, inStock, q, color]);
 
   const best = list[0];
   const amazonUrl = cfg.amazonTag
     ? amazonSearch(
-        `${type !== "all" ? type : family !== "All" ? family : "PLA"} filament ${q && q.length < 30 ? q + " " : ""}${dia === "2.85" ? "2.85mm" : "1.75mm"}`,
+        `${type !== "all" ? type : family !== "All" ? family : "PLA"} filament ${color ? nearestName(color)+" " : ""}${q && q.length < 30 ? q + " " : ""}${dia === "any" ? "" : dia+"mm"} ${pack==="single" ? "single spool" : pack==="multi" ? "bulk" : ""}`.trim(),
         cfg.amazonTag,
       )
     : "";
@@ -131,13 +123,19 @@ export default function Filament() {
           )}
         </section>
 
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <Button size="sm" variant={pack === "single" ? "default" : "outline"} aria-pressed={pack==="single"} onClick={()=>changePack("single")}>One spool for this print</Button>
+          <Button size="sm" variant={pack === "multi" ? "default" : "outline"} aria-pressed={pack==="multi"} onClick={()=>changePack("multi")}>Compare bulk prices</Button>
+          {color && <Button size="sm" variant="outline" onClick={()=>setColor("")} data-testid="clear-project-colour"><span style={{background:color}} className="mr-2 h-3 w-3 rounded-full border"/><span>Approximate colour:</span>&nbsp;{nearestName(color)} · <span>Clear</span></Button>}
+        </div>
+        {pack==="single" && <p className="mb-4 text-sm text-muted-foreground">One ready-to-use spool, up to 1.25 kg. Refills, multipacks and unconfirmed packaging are excluded. Prices exclude shipping and tax.</p>}
         <div className="mb-4 flex flex-wrap gap-1.5" role="tablist" aria-label="Material">
           {FAMILIES.map((f) => (
             <button
               key={f}
               role="tab"
               aria-selected={family === f}
-              onClick={() => setFamily(f)}
+              onClick={() => {setFamily(f);setType("all");}}
               className={cn(
                 "rounded-full border px-3 py-1 text-sm transition-colors",
                 family === f ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-secondary",
@@ -158,7 +156,7 @@ export default function Filament() {
             <SelectTrigger data-testid="select-type" aria-label="Type"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
-              {types.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+              {(type !== "all" && !types.includes(type) ? [type,...types] : types).map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={brand} onValueChange={setBrand}>
@@ -168,7 +166,7 @@ export default function Filament() {
               {brands.map((b) => <SelectItem key={b} value={b}>{b}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={pack} onValueChange={setPack}>
+          <Select value={pack} onValueChange={changePack}>
             <SelectTrigger data-testid="select-pack" aria-label="Pack size"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="any">Any size</SelectItem>
@@ -201,7 +199,7 @@ export default function Filament() {
           </div>
           <div className="text-sm text-muted-foreground" data-testid="text-count">
             {data ? `${list.length.toLocaleString()} result${list.length === 1 ? "" : "s"}` : err ? "" : "Loading prices…"}
-            {best && <> {"· from"} <span className="font-medium text-foreground" translate="no">{usd(best.ppk)}/kg</span></>}
+            {best && (sort === "ppk" || sort === "price") && <> {"· from"} <span className="font-medium text-foreground" translate="no">{sort === "price" ? usd(best.p) : `${usd(best.ppk)}/kg`}</span></>}
           </div>
         </div>
 
@@ -278,6 +276,7 @@ function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge variant="secondary" className="font-medium">{it.m}</Badge>
+          {it.form === "refill" && <Badge variant="outline">Refill</Badge>}
           <span className="text-sm font-medium">{it.b}</span>
           {it.d !== 1.75 && <Badge variant="outline">{it.d} mm</Badge>}
           {off >= 5 && (
@@ -306,8 +305,8 @@ function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
         )}
       </div>
       <div className="text-right">
-        <div className="font-mono text-base font-semibold tabular-nums">{usd(it.ppk)}<span className="text-xs font-normal text-muted-foreground">/kg</span></div>
-        <div className="text-xs text-muted-foreground tabular-nums">
+        <div className="font-mono text-sm tabular-nums">{usd(it.ppk)}<span className="text-xs font-normal text-muted-foreground">/kg</span></div>
+        <div className="font-mono text-base font-semibold tabular-nums">
           {it.was && <span className="mr-1 line-through">{usd(it.was)}</span>}
           {usd(it.p)}
         </div>

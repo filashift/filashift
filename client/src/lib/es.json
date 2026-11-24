@@ -1,4 +1,11 @@
 {
+ "One spool for this print": "Una bobina para esta impresión",
+ "Compare bulk prices": "Comparar precios por volumen",
+ "Approximate colour:": "Color aproximado:",
+ "Clear": "Quitar",
+ "Refill": "Recarga",
+ "Confirm filament diameter in the finder.": "Confirma el diámetro del filamento en el comparador.",
+ "One ready-to-use spool, up to 1.25 kg. Refills, multipacks and unconfirmed packaging are excluded. Prices exclude shipping and tax.": "Una bobina lista para usar de hasta 1,25 kg. Se excluyen las recargas, los paquetes múltiples y los formatos sin confirmar. Los precios no incluyen envío ni impuestos.",
  "Matches use the same material family and an approximate colour. Within each colour-match band, lower prices per kg come first.": "Las opciones son de la misma familia de material y de un color aproximado. Entre colores de similitud comparable, aparecen primero los precios por kg más bajos.",
  "Stock not confirmed": "Disponibilidad sin confirmar",
  "Choose a 3MF or STL": "Elige un 3MF o STL",

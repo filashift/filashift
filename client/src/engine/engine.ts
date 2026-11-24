@@ -1434,7 +1434,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   const report: ConvertReport = {
     target: profile.model,
     process: proc.name,
-    filaments: reps.map((r, j) => ({ slot: j + 1, color: R.filament_colour[j], type: outTypes[j], preset: outPresets[j].name, from: groups[j] })),
+    filaments: reps.map((r, j) => ({ slot: j + 1, color: R.filament_colour[j], type: outTypes[j], diameter: Number(R.filament_diameter?.[j]) || undefined, preset: outPresets[j].name, from: groups[j] })),
     kept, replaced, discarded, speeds, lines,
     removedFiles: removed,
     paintRemapped,

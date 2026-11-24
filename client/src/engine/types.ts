@@ -118,7 +118,7 @@ export interface ReportLine {
 export interface ConvertReport {
   target: string;
   process: string;
-  filaments: { slot: number; color: string; type: string; preset: string; from: number[] }[];
+  filaments: { slot: number; color: string; type: string; diameter?: number; preset: string; from: number[] }[];
   kept: string[];
   replaced: string[];
   discarded: string[];

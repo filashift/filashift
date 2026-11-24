@@ -127,6 +127,17 @@ def weight_kg(texts, grams=0, allow_grams=False):
         return round(w * n, 3), n
     return w, n
 
+def packaging(product, variant, kg, count):
+    """Only positively identified ready-to-use spools qualify for project shopping."""
+    labels = f"{product['title']} {variant.get('title', '')}".lower()
+    tags = {str(t).strip().lower() for t in product.get("tags", [])}
+    if re.search(r"refill|spool[\s-]*(?:less|free)|master[\s-]*spool|without (?:a )?spool|no spool", labels) or any("refill" in t or "spoolless" in t for t in tags):
+        return "refill"
+    if count != 1 or re.search(r"bundle|bulk|multi[\s-]*pack|variety|assortment|\bset\b|starter kit|sampler|(?:\d+\s*[- ]?(?:pack|rolls?|spools?|pcs)|pack of \d+)|\d+\s*[x×*]\s*\d", labels):
+        return "pack"
+    positive = bool(re.search(r"\b(?:spool|roll)\b", labels)) or bool(tags & {"spool", "single spool", "1 spool", "pack:1kg"})
+    return "spool" if positive and 0 < kg <= 1.25 else "unknown"
+
 def diameter(text):
     t = text.lower()
     if re.search(r"2\.85|\b3\.0?\s*mm\b|\b3mm\b", t) and not re.search(r"1\.75", t):
@@ -245,6 +256,7 @@ def collect(cache=None):
                     "f": fam, "m": label,
                     "d": diameter(vt if re.search(r"1\.75|2\.85|\b3(?:\.0)?\s*mm\b", vt, re.I) else title),
                     "kg": kg, "n": spools or 1,
+                    "form": packaging(p, v, kg, spools or 1),
                     "p": round(price, 2),
                     "ppk": round(ppk, 2),
                     "was": round(compare, 2) if compare and compare > price else None,

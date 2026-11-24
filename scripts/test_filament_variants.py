@@ -6,6 +6,20 @@ import collect_filament as collector
 
 
 class VariantTest(unittest.TestCase):
+    def test_single_spool_excludes_refill_multi_and_unknown(self):
+        def form(title, variant="Blue", kg=1, count=1, tags=()):
+            return collector.packaging({"title":title,"tags":list(tags)},{"title":variant},kg,count)
+        self.assertEqual(form("PLA filament", "Blue / cardboard spool"), "spool")
+        self.assertEqual(form("PLA",tags=["Spool"]), "spool")
+        for title in ["PLA Refill for reusable spool", "Spool-free PLA", "PLA without a spool"]:
+            self.assertEqual(form(title), "refill")
+        self.assertEqual(form("PLA",tags=["Spool","pack:refill"]), "refill")
+        for title in ["PLA 4 x 250g spool", "PLA spool bundle", "PLA 4-pack spool"]:
+            self.assertEqual(form(title), "pack")
+        self.assertEqual(form("PLA spool", count=4), "pack")
+        self.assertEqual(form("PLA filament 1 kg"), "unknown")
+        self.assertNotEqual(form("PLA spool", kg=5),"spool")
+
     def test_flashforge_weight_needs_corroboration(self):
         p = dict(title="Flashforge PLA Filament", tags=["1kg", "Filament", "Spool"], options=[{"name":"Color"}])
         v = dict(title="Blue", sku="PLA-1-BL", grams=1100)

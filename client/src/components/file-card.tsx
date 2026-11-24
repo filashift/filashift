@@ -445,7 +445,7 @@ function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
         ))}
       </div>
 
-      <ProjectFilament needs={rep.filaments.map((f) => ({ color: f.color, type: f.type, slot: f.slot }))} testId={`shop-${job.id}`} />
+      <ProjectFilament needs={rep.filaments} testId={`shop-${job.id}`} />
 
       <ul className="mt-4 space-y-2" data-testid={`list-report-${job.id}`}>
         {warns.map((l, i) => (

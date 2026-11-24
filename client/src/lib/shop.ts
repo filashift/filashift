@@ -3,6 +3,7 @@ import { dataUrl } from "@/lib/seo";
 // Data lives at /data on the server (see OPERATIONS.md); nothing here contacts a third party.
 
 export type Item = {
+  form?: "spool" | "pack" | "refill" | "unknown";
   b: string; // brand
   r: string; // retailer (store)
   t: string; // product title
@@ -150,15 +151,20 @@ export function familyOf(type: string): string {
 }
 
 export type Match = { item: Item; colour: string; hex: string; d: number };
+export const oneSpool = (it: Item) => it.form === "spool" && it.n === 1 && it.kg > 0 && it.kg <= 1.25;
+export const closeColour = (it: Item, hex: string) => it.c.some((c,i) => {
+  const h = colourHex(c,it.x?.[i]); return h !== null && dist(hex,h) < 120;
+});
 /**
  * Cheapest in-stock 1.75 mm offers whose colour is close to `hex` in the same material family.
  * Prefers single spools of 0.5–1.25 kg, which suit one project.
  */
-export function matchOffers(items: Item[], type: string, hex: string, limit = 3): Match[] {
+export function matchOffers(items: Item[], type: string, hex: string, limit = 3, diameter = 1.75): Match[] {
   const fam = familyOf(type);
   const out: Match[] = [];
   for (const it of items) {
-    if (!it.ok || it.f !== fam || it.d !== 1.75 || it.n > 1 || it.kg > 1.25 || it.kg < 0.5) continue;
+    if (!it.ok || it.f !== fam || it.d !== diameter || !oneSpool(it)) continue;
+    if (type.toLowerCase() !== fam.toLowerCase() && it.m.toLowerCase() !== type.toLowerCase()) continue;
     let best: { c: string; h: string; d: number } | null = null;
     it.c.forEach((c, i) => {
       const h = colourHex(c, it.x?.[i]);
