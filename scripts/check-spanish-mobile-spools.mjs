@@ -13,7 +13,7 @@ const mode = process.argv[2];
 const english = mode === "--english-shortcuts";
 const lang = english ? "en" : "es";
 assert(!mode || (["--shortcuts","--bambu","--english-shortcuts"].includes(mode) && process.argv.length === 3), "Expected no arguments, --shortcuts, --bambu or --english-shortcuts");
-const picks = english ? [creator,u1] : mode === "--bambu" ? bambuPicks : mode === "--shortcuts"
+const picks = mode === "--bambu" ? bambuPicks : mode === "--shortcuts"
   ? [creator, ...bambuPicks, u1]
   : [creator, ...bambuPicks, ["Original Prusa MK4S", "PETG"], u1];
 const items = ["PLA","PETG"].map(m => ({
@@ -56,8 +56,8 @@ try {
         assert(await card.evaluate(el=>document.activeElement===el),"Printer shortcut did not focus the matching section");
       }
       if (printer === "Bambu Lab X1 Carbon") {
-        await assertX1AmsWarning(card,"es");
-        console.log("PASS X1 Carbon original AMS warning: Spanish content and placement");
+        await assertX1AmsWarning(card,lang);
+        console.log(`PASS X1 Carbon original AMS warning: ${lang} content and placement`);
       }
       await card.getByRole("link",{name:english ? `Compare ${material} spools` : `Comparar bobinas de ${material}`,exact:true}).tap();
       for(const phase of ["tap","reload"]) {

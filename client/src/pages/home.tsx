@@ -638,15 +638,13 @@ function HowItWorks() {
       <SectionTitle id="how" kicker="How it works" title="How to convert a 3MF for another printer" />
       <ol className="grid gap-3 sm:grid-cols-3">
         {steps.map((s, i) => (
-          <li key={i} className="relative overflow-hidden rounded-xl border border-card-border bg-card p-5">
-            <span className="absolute -right-2 -top-4 font-mono text-7xl font-bold text-primary/[0.07]" aria-hidden="true">
-              {i + 1}
-            </span>
-            <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <s.icon className="h-5 w-5 text-primary" />
-            </span>
-            <div className="text-sm font-medium">{s.title}</div>
-            <p className="mt-1 text-sm text-muted-foreground">{s.text}</p>
+          <li key={i} className="rounded-xl border border-card-border bg-card p-5">
+            <div className="flex items-center gap-3">
+              <span data-testid="how-step-number" aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-base font-bold tabular-nums text-primary-foreground">{i + 1}</span>
+              <h3 className="flex-1 text-base font-semibold">{s.title}</h3>
+              <s.icon aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" />
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">{s.text}</p>
           </li>
         ))}
       </ol>
