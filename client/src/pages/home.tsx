@@ -1,8 +1,7 @@
-import { GUIDES } from "@/lib/guides";
 import { useJsonLd, usePageMeta } from "@/lib/seo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeftRight, ArrowRight, Check, Cpu, Download, FolderOpen, Lock, Printer, ShieldCheck, Sparkles, Tag, Upload } from "lucide-react";
+import { ArrowLeftRight, Check, Cpu, Download, FolderOpen, Lock, Printer, ShieldCheck, Sparkles, Tag, Upload } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -456,7 +455,6 @@ export default function Home() {
             document.getElementById("settings")?.scrollIntoView({ behavior: "smooth", block: "start" });
           }}
         />
-        <GuideLinks />
       </main>
 
       <SiteFooter>
@@ -682,28 +680,6 @@ function Brands({ printers, onPick }: { printers: PrinterIndexEntry[]; onPick: (
           );
         })}
       </div>
-    </section>
-  );
-}
-
-function GuideLinks() {
-  return (
-    <section className="mt-14">
-      <SectionTitle id="guides" kicker="Guides" title="Step-by-step 3MF workflows" />
-      <ul className="grid gap-2 sm:grid-cols-2">
-        {GUIDES.map((g) => (
-          <li key={g.slug}>
-            <Link
-              href={`/guides/${g.slug}`}
-              className="flex h-full items-center justify-between gap-3 rounded-xl border border-card-border bg-card px-4 py-3 text-sm transition-colors hover:border-primary/50"
-              data-testid={`home-guide-${g.slug}`}
-            >
-              <span>{g.title}</span>
-              <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
-            </Link>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

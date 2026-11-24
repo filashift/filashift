@@ -8,8 +8,8 @@ import { PATH_ROUTING } from "./routing";
 if (PATH_ROUTING) {
   // old hash links such as /#/filament move to the real path
   const fromHash = () => {
-    if (location.pathname === "/" && location.hash === "#faq") {
-      window.history.replaceState(null, "", "/faq" + location.search);
+    if (location.pathname === "/" && ["#faq", "#guides"].includes(location.hash)) {
+      window.history.replaceState(null, "", "/" + location.hash.slice(1) + location.search);
       return true;
     }
     const m = window.location.hash.match(/^#(\/[^?#]*)/);

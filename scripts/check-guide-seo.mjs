@@ -25,6 +25,13 @@ try {
     assert.equal(await groups.count(),3);
     assert.equal(await groups.nth(0).locator("li").count(),1);
     assert.equal(await groups.nth(1).locator("li").count(),6);
+    for (const id of ["mesh","project","shop"]) {
+      const tile=page.getByTestId(`topic-${id}`);
+      const count=await page.locator(`#guides-${id} li a`).count();
+      assert((await tile.innerText()).includes(String(count)));
+      await tile.click();
+      assert.equal(await page.evaluate(()=>document.activeElement.id),`guides-${id}`);
+    }
     await groups.nth(2).locator("li a").click();
     const cards = page.locator("article section[id]");
     await cards.first().waitFor();
@@ -67,6 +74,8 @@ try {
     assert(sitemap.includes(`/guides/3mf-to-stl</loc><lastmod>${date}</lastmod>`));
     await page.goto(`${base}/?lang=${lang}`, {waitUntil:"networkidle"});
     assert.equal(await page.locator('#ld-faq, [data-testid="faq-0"]').count(),0);
+    assert.equal(await page.locator('main #guides, main [data-testid^="home-guide-"]').count(),0);
+    assert(await page.getByTestId("nav-guides").isVisible());
     await page.getByTestId("nav-faq").click();
     await page.getByTestId("faq-0").waitFor();
     assert.equal(new URL(page.url()).pathname,"/faq");

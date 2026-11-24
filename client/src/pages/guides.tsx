@@ -33,6 +33,11 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 export function GuidesIndex() {
   const { loc, L } = useLocal();
+  const topics = [
+    { id: "mesh", label: L("Mesh export", "Exportar mallas"), example: "STL / OBJ" },
+    { id: "project", label: L("Printer conversion", "Cambiar de impresora"), example: L("Slicers and colors", "Laminadores y colores") },
+    { id: "shop", label: L("Filament buying", "Comprar filamento"), example: L("Single spools", "Bobinas individuales") },
+  ].map(t => ({ ...t, guides: GUIDES.filter(g => t.id === (g.shopping ? "shop" : g.slug === "3mf-to-stl" ? "mesh" : "project")).map(loc) }));
   usePageMeta(
     L(
       "3MF conversion guides: STL, OBJ, MakerWorld to Flashforge, Creality, Prusa | FilaShift",
@@ -54,20 +59,31 @@ export function GuidesIndex() {
           "Flujos de trabajo breves y probados para pasar proyectos de impresión 3D entre laminadores e impresoras, y para convertir archivos 3MF a STL u OBJ.",
         )}
       </p>
+      <nav aria-label={L("Browse guides by topic", "Explorar guías por tema")} className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {topics.map(t => <button key={t.id} type="button" data-testid={`topic-${t.id}`} aria-controls={`guides-${t.id}`}
+          onClick={() => { const target = document.getElementById(`guides-${t.id}`); target?.focus({ preventScroll: true }); target?.scrollIntoView({ block: "start" }); }}
+          className="group rounded-xl border border-card-border bg-card px-3 py-2.5 text-left transition-colors hover:border-primary/50 hover:bg-primary/[0.04] focus-visible:ring-2 focus-visible:ring-primary">
+          <span className="flex items-baseline justify-between gap-2">
+            <span className="text-sm font-medium">{t.label}</span>
+            <span className="font-mono text-xs text-muted-foreground">{t.guides.length}<span className="sr-only"> {L(t.guides.length === 1 ? "guide" : "guides", t.guides.length === 1 ? "guía" : "guías")}</span></span>
+          </span>
+          <span className="mt-0.5 block text-xs text-muted-foreground group-hover:text-primary">{t.example}</span>
+        </button>)}
+      </nav>
       <div data-testid="list-guides">
-      {["mesh", "project", "shop"].map(group => <section key={group} className="mt-8">
-      <h2 className="mb-2 text-xl font-semibold">{group === "shop" ? L("Filament buying guides","Guías de compra de filamento") : group === "mesh"
+      {topics.map(({ id: group, guides }) => <section key={group} id={`guides-${group}`} aria-labelledby={`heading-${group}`} tabIndex={-1} className="mt-8 scroll-mt-32 rounded-lg">
+      <h2 id={`heading-${group}`} className="mb-2 text-xl font-semibold">{group === "shop" ? L("Filament buying guides","Guías de compra de filamento") : group === "mesh"
         ? L("Convert 3MF to STL or OBJ", "Convertir 3MF a STL u OBJ")
         : L("Convert 3MF between slicers and printers", "Convertir 3MF entre laminadores e impresoras")}</h2>
       <p className="mb-4 text-sm text-muted-foreground">{group === "shop" ? L("Choose a first spool for your printer and project.","Elige una primera bobina para tu impresora y tu proyecto.") : group === "mesh"
         ? L("Choose this if you need the model’s shape for another program.", "Elige esta opción si necesitas la geometría del modelo para otro programa.")
         : L("Keep a project in 3MF when you need its plates, colors, and print settings on another printer.", "Mantén el proyecto en formato 3MF si necesitas sus placas, colores y ajustes de impresión en otra impresora.")}</p>
-      <ul className="space-y-3">
-        {GUIDES.filter(g => group === (g.shopping ? "shop" : g.slug === "3mf-to-stl" ? "mesh" : "project")).map(loc).map((g) => (
+      <ul className="grid gap-2 sm:grid-cols-2">
+        {guides.map((g) => (
           <li key={g.slug}>
             <Link
               href={`/guides/${g.slug}`}
-              className="group flex items-start gap-3 rounded-xl border border-card-border bg-card p-4 transition-colors hover:border-primary/50"
+              className="group flex h-full items-start gap-3 rounded-xl border border-card-border bg-card p-3 transition-colors hover:border-primary/50"
               data-testid={`link-guide-${g.slug}`}
             >
               <BookOpen className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
