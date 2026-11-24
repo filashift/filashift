@@ -6,6 +6,15 @@ import collect_filament as collector
 
 
 class VariantTest(unittest.TestCase):
+    def test_flashforge_weight_needs_corroboration(self):
+        p = dict(title="Flashforge PLA Filament", tags=["1kg", "Filament", "Spool"], options=[{"name":"Color"}])
+        v = dict(title="Blue", sku="PLA-1-BL", grams=1100)
+        self.assertTrue(collector.flashforge_single_spool(p, v))
+        for changes in [{"sku":"PLA-05-BL"}, {"title":"2 pack Blue"}, {"sku":""}]:
+            self.assertFalse(collector.flashforge_single_spool(p, dict(v, **changes)))
+        for changes in [{"tags":["Spool"]}, {"tags":p["tags"]+["0.5kg"]}, {"options":[{"name":"Pack size"}]}]:
+            self.assertFalse(collector.flashforge_single_spool(dict(p, **changes), v))
+
     def test_same_price_different_variants(self):
         variants = [
             {"id": 10, "title": "Blue / 1 kg", "option1": "Blue", "available": False, "compare_at_price": "30"},

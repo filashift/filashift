@@ -18,8 +18,8 @@ import { defaultMapping, planPauses } from "@/engine/mapping";
 import type { PrinterIndexEntry, PrinterProfile } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
-const DEFAULT_PRINTER = "snapmaker-u1";
-const QUICK = ["snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu-lab-x1-carbon", "bambu-lab-a1", "bambu-lab-p1s", "creality-k2-plus"];
+const DEFAULT_PRINTER = "flashforge-creator-5-pro";
+const QUICK = [DEFAULT_PRINTER, "snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu-lab-x1-carbon", "bambu-lab-a1", "bambu-lab-p1s", "creality-k2-plus"];
 
 const profileCache = new Map<string, Promise<PrinterProfile>>();
 function getProfile(id: string) {
@@ -353,6 +353,7 @@ export default function Home() {
                     <button
                       key={p.id}
                       onClick={() => setTargetId(p.id)}
+                      aria-pressed={p.id === targetId}
                       className={cn(
                         "rounded-full border px-2.5 py-1 text-xs transition-colors",
                         p.id === targetId ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground",

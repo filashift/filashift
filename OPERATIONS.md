@@ -43,6 +43,8 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 6. Filament prices: `systemctl status filashift-filament.service` succeeded within 6h; `https://filashift.com/data/filament.json` `updated` is < 8h old and `count` is in the hundreds (about 900 in Nov 2026).
 
 ## Filament price finder (filashift.com/filament)
+- SUNLU UpPromote uses the fixed placement names `filashift-finder` and `filashift-converter` in `sca_source`. Compare these in partner reports; neither contains visitor or project data. A working link is not proof of a credited sale.
+- Flashforge one-spool fallback: require a single unambiguous 1kg product tag, spool and filament tags, color/type-only options, matching single-unit variant SKU and no pack text. Do not use shipping grams for net filament weight.
 - Inventory schema 2: one offer per exact store variant URL. `ok: true` means that variant was available at refresh; `false` means sold out; `null` means unconfirmed. Never share colors, compare-at prices or stock between sibling variants. When deploying schema 2 for the first time, publish the verified feed before the web release.
 - Regression checks: `python3 scripts/test_filament_variants.py`; `node scripts/check-filament-partners.mjs` checks the live finder at mobile and desktop widths. Amazon is a tagged search link, not store inventory.
 - Page: `client/src/pages/filament.tsx` (route `/filament`; filashift.com uses real paths, other hosts use `#/` routing, see `client/src/routing.ts`). Shared header/footer in `client/src/components/site-chrome.tsx`.

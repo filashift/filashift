@@ -63,7 +63,7 @@ export function ProjectFilament({ needs, testId }: { needs: Need[]; testId: stri
           ))}
         </ul>
         <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-          Closest colours from brand store listings, cheapest first. Colours on screen are approximate, so check the store photo.
+          Matches use the same material family and an approximate colour. Within each colour-match band, lower prices per kg come first.
           {sponsored && " Some links are affiliate links; FilaShift may earn a commission at no extra cost to you."}
         </p>
       </CollapsibleContent>
@@ -90,14 +90,15 @@ function NeedRow({ need, data, cfg, testId }: { need: Need; data: ShopData | nul
       ) : matches.length ? (
         <ul className="mt-1.5 space-y-1.5">
           {matches.map((m, j) => {
-            const link = shopUrl(m.item.u, cfg);
+            const link = shopUrl(m.item.u, cfg, "converter");
             return (
-              <li key={j} className="flex items-center gap-2 text-xs" translate="no">
+              <li key={j} className="flex flex-wrap items-center gap-2 rounded border p-2 text-xs" translate="no">
                 <span className="h-3 w-3 shrink-0 rounded-full border border-black/15 dark:border-white/20" style={{ background: m.hex }} aria-hidden />
-                <span className="min-w-0 flex-1 truncate" title={`${m.item.b} ${m.item.t} · ${m.colour}`}>
-                  <span className="font-medium">{m.item.b}</span> {m.colour} · <span className="text-muted-foreground">{m.item.m}</span>
+                <span className="min-w-32 flex-1 break-words">
+                  <span className="block font-medium">{m.item.t}</span>
+                  <span>{m.item.v || m.colour} · {m.item.m} · {m.item.d} mm · {m.item.kg} kg</span>
                 </span>
-                <span className="font-mono tabular-nums">${m.item.ppk.toFixed(2)}/kg</span>
+                <span className="text-right font-mono tabular-nums"><strong className="block">${m.item.p.toFixed(2)}</strong>${m.item.ppk.toFixed(2)}/kg</span>
                 <Button asChild size="sm" variant="outline" className="h-7 px-2 text-xs">
                   <a href={link.href} target="_blank" rel={link.sponsored ? "sponsored noopener noreferrer" : "noopener noreferrer"} data-testid={`${testId}-offer-${j}`}>
                     <Store className="mr-1 h-3 w-3" />

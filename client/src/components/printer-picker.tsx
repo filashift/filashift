@@ -7,7 +7,7 @@ import type { PrinterIndexEntry } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
 /** Shown first, in this order, under "Popular". */
-const FEATURED = ["snapmaker-u1", "flashforge-ad5x", "flashforge-adventurer-5m", "flashforge-creator-5"];
+const FEATURED = ["flashforge-creator-5-pro", "snapmaker-u1", "flashforge-ad5x", "flashforge-adventurer-5m", "flashforge-creator-5"];
 
 export function slotLabel(p: Pick<PrinterIndexEntry, "slots" | "slotUnit">) {
   if (p.slots <= 1) return "1 filament";

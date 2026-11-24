@@ -43,6 +43,7 @@ try {
           const dest=link.searchParams.has("u")?new URL(link.searchParams.get("u")):link;
           assert.equal(dest.origin+dest.pathname,new URL(item.u).origin+new URL(item.u).pathname);
           assert.equal(dest.searchParams.get("variant"),new URL(item.u).searchParams.get("variant"));
+          if (dest.hostname === "store.sunlu.com") assert.equal(dest.searchParams.get("sca_source"),"filashift-finder");
           if (host===new URL(item.u).host) assert((await a.getAttribute("rel")).includes("sponsored"));
         }
       }

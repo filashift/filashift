@@ -133,6 +133,17 @@ def diameter(text):
         return 2.85
     return 1.75
 
+def flashforge_single_spool(product, variant):
+    """Corroborate one spool from catalog tags AND the exact variant, never shipping grams."""
+    tags = {str(t).lower().strip() for t in product.get("tags", [])}
+    options = {o["name"].lower().strip() for o in product.get("options", [])}
+    if not {"1kg", "filament", "spool"} <= tags or not options or not options <= {"color", "colour", "color standard", "filament type"}:
+        return False
+    if any(re.search(r"\d\s*(?:kg|g|pack|roll|spool)\b", t) and t != "1kg" for t in tags):
+        return False
+    return bool(re.fullmatch(r"[a-z0-9]+-1-[a-z0-9-]+", str(variant.get("sku", "")), re.I)
+                and not re.search(r"pack|bundle|\d\s*[x×]\s*\d", product["title"] + " " + variant["title"], re.I))
+
 def color_of(product, variant):
     opts = [o["name"].lower() for o in product.get("options", [])]
     for i, name in enumerate(opts):
@@ -210,6 +221,8 @@ def collect(cache=None):
                 if not fam:
                     continue
                 kg, spools = weight_kg((vt, title), v.get("grams") or 0, allow_grams)
+                if not kg and host == "www.flashforge.com" and flashforge_single_spool(p, v):
+                    kg, spools = 1, 1
                 if not kg or kg < 0.25:
                     continue
                 ppk = price / kg

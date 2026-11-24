@@ -72,12 +72,14 @@ export function affiliateFor(url: string, cfg: ShopConfig): Affiliate | null {
   return a && (a.template || (a.params && Object.keys(a.params).length)) ? a : null;
 }
 /** store link with the affiliate tag applied when one is configured for that store */
-export function shopUrl(url: string, cfg: ShopConfig): { href: string; sponsored: boolean } {
+export function shopUrl(url: string, cfg: ShopConfig, placement?: "finder" | "converter"): { href: string; sponsored: boolean } {
   const a = affiliateFor(url, cfg);
   if (!a) return { href: url, sponsored: false };
   if (a.template) return { href: a.template.replace("{url}", encodeURIComponent(url)), sponsored: true };
   const u = new URL(url);
   for (const [k, v] of Object.entries(a.params || {})) u.searchParams.set(k, v);
+  if (placement && u.hostname === "store.sunlu.com" && a.params?.sca_ref)
+    u.searchParams.set("sca_source", `filashift-${placement}`);
   return { href: u.toString(), sponsored: true };
 }
 /** store discount code (affiliate coupon) shown next to that store's offers */

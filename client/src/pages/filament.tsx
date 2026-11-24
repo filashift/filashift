@@ -262,7 +262,7 @@ export default function Filament() {
 }
 
 function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
-  const link = shopUrl(it.u, cfg);
+  const link = shopUrl(it.u, cfg, "finder");
   const code = storeCode(it.u, cfg);
   const off = it.was ? Math.round((1 - it.p / it.was) * 100) : 0;
   const colours = it.c.slice(0, 6);
