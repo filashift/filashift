@@ -5,6 +5,7 @@ import {
   ChevronDown,
   Download,
   FileBox,
+  FolderOpen,
   Info,
   Layers,
   Loader2,
@@ -18,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { Analysis, ConvertReport } from "@/engine/types";
 import { cn } from "@/lib/utils";
+import { ProjectFilament } from "@/components/project-filament";
 
 export interface Job {
   id: string;
@@ -283,6 +285,14 @@ function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
         </Button>
       </div>
 
+      <div className="mt-3 flex gap-2 rounded-lg border border-card-border bg-muted/50 p-2.5 text-xs leading-snug" data-testid={`tip-open-project-${job.id}`}>
+        <FolderOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <p>
+          <span className="font-medium">Open it as a project:</span> in your slicer use <kbd className="whitespace-nowrap rounded border border-border bg-background px-1 font-mono">File → Open Project</kbd>.
+          Dragging it onto the plate or importing it as a model leaves the converted settings behind.
+        </p>
+      </div>
+
       <div className="mt-4 flex flex-wrap gap-2">
         {rep.filaments.map((f) => (
           <div key={f.slot} className="flex items-center gap-1.5 rounded-md border border-card-border px-2 py-1 text-xs">
@@ -292,6 +302,8 @@ function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
           </div>
         ))}
       </div>
+
+      <ProjectFilament needs={rep.filaments.map((f) => ({ color: f.color, type: f.type, slot: f.slot }))} testId={`shop-${job.id}`} />
 
       <ul className="mt-4 space-y-2" data-testid={`list-report-${job.id}`}>
         {warns.map((l, i) => (

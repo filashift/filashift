@@ -20,6 +20,14 @@ STORES = [
     ("www.protopasta.com", "Proto-pasta", "Proto-pasta", False),
     ("kingroon.com", "Kingroon", "Kingroon", False),
     ("www.printedsolid.com", None, "Printed Solid", False),
+    ("store.sunlu.com", "Sunlu", "Sunlu", False),
+    ("siraya.tech", "Siraya Tech", "Siraya Tech", False),
+    ("www.sovol3d.com", "Sovol", "Sovol", False),
+    ("qidi3d.com", "Qidi", "Qidi", False),
+    ("us.anycubic3d.com", "Anycubic", "Anycubic", False),
+    ("www.flashforge.com", "Flashforge", "Flashforge", False),
+    ("us.snapmaker.com", "Snapmaker", "Snapmaker", False),
+    ("www.3dfuel.com", "3D-Fuel", "3D-Fuel", False),
 ]
 UA = "Mozilla/5.0 (compatible; FilaShiftPriceBot/1.0; +https://filashift.com/filament)"
 
@@ -139,6 +147,23 @@ def color_of(product, variant):
             return cand[-1]
     return ""
 
+def clean_colour(name):
+    """Split a store colour label into (display name, '#rrggbb' or '')."""
+    if not name:
+        return "", ""
+    hx = ""
+    m = re.search(r"(?:hex\s*code\s*)?#([0-9a-f]{6})\b", name, re.I) or re.search(r"\(\s*#?([0-9a-f]{6})\s*\)", name, re.I)
+    if m:
+        hx = "#" + m.group(1).lower()
+        name = name[:m.start()] + name[m.end():]
+    name = re.sub(r"hex\s*code", "", name, flags=re.I)
+    name = re.sub(r"\b\d+(?:\.\d+)?\s*kg\b\)?|\(\s*\)|\bkg\)", "", name, flags=re.I)
+    name = re.sub(r"\s{2,}", " ", name).strip(" -/,()")
+    if name.count("(") > name.count(")"):
+        name += ")"
+    name = re.sub(r"(\S)\(", r"\1 (", name)
+    return name, hx
+
 def collect(cache=None):
     rows, stats = [], {}
     for host, brand, retailer, allow_grams in STORES:
@@ -157,7 +182,7 @@ def collect(cache=None):
             head = f"{title} {ptype}"
             if EXCLUDE.search(head) and "filament" not in title.lower():
                 continue
-            if re.search(r"resin|printer\b|\bcombo\b|sample|mystery|lucky\s*bag|blind\s*box", title, re.I):
+            if re.search(r"resin|printer\b|\bcombo\b|sample|mystery|lucky\s*bag|blind\s*box|pellet|regrind|heater|connector|splicer|welder|dryer|dry\s*box", title, re.I):
                 continue
             is_fil = re.search(r"filament|spool|refill", f"{title} {ptype} {tags}", re.I)
             if not is_fil:
@@ -174,7 +199,10 @@ def collect(cache=None):
                     continue
                 if price <= 0:
                     continue
-                fam, label = material(f"{title} {vt}")
+                # the variant names the material first on multi-material listings (e.g. "Refill 1KG, PLA, PETG")
+                fam, label = material(vt)
+                if not fam:
+                    fam, label = material(f"{title} {vt}")
                 if not fam:
                     fam, label = material(f"{ptype} {tags}")
                 if not fam:
@@ -195,7 +223,8 @@ def collect(cache=None):
                     "r": retailer,
                     "t": title.strip(),
                     "v": vt if vt != "Default Title" else "",
-                    "c": color_of(p, v),
+                    "c": clean_colour(color_of(p, v))[0],
+                    "x": clean_colour(color_of(p, v))[1],
                     "f": fam, "m": label,
                     "d": diameter(f"{title} {vt}"),
                     "kg": kg, "n": spools or 1,
@@ -213,15 +242,18 @@ def collect(cache=None):
         key = (r["r"], r["t"], r["m"], r["d"], r["kg"], r["n"], r["p"])
         g = groups.get(key)
         if not g:
-            g = dict(r); g["c"] = []; g["ok"] = False; g["v"] = r["v"]
+            g = dict(r); g["c"] = []; g["x"] = []; g["ok"] = False; g["v"] = r["v"]
             groups[key] = g
         if r["c"] and r["c"] not in g["c"]:
-            g["c"].append(r["c"])
+            g["c"].append(r["c"]); g["x"].append(r["x"])
         if r["ok"] and not g["ok"]:
             g["ok"] = True; g["u"] = r["u"]
         if r["was"] and (not g["was"] or r["was"] > g["was"]):
             g["was"] = r["was"]
     out = list(groups.values())
+    for g in out:
+        if not any(g["x"]):
+            del g["x"]
     out.sort(key=lambda r: (not r["ok"], r["ppk"]))
     return out, stats
 

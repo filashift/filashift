@@ -8,26 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { cn } from "@/lib/utils";
+import { amazonSearch, colourHex, hasAnyAffiliate, loadShopConfig, loadShopData, readQuery, shopUrl, type Item, type ShopConfig, type ShopData } from "@/lib/shop";
 
-type Item = {
-  b: string; // brand
-  r: string; // retailer (store)
-  t: string; // product title
-  v: string; // variant label
-  c: string[]; // colours
-  f: string; // material family
-  m: string; // material label
-  d: number; // diameter
-  kg: number; // total kilograms
-  n: number; // spools in the pack
-  p: number; // price USD
-  ppk: number; // price per kg
-  was: number | null; // compare-at price
-  ok: boolean; // in stock
-  u: string; // product URL
-};
-type Data = { updated: string; stores: Record<string, number | string>; count: number; items: Item[] };
-type Config = { amazonTag?: string };
+type Data = ShopData;
+type Config = ShopConfig;
 
 const FAMILIES = ["All", "PLA", "PETG", "ABS", "ASA", "TPU", "Nylon", "PC", "Other"];
 const PAGE = 40;
@@ -49,36 +33,41 @@ export default function Filament() {
   const [data, setData] = useState<Data | null>(null);
   const [cfg, setCfg] = useState<Config>({});
   const [err, setErr] = useState("");
-  const [family, setFamily] = useState("All");
+  const q0 = useMemo(() => readQuery(), []);
+  const [family, setFamily] = useState(() => (FAMILIES.includes(q0.get("f") || "") ? q0.get("f")! : "All"));
   const [type, setType] = useState("all");
   const [brand, setBrand] = useState("all");
   const [dia, setDia] = useState("1.75");
   const [pack, setPack] = useState("any");
   const [sort, setSort] = useState("ppk");
   const [inStock, setInStock] = useState(true);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(() => q0.get("q") || "");
   const [shown, setShown] = useState(PAGE);
 
   useEffect(() => {
     document.title = "Filament prices per kg — FilaShift";
-    fetch("./data/filament.json", { cache: "no-cache" })
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
+    window.scrollTo(0, 0);
+    loadShopData()
       .then(setData)
       .catch(() => setErr("Prices could not be loaded. Please try again in a few minutes."));
-    fetch("./data/config.json", { cache: "no-cache" })
-      .then((r) => (r.ok ? r.json() : {}))
-      .then(setCfg)
-      .catch(() => {});
+    loadShopConfig().then(setCfg);
     return () => {
       document.title = "FilaShift — 3MF printer converter";
     };
   }, []);
 
   useEffect(() => setShown(PAGE), [family, type, brand, dia, pack, sort, inStock, q]);
-  useEffect(() => setType("all"), [family]);
+  const firstFamily = useMemo(() => ({ done: false }), []);
+  useEffect(() => {
+    // keep a type passed in the link (?t=) on first render, reset it when the family changes later
+    if (!firstFamily.done) {
+      firstFamily.done = true;
+      const t = q0.get("t");
+      if (t) setType(t);
+      return;
+    }
+    setType("all");
+  }, [family]);
 
   const items = data?.items ?? [];
   const types = useMemo(
@@ -113,10 +102,12 @@ export default function Filament() {
 
   const best = list[0];
   const amazonUrl = cfg.amazonTag
-    ? `https://www.amazon.com/s?k=${encodeURIComponent(
-        `${type !== "all" ? type : family !== "All" ? family : "PLA"} filament ${dia === "2.85" ? "2.85mm" : "1.75mm"}`,
-      )}&tag=${encodeURIComponent(cfg.amazonTag)}`
+    ? amazonSearch(
+        `${type !== "all" ? type : family !== "All" ? family : "PLA"} filament ${q && q.length < 30 ? q + " " : ""}${dia === "2.85" ? "2.85mm" : "1.75mm"}`,
+        cfg.amazonTag,
+      )
     : "";
+  const affiliates = hasAnyAffiliate(cfg);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -226,7 +217,7 @@ export default function Filament() {
 
         <ul className="space-y-2" data-testid="list-offers">
           {list.slice(0, shown).map((it, idx) => (
-            <Offer key={`${it.u}-${idx}`} it={it} rank={idx + 1} />
+            <Offer key={`${it.u}-${idx}`} it={it} rank={idx + 1} cfg={cfg} />
           ))}
         </ul>
 
@@ -257,6 +248,7 @@ export default function Filament() {
         <p>
           Prices, discounts and stock come from each store's public product listings and can change at any time. Shipping and tax are not
           included. Always confirm the price on the store's page before buying.
+          {affiliates && " Some store links are affiliate links: if you buy after clicking one, FilaShift may earn a commission at no extra cost to you."}
           {amazonUrl && " As an Amazon Associate, FilaShift earns from qualifying purchases."}
         </p>
       </SiteFooter>
@@ -264,7 +256,8 @@ export default function Filament() {
   );
 }
 
-function Offer({ it, rank }: { it: Item; rank: number }) {
+function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
+  const link = shopUrl(it.u, cfg);
   const off = it.was ? Math.round((1 - it.p / it.was) * 100) : 0;
   const colours = it.c.slice(0, 6);
   return (
@@ -293,6 +286,12 @@ function Offer({ it, rank }: { it: Item; rank: number }) {
           {size(it)}
           {colours.length > 0 && <> · {colours.join(", ")}{it.c.length > colours.length && ` +${it.c.length - colours.length} more`}</>}
         </div>
+        <div className="mt-1 flex gap-1" aria-hidden="true">
+          {it.c.slice(0, 12).map((c, i) => {
+            const h = colourHex(c, it.x?.[i]);
+            return h ? <span key={i} title={c} className="h-3 w-3 rounded-full border border-black/15 dark:border-white/20" style={{ background: h }} /> : null;
+          })}
+        </div>
       </div>
       <div className="text-right">
         <div className="font-mono text-base font-semibold tabular-nums">{usd(it.ppk)}<span className="text-xs font-normal text-muted-foreground">/kg</span></div>
@@ -302,7 +301,7 @@ function Offer({ it, rank }: { it: Item; rank: number }) {
         </div>
       </div>
       <Button asChild size="sm" variant={it.ok ? "default" : "outline"} className="col-span-2 sm:col-span-1">
-        <a href={it.u} target="_blank" rel="noopener noreferrer" data-testid={`link-offer-${rank}`}>
+        <a href={link.href} target="_blank" rel={link.sponsored ? "sponsored noopener noreferrer" : "noopener noreferrer"} data-testid={`link-offer-${rank}`}>
           <Store className="mr-1.5 h-3.5 w-3.5" /> {it.r}
         </a>
       </Button>
