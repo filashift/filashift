@@ -12,3 +12,21 @@ if [[ "$marker" != "$GITHUB_SHA" ]]; then
   exit 1
 fi
 printf 'Verified production commit %s\n' "$GITHUB_SHA"
+archive=$(mktemp)
+trap 'rm -f "$archive"' EXIT
+url="/downloads/filashift-${GITHUB_SHA}.tar.gz"
+page=$(curl -fsSL --max-time 30 "${BASE%/}/source")
+[[ "$page" == *"href=\"$url\""* ]]
+curl -fsSL --retry 2 --max-time 90 "${BASE%/}$url" -o "$archive"
+python3 - "$archive" "$GITHUB_SHA" <<'PY'
+import subprocess, sys, tarfile
+archive, sha = sys.argv[1:]
+expected = set(subprocess.check_output(["git","ls-tree","-r","--name-only","-z",sha]).decode().rstrip("\0").split("\0"))
+with tarfile.open(archive, "r:gz") as tar:
+    prefix = f"filashift-{sha}/"
+    if tar.pax_headers.get("comment") != sha: sys.exit("Wrong source revision")
+    files = [m.name for m in tar if not m.isdir()]
+    if any(not f.startswith(prefix) for f in files) or {f[len(prefix):] for f in files} != expected:
+        sys.exit("Source archive does not match the release file list")
+print("Verified source offer, archive revision and release file list")
+PY

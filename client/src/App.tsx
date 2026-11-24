@@ -15,6 +15,7 @@ import Home from "@/pages/home";
 const Filament=lazy(()=>import("@/pages/filament"));
 const Faq=lazy(()=>import("@/pages/faq"));
 const About=lazy(()=>import("@/pages/info").then(m=>({default:m.About})));
+const Source=lazy(()=>import("@/pages/info").then(m=>({default:m.Source})));
 const Contact=lazy(()=>import("@/pages/info").then(m=>({default:m.Contact})));
 const Privacy=lazy(()=>import("@/pages/info").then(m=>({default:m.Privacy})));
 const Terms=lazy(()=>import("@/pages/info").then(m=>({default:m.Terms})));
@@ -45,6 +46,7 @@ function AppRouter() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/about" component={About} />
+      <Route path="/source" component={Source} />
       <Route path="/contact" component={Contact} />
       <Route path="/creators" component={Creators} />
       <Route path="/guides" component={GuidesIndex} />

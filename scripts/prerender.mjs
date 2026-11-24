@@ -10,7 +10,7 @@ import { chromium } from "playwright-core";
 const ROOT = path.resolve("dist/public");
 const SITE = "https://filashift.com";
 const guides = fs.readFileSync("client/src/lib/guides.ts", "utf8").match(/slug: "([a-z0-9-]+)"/g).map((s) => s.slice(7, -1));
-const ROUTES = ["/", "/filament", "/faq", "/guides", ...guides.map((g) => `/guides/${g}`), "/about", "/contact", "/creators", "/privacy", "/terms", "/404"];
+const ROUTES = ["/", "/filament", "/faq", "/guides", ...guides.map((g) => `/guides/${g}`), "/about", "/contact", "/creators", "/privacy", "/terms", "/source", "/404"];
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".woff2": "font/woff2", ".webmanifest": "application/manifest+json" };
 const shell = fs.readFileSync(path.join(ROOT, "index.html"), "utf8"); // pristine SPA shell, read before anything is overwritten

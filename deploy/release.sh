@@ -2,9 +2,9 @@
 # Build and release FilaShift to the Droplet with an atomic swap and instant rollback.
 # Usage: ./deploy/release.sh            (build + deploy)
 #        ./deploy/release.sh --rollback (swap back to the previous release)
-# Env: SSH_KEY (default ~/.ssh/filashift_ops), HOST (default root@167.99.104.154)
+# Env: SSH_KEY (default ~/.ssh/filashift_ops), HOST (defaults to the production domain)
 set -euo pipefail
-HOST="${HOST:-root@167.99.104.154}"; KEY="${SSH_KEY:-$HOME/.ssh/filashift_ops}"
+HOST="${HOST:-root@filashift.com}"; KEY="${SSH_KEY:-$HOME/.ssh/filashift_ops}"
 SSH="ssh -i $KEY -o StrictHostKeyChecking=accept-new"
 cd "$(dirname "$0")/.."
 if [[ "${1:-}" == "--rollback" ]]; then
@@ -15,7 +15,10 @@ fi
 REV=$(git rev-parse --verify HEAD)
 python3 scripts/release-attribution.py verify "$REV"
 npx tsc --noEmit -p .
-npm run build
+VITE_RELEASE_SHA="$REV" npm run build
+mkdir -p dist/public/downloads
+git archive --format=tar.gz --prefix="filashift-$REV/" -o "dist/public/downloads/filashift-$REV.tar.gz" "$REV"
+[[ "$(gzip -dc "dist/public/downloads/filashift-$REV.tar.gz" | { git get-tar-commit-id; cat >/dev/null; })" == "$REV" ]]
 node scripts/prerender.mjs
 # Always validate this candidate, never a BASE override pointing at the old site.
 BASE= node scripts/check-converter-width.mjs
