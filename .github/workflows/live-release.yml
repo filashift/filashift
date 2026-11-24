@@ -33,6 +33,8 @@ jobs:
       - name: Mobile converter layout (English and Spanish)
         id: layout
         run: node scripts/check-converter-width.mjs
+      - name: Header order and theme across languages
+        run: node scripts/check-header-theme.mjs
       - name: English mobile buying guide
         id: english
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}

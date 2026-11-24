@@ -69,7 +69,7 @@ export function privacySections(lang: Lang): Sec[] {
             So FilaShift can load quickly and work offline, your browser keeps a copy of the app's own files (code, profiles, icons and price lists)
             in its built-in app cache, using a "service worker". This cache holds only FilaShift's files, never your projects, and nothing about you.
             It contains no identifier and isn't used to recognize you. You can remove it at any time by clearing site data for filashift.com in your
-            browser settings, or by uninstalling the app if you installed it. Your language choice is remembered in your browser's local storage and
+            browser settings, or by uninstalling the app if you installed it. Your language and theme choices are remembered in your browser's local storage and
             never sent to us.
           </p>
         </>
@@ -441,7 +441,7 @@ function PRIVACY_ES(): Sec[] {
             perfiles, iconos y listas de precios) en su caché de aplicaciones integrada, mediante un "service worker". Esta caché contiene solo los
             archivos de FilaShift, nunca tus proyectos ni nada sobre ti. No contiene ningún identificador y no se usa para reconocerte. Puedes
             eliminarla en cualquier momento borrando los datos del sitio filashift.com en la configuración del navegador, o desinstalando la
-            aplicación si la instalaste. Tu elección de idioma se recuerda en el almacenamiento local del navegador y nunca se nos envía.
+            aplicación si la instalaste. Tus preferencias de idioma y de tema se guardan en el almacenamiento local del navegador y nunca se nos envían.
           </p>
         </>
       ),

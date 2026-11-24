@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { setLang, useLang } from "@/lib/i18n";
 import { Assistant } from "./assistant-launcher";
 import { MAJOR_RELEASE } from "@/lib/release";
+import { chooseDark } from "@/lib/theme";
 
 // public source repository (AGPL-3.0). VITE_SOURCE_URL overrides it at build time.
 export const SOURCE_URL: string = (import.meta as any).env?.VITE_SOURCE_URL || "https://github.com/filashift/filashift";
@@ -59,10 +60,10 @@ export function useGoSection() {
 
 const NAV: { label: string; href?: string; section?: string }[] = [
   { href: "/", label: "Converter" },
-  { href: "/filament", label: "Filament prices" },
-  { href: "/guides", label: "Guides" },
   { section: "how", label: "How it works" },
   { section: "printers", label: "Printers" },
+  { href: "/filament", label: "Filament prices" },
+  { href: "/guides", label: "Guides" },
   { href: "/faq", label: "FAQ" },
 ];
 
@@ -70,9 +71,6 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const [loc] = useLocation();
   const goSection = useGoSection();
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 sm:px-6">
@@ -116,7 +114,7 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
           <Assistant />
           <InstallButton />
           <LangToggle />
-          <Button size="icon" variant="ghost" onClick={() => setDark((d) => !d)} aria-label="Toggle dark mode" data-testid="button-theme">
+          <Button size="icon" variant="ghost" onClick={() => { chooseDark(!dark); setDark(!dark); }} aria-label="Toggle dark mode" aria-pressed={dark} data-testid="button-theme">
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
         </div>
