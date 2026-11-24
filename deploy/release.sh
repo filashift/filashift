@@ -26,6 +26,7 @@ git archive --format=tar.gz --prefix="filashift-$REV/" -o "dist/public/downloads
 node scripts/prerender.mjs
 # Always validate this candidate, never a BASE override pointing at the old site.
 BASE= node scripts/check-converter-width.mjs
+BASE= node scripts/check-evidence.mjs
 BASE= node scripts/check-header-theme.mjs
 BASE= node scripts/check-csp.mjs
 BASE= npm run test:release:mobile-en:shortcuts

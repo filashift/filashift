@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PrinterPicker, slotLabel, TestedNote } from "@/components/printer-picker";
 import { FileCard, type Job } from "@/components/file-card";
+import { SampleProject } from "@/components/sample-project";
 import { ProjectWorker } from "@/lib/project-worker";
 import { defaultMapping, planPauses } from "@/engine/mapping";
 import type { ConvertOptions, PrinterIndexEntry, PrinterProfile } from "@/engine/types";
@@ -297,6 +298,7 @@ export default function Home() {
               />
             </label>
 
+            <SampleProject />
             {loadErr && (
               <p className="text-sm text-destructive" data-testid="text-load-error">
                 {loadErr}
@@ -385,7 +387,7 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
-                {target && <TestedNote id={target.id} slicer={target.slicer} output={usePrusa ? "PrusaSlicer" : target.slicer} />}
+                {target && <TestedNote id={target.id} model={target.model} slicer={target.slicer} output={usePrusa ? "PrusaSlicer" : target.slicer} />}
               </div>
 
               {nozzles.length > 1 && (

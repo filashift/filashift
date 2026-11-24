@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-24",
+  "source": "FilaShift two-color FS nameplate, PrusaSlicer-format 3MF",
+  "sourceSHA256": "0cb710127ae5e4541ee05ae3357788b661d1dc3fedd99a9759472c1c962d78ab",
+  "method": "Converted with the browser sample panel, downloaded, then sliced with the destination slicer CLI. Version read from output G-code.",
+  "physicallyPrinted": false,
+  "results": [
+    {"id":"flashforge-creator-5-pro","model":"Flashforge Creator 5 Pro","slicer":"OrcaSlicer","version":"2.5.2","returnCode":0,"gcode":"plate_1.gcode","usedSlots":[2,1]},
+    {"id":"bambu-lab-x1-carbon","model":"Bambu Lab X1 Carbon","slicer":"Bambu Studio","version":"02.09.01.70","returnCode":0,"gcode":"plate_1.gcode","usedSlots":[1,2]},
+    {"id":"snapmaker-u1","model":"Snapmaker U1","slicer":"OrcaSlicer","version":"2.5.2","returnCode":0,"gcode":"plate_1.gcode","usedSlots":[2,1]}
+  ]
+}

@@ -129,7 +129,7 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
     <footer className="border-t border-border bg-card/60">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
         <details className="mb-4 text-sm" translate="no"><summary className="w-fit cursor-pointer font-medium text-primary" data-testid="major-release">FilaShift {MAJOR_RELEASE} · {es?"Novedades":"Release notes"}</summary>
-          <p className="mt-2 max-w-prose text-muted-foreground">{es?"Conversión en segundo plano con cancelación, comprobación del tamaño al descomprimir y vista previa por placa. Los archivos siguen en tu dispositivo.":"Conversion runs in the background and can be cancelled. Archives are checked as they unpack, and a preview explains what changes on each plate. Files stay on your device."}</p></details>
+          <p className="mt-2 max-w-prose text-muted-foreground">{es?"Convierte una placa FS de dos colores, consulta las pruebas del laminador de destino y compara las dimensiones de las bobinas para el AMS original o la Snapmaker U1. Tus proyectos siguen en tu dispositivo.":"Try the two-color FS nameplate, inspect the test results for your destination slicer, and compare reel dimensions for the original AMS or Snapmaker U1. Your projects stay on your device."}</p></details>
         <div className="mb-5 flex flex-wrap items-center gap-4">
           <JtsEmblem className="h-9" />
           <div className="text-sm">

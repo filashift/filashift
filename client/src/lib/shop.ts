@@ -1,4 +1,5 @@
 import { dataUrl } from "@/lib/seo";
+import { atomicReel } from "./reel-fit";
 // Shared filament price data, affiliate links and colour matching.
 // Data lives at /data on the server (see OPERATIONS.md); nothing here contacts a third party.
 
@@ -151,7 +152,7 @@ export function familyOf(type: string): string {
 }
 
 export type Match = { item: Item; colour: string; hex: string; d: number };
-export const oneSpool = (it: Item) => it.form === "spool" && it.n === 1 && it.kg > 0 && it.kg <= 1.25;
+export const oneSpool = (it: Item) => (it.form === "spool" || !!atomicReel(it)) && it.n === 1 && it.kg > 0 && it.kg <= 1.25;
 export const closeColour = (it: Item, hex: string) => it.c.some((c,i) => {
   const h = colourHex(c,it.x?.[i]); return h !== null && dist(hex,h) < 120;
 });

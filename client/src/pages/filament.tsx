@@ -1,6 +1,7 @@
 import { usePageMeta } from "@/lib/seo";
 import { buyingSlug } from "@/lib/filament-buying-guide";
 import { useLang } from "@/lib/i18n";
+import { atomicReel, limits, reelSpecs, reelStatus, type Feeder } from "@/lib/reel-fit";
 import { Link } from "wouter";
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Search, Store, Tag } from "lucide-react";
@@ -42,6 +43,7 @@ export default function Filament() {
   const [family, setFamily] = useState(() => (FAMILIES.includes(q0.get("f") || "") ? q0.get("f")! : "All"));
   const [type, setType] = useState(() => q0.get("t")?.slice(0,40) || "all");
   const [brand, setBrand] = useState("all");
+  const [feeder,setFeeder]=useState<Feeder>("none");
   const [dia, setDia] = useState(() => ["2.85","any"].includes(q0.get("d") || "") ? q0.get("d")! : "1.75");
   const [pack, setPack] = useState(() => ["single","multi"].includes(q0.get("pack") || "") ? q0.get("pack")! : "any");
   const [sort, setSort] = useState(pack === "single" ? "price" : "ppk");
@@ -134,6 +136,14 @@ export default function Filament() {
           {color && <Button size="sm" variant="outline" onClick={()=>setColor("")} data-testid="clear-project-colour"><span style={{background:color}} className="mr-2 h-3 w-3 rounded-full border"/><span>Approximate colour:</span>&nbsp;{nearestName(color)} · <span>Clear</span></Button>}
         </div>
         {pack==="single" && <p className="mb-4 text-sm text-muted-foreground">One ready-to-use spool, up to 1.25 kg. Refills, multipacks and unconfirmed packaging are excluded. Prices exclude shipping and tax.</p>}
+        <div translate="no" className="mb-4 rounded-lg border px-3 py-2 text-sm">
+          <label className="flex flex-wrap items-center gap-2 font-medium">{es?"Comprobar tamaño de bobina":"Check reel size"}
+            <select className="rounded border bg-background p-2" value={feeder} data-testid="feeder" onChange={e=>setFeeder(e.target.value as Feeder)}>
+              <option value="none">{es?"Elegir alimentador":"Choose a feeder"}</option>
+              <option value="ams">{es?"AMS original de Bambu Lab":"Original Bambu Lab AMS"}</option><option value="u1">Snapmaker U1</option>
+            </select></label>
+          {feeder!=="none"&&<p className="mt-2 text-xs">{feeder==="ams"?(es?"Ancho: 50–68 mm. Diámetro exterior: 197–202 mm.":"Width: 50–68 mm. Outer diameter: 197–202 mm."):(es?"Ancho máximo: 70 mm. Orificio: 52–60 mm. Hasta 1 kg.":"Max width: 70 mm. Center hole: 52–60 mm. Up to 1 kg.")}{" "}<a className="underline" href={limits[feeder]}>{es?"Límites del fabricante":"Manufacturer’s limits"}</a>. {es?"Solo dimensiones; no garantiza la alimentación del material.":"Dimensions only; not a guarantee that the material will feed."}</p>}
+        </div>
         <div className="mb-4 flex flex-wrap gap-1.5" role="tablist" aria-label="Material">
           {FAMILIES.map((f) => (
             <button
@@ -224,7 +234,7 @@ export default function Filament() {
 
         <ul className="space-y-2" data-testid="list-offers">
           {list.slice(0, shown).map((it, idx) => (
-            <Offer key={`${it.u}-${idx}`} it={it} rank={idx + 1} cfg={cfg} />
+            <Offer key={`${it.u}-${idx}`} it={it} rank={idx + 1} cfg={cfg} feeder={feeder} es={es} />
           ))}
         </ul>
 
@@ -264,7 +274,9 @@ export default function Filament() {
   );
 }
 
-function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
+function Offer({ it, rank, cfg, feeder, es }: { it: Item; rank: number; cfg: Config; feeder: Feeder; es:boolean }) {
+  const status=feeder==="none"?null:reelStatus(it,feeder), reel=status==="within"||status==="outside"?atomicReel(it):null;
+  const labels={within:es?"Dentro de los límites":"Within size limits",outside:es?"Fuera de los límites":"Outside size limits",unknown:es?"Dimensiones sin verificar":"Reel dimensions unverified",refill:es?"Recarga: comprueba tu bobina reutilizable":"Refill: check your reusable reel"};
   const link = shopUrl(it.u, cfg, "finder");
   const code = storeCode(it.u, cfg);
   const off = it.was ? Math.round((1 - it.p / it.was) * 100) : 0;
@@ -302,6 +314,10 @@ function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
             return h ? <span key={i} title={c} className="h-3 w-3 rounded-full border border-black/15 dark:border-white/20" style={{ background: h }} /> : null;
           })}
         </div>
+        {status&&<div translate="no" data-testid="reel-fit" data-status={status} className="mt-2 text-xs">
+          <span className="font-semibold">{feeder==="ams"?"AMS":"U1"}: {labels[status]}</span>
+          {reel&&<div>{es?"Ancho":"Width"} {reel.width} mm · Ø {reel.outer} mm · {es?"orificio":"hole"} {reel.bore} mm · <a href={reelSpecs} className="text-primary underline">{es?"Medidas de Atomic":"Atomic reel specs"}</a></div>}
+        </div>}
         {code && (
           <div className="mt-1.5 text-xs" data-testid={`code-offer-${rank}`}>
             <span className="text-muted-foreground">Affiliate discount code at checkout:</span>{" "}

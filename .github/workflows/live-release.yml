@@ -35,6 +35,8 @@ jobs:
         run: node scripts/check-converter-width.mjs
       - name: Header order and theme across languages
         run: node scripts/check-header-theme.mjs
+      - name: Demo downloads, feeder labels and slicer evidence
+        run: node scripts/check-evidence.mjs
       - name: English mobile buying guide
         id: english
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
