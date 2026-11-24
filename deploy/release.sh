@@ -13,10 +13,12 @@ if [[ "${1:-}" == "--rollback" ]]; then
 fi
 npx tsc --noEmit -p .
 npm run build
+node scripts/prerender.mjs
+rm -rf dist/public/data
 rm -f /tmp/filashift-site.zip; (cd dist/public && zip -qr /tmp/filashift-site.zip .)
 scp -i "$KEY" -q /tmp/filashift-site.zip "$HOST":/tmp/site.zip
 $SSH "$HOST" 'set -e; cd /var/www; rm -rf plateshift.new; mkdir plateshift.new; unzip -q /tmp/site.zip -d plateshift.new; chown -R caddy:caddy plateshift.new; rm -rf plateshift.old; mv plateshift plateshift.old; mv plateshift.new plateshift; echo "release $(git -C /srv/git/filashift.git rev-parse --short master 2>/dev/null) $(date -u +%FT%TZ)" >> /var/log/filashift-releases.log'
-for u in https://filashift.com/ https://filashift.com/profiles/index.json https://filashift.com/fonts/fonts.css; do
+for u in https://filashift.com/ https://filashift.com/guides/3mf-to-stl https://filashift.com/sitemap.xml https://filashift.com/profiles/index.json https://filashift.com/fonts/fonts.css; do
   c=$(curl -s -o /dev/null -w '%{http_code}' "$u"); echo "$u $c"; [[ $c == 200 ]] || { echo "CHECK FAILED - run --rollback"; exit 1; }
 done
 echo "Released."

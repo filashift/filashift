@@ -37,17 +37,29 @@
 		header @assets Cache-Control "public, max-age=31536000, immutable"
 		@profiles path /profiles/*
 		header @profiles Cache-Control "public, max-age=86400"
-		# app pages such as /filament are served by index.html
-		@spa {
+		# pages are prerendered to /<route>/index.html; anything else gets the 404 page with a real 404 status
+		@page {
 			not file
-			not path *.*
+			file {path}/index.html
 		}
-		header @spa Cache-Control "no-cache"
-		header /index.html Cache-Control "no-cache"
+		@html path *.html /
+		header @html Cache-Control "no-cache"
+		header @page Cache-Control "no-cache"
 		header /sw.js Cache-Control "no-cache"
+		header /sitemap.xml Cache-Control "public, max-age=3600"
 		header /manifest.webmanifest Content-Type "application/manifest+json"
-		header / Cache-Control "no-cache"
-		rewrite @spa /index.html
+		rewrite @page {path}/index.html
+		@missing {
+			not file
+			not file {path}/index.html
+		}
+		handle @missing {
+			header Cache-Control "no-cache"
+			rewrite * /404.html
+			file_server {
+				status 404
+			}
+		}
 		file_server
 	}
 }

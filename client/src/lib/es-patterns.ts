@@ -1,0 +1,68 @@
+// Spanish patterns for UI strings that contain numbers or names. English is matched after whitespace is collapsed.
+import { addPatterns } from "./i18n";
+
+const COL: Record<string, string> = {
+  army: "verde militar", ash: "ceniza", beige: "beige", black: "negro", blue: "azul", bone: "hueso", brass: "latón", bronze: "bronce",
+  brown: "marrón", burgundy: "burdeos", charcoal: "carbón", chocolate: "chocolate", cobalt: "cobalto", coffee: "café", copper: "cobre",
+  coral: "coral", cream: "crema", cyan: "cian", forest: "verde bosque", fuchsia: "fucsia", gold: "dorado", graphite: "grafito", gray: "gris",
+  grey: "gris", green: "verde", indigo: "índigo", ivory: "marfil", khaki: "caqui", lavender: "lavanda", lilac: "lila", lime: "lima",
+  magenta: "magenta", maroon: "granate", matcha: "matcha", mint: "menta", natural: "natural", navy: "azul marino", olive: "oliva",
+  orange: "naranja", peach: "melocotón", pink: "rosa", purple: "morado", red: "rojo", sage: "salvia", salmon: "salmón", silver: "plateado",
+  tan: "tostado", teal: "verde azulado", turquoise: "turquesa", violet: "violeta", white: "blanco", wine: "vino", wood: "madera",
+  yellow: "amarillo",
+};
+export function colourEs(w: string): string {
+  const m = w.match(/^(dark|light) (.+)$/);
+  if (m) return `${COL[m[2]] || m[2]} ${m[1] === "dark" ? "oscuro" : "claro"}`;
+  return COL[w] || w;
+}
+const s = (n: string, one: string, many: string) => (n === "1" ? one : many);
+
+addPatterns([
+  [/^(\d[\d,]*) printers$/, "$1 impresoras"],
+  [/^(\d+) brands$/, "$1 marcas"],
+  [/^(\d[\d,]*) printers from (\d+) brands$/, "$1 impresoras de $2 marcas"],
+  [/^Search (\d+) printers…$/, "Buscar entre $1 impresoras…"],
+  [/^(\d+) toolheads?$/, (_m, n) => `${n} ${s(n, "cabezal", "cabezales")}`],
+  [/^(\d+) slots?( · .+)?$/, (_m, n, rest = "") => `${n} ${s(n, "ranura", "ranuras")}${rest}`],
+  [/^Default: (\d+) (toolheads?|slots?)(.*?)\. Change it if you added an AMS, toolhead or multi-material unit\.$/, (_m, n, u, rest) =>
+    `Por defecto: ${n} ${u.startsWith("toolhead") ? s(n, "cabezal", "cabezales") : s(n, "ranura", "ranuras")}${rest}. Cámbialo si añadiste un AMS, un cabezal o una unidad multimaterial.`],
+  [/^Slicer-tested: sample projects converted for this printer sliced without errors in (.+) \((\w+) (\d{4})\)\.$/, (_m, sl, mo, y) =>
+    `Probada en laminador: proyectos de prueba convertidos para esta impresora se laminaron sin errores en ${sl} (${({ Jan: "ene", Feb: "feb", Mar: "mar", Apr: "abr", May: "may", Jun: "jun", Jul: "jul", Aug: "ago", Sep: "sep", Oct: "oct", Nov: "nov", Dec: "dic" } as Record<string, string>)[mo] || mo} ${y}).`],
+  [/^Slicer-tested: (.+)$/, "Probada en laminador: $1"],
+  [/^(\d+) files? added$/, (_m, n) => `${n} ${s(n, "archivo añadido", "archivos añadidos")}`],
+  [/^(\d+) ready to download$/, (_m, n) => `${n} ${s(n, "listo para descargar", "listos para descargar")}`],
+  [/^(\d+) files · (\d+) converted$/, "$1 archivos · $2 convertidos"],
+  [/^Convert all \((\d+)\)$/, "Convertir todos ($1)"],
+  [/^Convert for (.+)$/, (_m, p) => `Convertir para ${p === "printer" ? "la impresora" : p}`],
+  [/^Ready for (.+)$/, "Listo para $1"],
+  [/^(\d+) plates? · (\d+) objects?$/, (_m, p, o) => `${p} ${s(p, "placa", "placas")} · ${o} ${s(o, "objeto", "objetos")}`],
+  [/^(\d+) of (\d+) used( \(assumed\))?$/, (_m, a, b, x) => `${a} de ${b} en uso${x ? " (supuesto)" : ""}`],
+  [/^This project uses (\d+) colours on (\d+) slots?\. Some colours print on the same layers( or are painted)?, so pauses cannot replace the missing slots; the closest colours share a slot instead\.$/, (_m, c, n, p) =>
+    `Este proyecto usa ${c} colores con ${n} ${s(n, "ranura", "ranuras")}. Algunos colores se imprimen en las mismas capas${p ? " o están pintados" : ""}, así que las pausas no pueden sustituir las ranuras que faltan; los colores más parecidos comparten ranura.`],
+  [/^Print all (\d+) colours with filament-change pauses$/, "Imprimir los $1 colores con pausas de cambio de filamento"],
+  [/^The colours never share a layer, so the printer can pause (\d+) times? for you to swap filament instead of merging colours(.*)$/, (_m, n, rest) =>
+    `Los colores nunca comparten capa, así que la impresora puede pausar ${n} ${s(n, "vez", "veces")} para que cambies el filamento en lugar de unir colores${rest.replace(/slot (\d+) → (.+?) from ([\d.]+) mm/g, "ranura $1 → $2 desde $3 mm")}`],
+  [/^· (\d+) kept · (\d+) adapted · (\d+) speed changes$/, "· $1 conservados · $2 adaptados · $3 cambios de velocidad"],
+  [/^· (\d+) colours?$/, (_m, n) => `· ${n} ${s(n, "color", "colores")}`],
+  [/^· close to (.+)$/, (_m, w) => `· parecido a ${colourEs(w)}`],
+  [/^Compare all (.+) in (.+)$/, (_m, t, w) => `Comparar todo el ${t === "Other" ? "filamento" : t} en ${colourEs(w)}`],
+  [/^(\d[\d,]*) offers from (\d+) stores · updated (.+)$/, (_m, a, b, t) => `${a} ofertas de ${b} tiendas · actualizado ${agoEs(t)}`],
+  [/^(\d[\d,]*) results?$/, (_m, n) => `${n} ${s(n, "resultado", "resultados")}`],
+  [/^Show more \((.+) left\)$/, "Ver más (quedan $1)"],
+  [/^(\d+)% off$/, "$1 % de descuento"],
+  [/^Last updated (.+)\.$/, "Última actualización: $1."],
+  [/^Could not read this file: (.+)$/, "No se pudo leer este archivo: $1"],
+  [/^Conversion failed: (.+)$/, "La conversión falló: $1"],
+  [/^(.+) You can also email support@jacksoncgc\.com\.$/, "$1 También puedes escribir a support@jacksoncgc.com."],
+]);
+
+function agoEs(t: string): string {
+  let m = t.match(/^(\d+) min ago$/);
+  if (m) return `hace ${m[1]} min`;
+  m = t.match(/^(\d+) hours? ago$/);
+  if (m) return `hace ${m[1]} ${m[1] === "1" ? "hora" : "horas"}`;
+  m = t.match(/^(\d+) days ago$/);
+  if (m) return `hace ${m[1]} días`;
+  return t;
+}

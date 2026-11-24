@@ -1,3 +1,4 @@
+import { usePageMeta } from "@/lib/seo";
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, Search, Store, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -45,16 +46,13 @@ export default function Filament() {
   const [shown, setShown] = useState(PAGE);
 
   useEffect(() => {
-    document.title = "Filament prices per kg — FilaShift";
     window.scrollTo(0, 0);
     loadShopData()
       .then(setData)
       .catch(() => setErr("Prices could not be loaded. Please try again in a few minutes."));
     loadShopConfig().then(setCfg);
-    return () => {
-      document.title = "FilaShift — 3MF printer converter";
-    };
   }, []);
+  usePageMeta("Filament prices per kg — compare brand stores | FilaShift", "Compare PLA, PETG, ABS, TPU and other 3D printer filament prices per kilogram across Bambu Lab, Elegoo, Sunlu, Overture, Polymaker and more, updated four times a day.");
 
   useEffect(() => setShown(PAGE), [family, type, brand, dia, pack, sort, inStock, q]);
   const firstFamily = useMemo(() => ({ done: false }), []);
@@ -122,7 +120,13 @@ export default function Filament() {
           </p>
           {data && (
             <p className="mt-2 text-xs text-muted-foreground" data-testid="text-updated">
-              {data.count.toLocaleString()} offers from {storeCount} stores · updated {ago(data.updated)}
+              {`${data.count.toLocaleString()} offers from ${storeCount} stores · updated ${ago(data.updated)}`}
+            </p>
+          )}
+          {(affiliates || amazonUrl) && (
+            <p className="mt-2 text-xs text-muted-foreground" data-testid="text-affiliate-disclosure">
+              Some links and codes on this page are affiliate links. FilaShift may earn a commission at no extra cost to you; it never changes the
+              price order.
             </p>
           )}
         </section>
@@ -197,7 +201,7 @@ export default function Filament() {
           </div>
           <div className="text-sm text-muted-foreground" data-testid="text-count">
             {data ? `${list.length.toLocaleString()} result${list.length === 1 ? "" : "s"}` : err ? "" : "Loading prices…"}
-            {best && <> · from <span className="font-medium text-foreground">{usd(best.ppk)}/kg</span></>}
+            {best && <> {"· from"} <span className="font-medium text-foreground" translate="no">{usd(best.ppk)}/kg</span></>}
           </div>
         </div>
 
@@ -224,7 +228,7 @@ export default function Filament() {
         {list.length > shown && (
           <div className="mt-4 flex justify-center">
             <Button variant="outline" onClick={() => setShown((s) => s + PAGE)} data-testid="button-more">
-              Show more ({(list.length - shown).toLocaleString()} left)
+              {`Show more (${(list.length - shown).toLocaleString()} left)`}
             </Button>
           </div>
         )}
@@ -237,7 +241,8 @@ export default function Filament() {
             </div>
             <Button asChild variant="outline">
               <a href={amazonUrl} target="_blank" rel="sponsored noopener noreferrer" data-testid="link-amazon">
-                Search Amazon <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                Search Amazon <span className="ml-1 text-xs font-normal opacity-75">(affiliate link)</span>
+                <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
               </a>
             </Button>
           </div>
@@ -277,17 +282,17 @@ function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
           {it.d !== 1.75 && <Badge variant="outline">{it.d} mm</Badge>}
           {off >= 5 && (
             <Badge className="bg-primary/15 text-primary hover:bg-primary/15">
-              <Tag className="mr-1 h-3 w-3" /> {off}% off
+              <Tag className="mr-1 h-3 w-3" /> {`${off}% off`}
             </Badge>
           )}
           {!it.ok && <Badge variant="outline">Out of stock</Badge>}
         </div>
-        <div className="mt-1 truncate text-sm text-foreground/90" title={it.t}>{it.t}</div>
-        <div className="mt-0.5 truncate text-xs text-muted-foreground">
+        <div className="mt-1 truncate text-sm text-foreground/90" title={it.t} translate="no">{it.t}</div>
+        <div className="mt-0.5 truncate text-xs text-muted-foreground" translate="no">
           {size(it)}
-          {colours.length > 0 && <> · {colours.join(", ")}{it.c.length > colours.length && ` +${it.c.length - colours.length} more`}</>}
+          {colours.length > 0 && <> · {colours.join(", ")}{it.c.length > colours.length && ` +${it.c.length - colours.length}`}</>}
         </div>
-        <div className="mt-1 flex gap-1" aria-hidden="true">
+        <div className="mt-1 flex gap-1" aria-hidden="true" translate="no">
           {it.c.slice(0, 12).map((c, i) => {
             const h = colourHex(c, it.x?.[i]);
             return h ? <span key={i} title={c} className="h-3 w-3 rounded-full border border-black/15 dark:border-white/20" style={{ background: h }} /> : null;
@@ -295,7 +300,7 @@ function Offer({ it, rank, cfg }: { it: Item; rank: number; cfg: Config }) {
         </div>
         {code && (
           <div className="mt-1.5 text-xs" data-testid={`code-offer-${rank}`}>
-            <span className="text-muted-foreground">Discount code at checkout:</span>{" "}
+            <span className="text-muted-foreground">Affiliate discount code at checkout:</span>{" "}
             <span className="select-all rounded border border-dashed border-primary/50 bg-primary/5 px-1.5 py-0.5 font-mono font-medium text-primary">{code}</span>
           </div>
         )}

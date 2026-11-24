@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { Download, Lock, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { setLang, useLang } from "@/lib/i18n";
 
 // public source repository (AGPL-3.0). Set VITE_SOURCE_URL at build time; the link is hidden until then.
 export const SOURCE_URL: string = (import.meta as any).env?.VITE_SOURCE_URL || "";
@@ -57,6 +58,7 @@ export function useGoSection() {
 const NAV: { label: string; href?: string; section?: string }[] = [
   { href: "/", label: "Converter" },
   { href: "/filament", label: "Filament prices" },
+  { href: "/guides", label: "Guides" },
   { section: "how", label: "How it works" },
   { section: "printers", label: "Printers" },
   { section: "faq", label: "FAQ" },
@@ -110,6 +112,7 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
             </>
           )}
           <InstallButton />
+          <LangToggle />
           <Button size="icon" variant="ghost" onClick={() => setDark((d) => !d)} aria-label="Toggle dark mode" data-testid="button-theme">
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
@@ -134,6 +137,8 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
           <nav className="flex flex-wrap gap-x-4 gap-y-1 pb-2 text-sm" aria-label="Site">
             {[
               ["/about", "About"],
+              ["/guides", "Guides"],
+              ["/creators", "Creators"],
               ["/privacy", "Privacy"],
               ["/terms", "Terms"],
               ["/contact", "Contact"],
@@ -147,6 +152,10 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
             </button>
           </nav>
           {children}
+          <p>
+            Some store links and codes are affiliate links: FilaShift may earn a commission at no extra cost to you. As an Amazon Associate,
+            FilaShift earns from qualifying purchases.
+          </p>
           <p>
             FilaShift is an independent tool. Bambu Lab, Bambu Studio, MakerWorld, Snapmaker, Flashforge, Creality, Prusa, PrusaSlicer, Printables,
             OrcaSlicer, Elegoo, Anycubic, Qidi and other names are trademarks of their owners and are used only to describe compatibility. FilaShift is
@@ -167,6 +176,26 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
         </div>
       </div>
     </footer>
+  );
+}
+
+function LangToggle() {
+  const lang = useLang();
+  return (
+    <div className="mr-1 flex h-8 items-center rounded-md border border-border p-0.5 text-[11px] font-medium" translate="no" role="group" aria-label="Language / Idioma">
+      {(["en", "es"] as const).map((l) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => l !== lang && setLang(l)}
+          aria-pressed={lang === l}
+          className={cn("rounded px-1.5 py-1 uppercase", lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
+          data-testid={`button-lang-${l}`}
+        >
+          {l}
+        </button>
+      ))}
+    </div>
   );
 }
 

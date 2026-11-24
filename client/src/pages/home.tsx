@@ -1,15 +1,18 @@
+import { GUIDES } from "@/lib/guides";
+import { useJsonLd, usePageMeta } from "@/lib/seo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeftRight, Check, Cpu, Download, FolderOpen, Lock, Printer, ShieldCheck, Sparkles, Tag, Upload } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Check, Cpu, Download, FolderOpen, Lock, Printer, ShieldCheck, Sparkles, Tag, Upload } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { PrinterPicker, slotLabel } from "@/components/printer-picker";
+import { PrinterPicker, slotLabel, TestedNote } from "@/components/printer-picker";
 import { FileCard, type Job } from "@/components/file-card";
-import { analyze, convert, defaultMapping, type Loaded } from "@/engine/engine";
+import { exportMesh } from "@/engine/export";
+import { analyze, convert, defaultMapping, planPauses, type Loaded } from "@/engine/engine";
 import type { PrinterIndexEntry, PrinterProfile } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
@@ -35,8 +38,17 @@ let seq = 0;
 const tick = () => new Promise((r) => setTimeout(r, 30));
 
 export default function Home() {
+  usePageMeta("FilaShift — Free 3MF converter for Bambu Lab, Flashforge, Creality, Prusa and more");
   const [printers, setPrinters] = useState<PrinterIndexEntry[]>([]);
-  const [targetId, setTargetId] = useState(DEFAULT_PRINTER);
+  // ?printer=<id> (used by the guides) preselects the target printer
+  const [targetId, setTargetId] = useState(() => {
+    try {
+      const q = new URLSearchParams(window.location.search || window.location.hash.split("?")[1] || "").get("printer");
+      return q && /^[a-z0-9-]+$/.test(q) ? q : DEFAULT_PRINTER;
+    } catch {
+      return DEFAULT_PRINTER;
+    }
+  });
   const [nozzle, setNozzle] = useState("0.4");
   const lastBase = useRef("");
   const [profile, setProfile] = useState<PrinterProfile | null>(null);
@@ -60,6 +72,9 @@ export default function Home() {
   }, []);
 
   const target = printers.find((p) => p.id === targetId);
+  useEffect(() => {
+    if (printers.length && !target) setTargetId(DEFAULT_PRINTER);
+  }, [printers, target]);
   const nozzles = target?.nozzles || ["0.4"];
   useEffect(() => {
     if (target && !nozzles.includes(nozzle)) setNozzle("0.4");
@@ -90,7 +105,7 @@ export default function Home() {
       js.map((j) => {
         if (!j.analysis || j.analysis.error) return j;
         if (j.result) URL.revokeObjectURL(j.result.url);
-        return { ...j, map: defaultMapping(j.analysis, slots), result: undefined, status: j.status === "error" ? j.status : "ready" };
+        return { ...j, map: defaultMapping(j.analysis, slots), pauses: false, result: undefined, status: j.status === "error" ? j.status : "ready" };
       }),
     );
   }, [slots, targetId, nz]);
@@ -136,7 +151,8 @@ export default function Home() {
     patch(id, { status: "converting", error: undefined });
     await tick();
     try {
-      const res = convert(L, { ...profile, slots }, { map: job.map, keepSpeeds, recenter });
+      const plan = job.pauses && job.analysis ? planPauses(job.analysis, slots) : null;
+      const res = convert(L, { ...profile, slots }, plan ? { map: plan.map, keepSpeeds, recenter, slotColors: plan.slotColors, pauses: plan.changes } : { map: job.map, keepSpeeds, recenter });
       const url = URL.createObjectURL(new Blob([res.bytes], { type: "model/3mf" }));
       patch(id, { status: "done", result: { url, name: res.report.outputName, size: res.bytes.length, report: res.report } });
     } catch (e: any) {
@@ -221,7 +237,7 @@ export default function Home() {
               </span>
               <span className="font-medium">{jobs.length ? "Add more 3MF projects" : "Drop your 3MF project here"}</span>
               <span className="mt-1 text-sm text-muted-foreground">or click to choose files · several at once is fine</span>
-              <span className="mt-3 font-mono text-xs text-muted-foreground">MakerWorld · Bambu Studio · OrcaSlicer · Creality Print · Orca-Flashforge · Snapmaker Orca</span>
+              <span className="mt-3 font-mono text-xs text-muted-foreground">MakerWorld · Printables · Bambu Studio · OrcaSlicer · PrusaSlicer · Creality Print · Orca-Flashforge · Snapmaker Orca</span>
               <input
                 id="file-input"
                 ref={inputRef}
@@ -247,10 +263,10 @@ export default function Home() {
             {jobs.length > 1 && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="mr-auto text-sm text-muted-foreground">
-                  {jobs.length} files · {done} converted
+                  {`${jobs.length} files · ${done} converted`}
                 </span>
                 <Button size="sm" onClick={convertAll} disabled={!pending || !profile} data-testid="button-convert-all">
-                  Convert all ({pending})
+                  {`Convert all (${pending})`}
                 </Button>
                 <Button size="sm" variant="outline" onClick={downloadAll} disabled={!done} data-testid="button-download-all">
                   <Download className="mr-1.5 h-4 w-4" />
@@ -266,13 +282,27 @@ export default function Home() {
                 slots={slots}
                 targetName={target?.model || ""}
                 canConvert={!!profile}
+                onExport={(fmt) => {
+                  const L = loadedFiles.get(j.id);
+                  if (!L) throw new Error("The file is no longer loaded. Add it again.");
+                  return exportMesh(L.entries, j.name, fmt);
+                }}
+                onPauses={(on) =>
+                  setJobs((js) =>
+                    js.map((x) => {
+                      if (x.id !== j.id || !x.analysis) return x;
+                      const plan = on ? planPauses(x.analysis, slots) : null;
+                      return { ...x, pauses: !!plan, map: plan ? plan.map : defaultMapping(x.analysis, slots) };
+                    }),
+                  )
+                }
                 onMap={(fi, s) =>
                   setJobs((js) =>
                     js.map((x) => {
                       if (x.id !== j.id) return x;
                       const m = x.map.slice();
                       m[fi - 1] = s;
-                      return { ...x, map: m };
+                      return { ...x, map: m, pauses: false };
                     }),
                   )
                 }
@@ -307,6 +337,7 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
+                {target && <TestedNote id={target.id} slicer={target.slicer} />}
               </div>
 
               {nozzles.length > 1 && (
@@ -401,6 +432,7 @@ export default function Home() {
             document.getElementById("settings")?.scrollIntoView({ behavior: "smooth", block: "start" });
           }}
         />
+        <GuideLinks />
         <Faq />
       </main>
 
@@ -474,11 +506,11 @@ function Hero({ printers, brands, onChoose }: { printers: number; brands: number
           <span className="hidden sm:inline">Bambu, Flashforge, Snapmaker, Creality, Prusa and back again</span>
         </span>
         <h1 className="mt-4 max-w-2xl text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-          Move any 3MF project to <span className="text-primary">any printer</span>.
+          Convert any 3MF project for <span className="text-primary">any 3D printer</span>.
         </h1>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
-          Drop a project from Bambu Studio, OrcaSlicer or MakerWorld, choose the printer you own, and FilaShift swaps in its profiles
-          while keeping the model, painted colours and print settings. Nothing is uploaded.
+          Drop a project from Bambu Studio, OrcaSlicer, PrusaSlicer, MakerWorld or Printables, choose the printer you own, and FilaShift swaps in its profiles
+          while keeping the model, painted colours and print settings. Need a plain mesh? Export 3MF to STL or OBJ. Nothing is uploaded.
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Button size="lg" onClick={onChoose} data-testid="button-hero-choose">
@@ -556,14 +588,27 @@ function SectionTitle({ id, kicker, title }: { id: string; kicker: string; title
 }
 
 function HowItWorks() {
+  useJsonLd("ld-howto", {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: "How to convert a 3MF project for another 3D printer",
+    totalTime: "PT2M",
+    tool: [{ "@type": "HowToTool", name: "FilaShift (free, in the browser)" }],
+    step: [
+      { "@type": "HowToStep", name: "Drop the project", text: "Add a 3MF project from Bambu Studio, OrcaSlicer, PrusaSlicer, MakerWorld or Printables to FilaShift." },
+      { "@type": "HowToStep", name: "Pick your printer", text: "Choose the printer you own and check how each colour maps to your filament slots." },
+      { "@type": "HowToStep", name: "Convert and download", text: "Convert, download the new 3MF and read the conversion report." },
+      { "@type": "HowToStep", name: "Open, check and slice", text: "Open it in your slicer with File → Open Project (not Import), check the preview and slice." },
+    ],
+  });
   const steps = [
-    { icon: FolderOpen, title: "Drop the project", text: "3MF projects from Bambu Studio, OrcaSlicer and its forks, including MakerWorld downloads with several plates and painted colours." },
+    { icon: FolderOpen, title: "Drop the project", text: "3MF projects from Bambu Studio, OrcaSlicer and its forks, and PrusaSlicer, including MakerWorld and Printables downloads with several plates and painted colours." },
     { icon: Cpu, title: "Pick your printer", text: "Any of the supported printers, in either direction. Colours are matched to your slots, and extra colours share the closest slot." },
     { icon: ShieldCheck, title: "Review and print", text: "Open the new file with File → Open Project, check the warnings in the report, then slice." },
   ];
   return (
     <section className="mt-14">
-      <SectionTitle id="how" kicker="How it works" title="Three steps, all in your browser" />
+      <SectionTitle id="how" kicker="How it works" title="How to convert a 3MF for another printer" />
       <ol className="grid gap-3 sm:grid-cols-3">
         {steps.map((s, i) => (
           <li key={i} className="relative overflow-hidden rounded-xl border border-card-border bg-card p-5">
@@ -620,22 +665,64 @@ function Brands({ printers, onPick }: { printers: PrinterIndexEntry[]; onPick: (
   );
 }
 
-const FAQ = [
+function GuideLinks() {
+  return (
+    <section className="mt-14">
+      <SectionTitle id="guides" kicker="Guides" title="Step-by-step 3MF workflows" />
+      <ul className="grid gap-2 sm:grid-cols-2">
+        {GUIDES.map((g) => (
+          <li key={g.slug}>
+            <Link
+              href={`/guides/${g.slug}`}
+              className="flex h-full items-center justify-between gap-3 rounded-xl border border-card-border bg-card px-4 py-3 text-sm transition-colors hover:border-primary/50"
+              data-testid={`home-guide-${g.slug}`}
+            >
+              <span>{g.title}</span>
+              <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+export const FAQ = [
   {
     q: "Are my files uploaded anywhere?",
     a: "No. FilaShift reads and rewrites the project inside this browser tab. Your 3MF never leaves your device; the only downloads are the page itself and the printer profiles you pick.",
   },
   {
     q: "Which files can I convert?",
-    a: "3MF projects saved by Bambu Studio and the OrcaSlicer family (OrcaSlicer, Creality Print, Orca-Flashforge, Snapmaker Orca), including MakerWorld downloads with several plates.",
+    a: "3MF projects saved by Bambu Studio, the OrcaSlicer family (OrcaSlicer, Creality Print, Orca-Flashforge, Snapmaker Orca) and PrusaSlicer 2.4 or newer, including MakerWorld and Printables downloads. PrusaSlicer projects keep their parts, painted colours, colour changes and main print settings; speeds and line widths use the new printer's defaults because PrusaSlicer stores them differently.",
+  },
+  {
+    q: "Can I convert 3MF to STL or OBJ?",
+    a: "Yes. Add the 3MF and use Export STL or Export OBJ under the file. Parts stay in their plate positions, in millimetres, with one file per plate. STL keeps only the shape; OBJ also keeps one colour per part. Painted colours, plates and print settings only survive in a 3MF, so convert the 3MF instead when you want to keep them.",
+  },
+  {
+    q: "Can I convert STL back to 3MF?",
+    a: "An STL has no colours or settings to carry over, so there is nothing for FilaShift to translate. Import the STL into your slicer (Bambu Studio, OrcaSlicer or PrusaSlicer), set it up and save it as a project; that file is a 3MF you can convert for other printers later.",
+  },
+  {
+    q: "How do I keep slicer settings when switching printers?",
+    a: "Download the project 3MF, not the STL: on MakerWorld use the 3MF download of the print profile you want, and on Printables download the 3MF file. Then convert it here. FilaShift keeps the designer's layer height, walls, infill, supports, seam and colours, swaps in your printer's machine and filament profiles, and lists every change in the report.",
   },
   {
     q: "Can I convert back to Bambu?",
-    a: "Yes. Conversion works in every direction, for example Bambu to Flashforge, Flashforge to Snapmaker, or Creality back to Bambu.",
+    a: "Yes. Conversion works in every direction, for example Bambu to Flashforge, Flashforge to Snapmaker, Creality back to Bambu, or PrusaSlicer to Bambu Studio.",
   },
   {
     q: "What happens to multi-colour prints?",
-    a: "Each colour is matched to one of your printer's filament slots. If the project has more colours than you have slots, extra colours share the closest slot, and you can change every mapping before converting.",
+    a: "Each colour is matched to one of your printer's filament slots. If the project has more colours than you have slots, extra colours share the closest slot, or, when colours sit at different heights, FilaShift can add filament-change pauses so every colour still prints. You can change every mapping before converting.",
+  },
+  {
+    q: "What does Slicer-tested mean?",
+    a: "Before each release we convert sample projects (a painted multi-colour Bambu Studio project and a PrusaSlicer project) for every printer in the list and slice them with the real OrcaSlicer or Bambu Studio command-line slicer. Printers marked Slicer-tested sliced without errors. It is a strong sign, not a guarantee for your file, so still check the preview before printing.",
+  },
+  {
+    q: "Is there a file size limit?",
+    a: "There is no upload, so there is no upload limit. Files are processed in your browser's memory: projects of a few hundred megabytes work on a typical computer, and phones handle smaller ones. As a safety limit, a 3MF may not expand to more than 2 GB.",
   },
   {
     q: "Will it print exactly the same?",
@@ -643,11 +730,16 @@ const FAQ = [
   },
   {
     q: "Does it cost anything?",
-    a: "No. FilaShift is free. The filament price page may earn a commission from qualifying Amazon purchases, which helps keep the converter running.",
+    a: "No. FilaShift is free, with no account and no limits. Some store links on the filament price page are affiliate links that may earn a commission, which helps keep the converter running.",
   },
 ];
 
 function Faq() {
+  useJsonLd("ld-faq", {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  });
   return (
     <section className="mb-4 mt-14">
       <SectionTitle id="faq" kicker="FAQ" title="Common questions" />
@@ -657,7 +749,9 @@ function Faq() {
             <AccordionTrigger className="text-left text-sm font-medium" data-testid={`faq-${i}`}>
               {f.q}
             </AccordionTrigger>
-            <AccordionContent className="text-sm text-muted-foreground">{f.a}</AccordionContent>
+            <AccordionContent forceMount className="text-sm text-muted-foreground">
+              {f.a}
+            </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>

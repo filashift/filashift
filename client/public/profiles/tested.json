@@ -1,0 +1,1139 @@
+{
+"date": "2026-11-23",
+"slicers": {
+"OrcaSlicer": "2.5.2",
+"Bambu Studio": "02.09.01.70"
+},
+"samples": [
+"4-colour painted Bambu Studio project (X1 Carbon, PLA)",
+"2-object PrusaSlicer project with a colour change (MK4S MMU3, PLA)"
+],
+"printers": {
+"anker-m5": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anker-m5-all-metal-hot-end": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anker-m5c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-4max-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-4max-pro-2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-chiron": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-2-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-2-neo": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-2-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-2-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-3-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-3-v2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-neo": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-s1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-s1-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-kobra-x": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-predator": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-vyper": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"anycubic-i3-mega-s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-genius": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-genius-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-hornet": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-m1-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-sidewinder-x1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-sidewinder-x2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-sidewinder-x3-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-sidewinder-x3-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-sidewinder-x4-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"artillery-sidewinder-x4-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-a1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-a1-mini": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-a2l": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-h2c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-h2d": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-h2d-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-h2s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-h3c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-p1p": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-p1s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-p2s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-x1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-x1-carbon": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-x1e": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"bambu-lab-x2d": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-10": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-10-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-10-se": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-10-smart": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-10-smart-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-10-v2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-10-v3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-10s-pro-v2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-20-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-6-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-6-se": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-m4": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-cr-m4-se": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-2-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-max-neo": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-neo": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-s1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-s1-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-s1-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-s1-sonic": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-v2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-v2-neo": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-v3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-v3-ke": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-v3-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-v3-se": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-3-v4": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-5": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-5-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-5-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-5-pro-2019": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-5-s1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-5-s1-sonic": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-5s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-ender-6": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-hi": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k1-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k1-max-cfs-c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k1-se": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k1-se-cfs-c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k1c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k1c-cfs-c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k1-cfs-c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k2-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k2-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-k2-se": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-sparkx-i7": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-sermoon-d3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-sermoon-m300": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-sermoon-v1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"creality-sermoon-v1-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-centauri": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-centauri-2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-centauri-carbon": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-centauri-carbon-2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-2d": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-2s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-3-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-3-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-3-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-4": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-4-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-4-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-4-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-neptune-x": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"elegoo-orangestorm-giga": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-ad5x": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-adventurer-3-series": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-adventurer-4-series": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-adventurer-5m": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-adventurer-5m-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-adventurer-a5": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-artemis": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-creator-5": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-creator-5-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-guider-2s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-guider-3-ultra": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-guider4": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"flashforge-guider4-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"kingroon-klp1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"kingroon-kp3s-3-0": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"kingroon-kp3s-pro-s1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"kingroon-kp3s-pro-v2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"kingroon-kp3s-v1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-core-one": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-core-one-hf": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-core-one-indx-4t": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-core-one-indx-8t": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-core-one-l": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-core-one-l-hf": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-core-one-mmu3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mini": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mini-is": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mk3-5": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mk3s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mk4": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mk4-mmu3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mk4-mmu3-hf": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mk4s": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-mk4s-hf": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-xl": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"prusa-xl-5t": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-q1-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-q2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-q2c": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-cf-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-max-3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-max-4": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-plus-3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-plus-4": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-plus-5": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-smart-3": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"qidi-x-smart-5": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-cast": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-3-200": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-3-300": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-3-400": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-3-500": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-300": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-400": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-500": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-hybrid-300": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-hybrid-400": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-hybrid-500": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-idex-300": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-idex-400": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-core-4-idex-500": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ratrig-v-minion": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a250": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a250-bkit": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a250-dual": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a250-dual-bkit": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a250-dual-qskit": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a250-qskit": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a350": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a350-bkit": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a350-dual": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a350-dual-bkit": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a350-dual-qskit": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-a350-qskit": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-artisan": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-j1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"snapmaker-u1": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv01": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv01-pro": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv02": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv05": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv06": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv06-ace": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv06-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv06-plus-ace": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv07": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv07-plus": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv08": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-sv08-max": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"sovol-zero": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ultimaker-2": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"ultimaker-s5": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"voron-0-1": {
+"ok": true,
+"passed": 1,
+"tests": 2,
+"note": "large models must be scaled to fit this bed"
+},
+"voron-2-4-250": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"voron-2-4-300": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"voron-2-4-350": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"voron-switchwire-250": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"voron-trident-250": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"voron-trident-300": {
+"ok": true,
+"passed": 2,
+"tests": 2
+},
+"voron-trident-350": {
+"ok": true,
+"passed": 2,
+"tests": 2
+}
+}
+}

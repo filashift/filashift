@@ -166,6 +166,11 @@ for vendor in VENDORS:
               proc_out.append({"name": pn, "layer_height": lh, "default": pn == dflt,
                                "values": {k: v for k, v in P.items() if not k.startswith("__") and k not in ("compatible_printers", "compatible_printers_condition", "version")}})
           machine_values = {k: v for k, v in M.items() if not k.startswith("__")}
+          # older profiles store point/number vectors as one comma string; normalise to lists
+          for vk in ("printable_area", "bed_exclude_area", "extruder_offset", "thumbnails", "head_wrap_detect_zone", "wrapping_exclude_area"):
+              if isinstance(machine_values.get(vk), str):
+                  machine_values[vk] = [x.strip() for x in machine_values[vk].split(",") if x.strip()]
+          M = dict(M, **{k: machine_values[k] for k in ("printable_area",) if k in machine_values})
           area = M.get("printable_area") or []
           try:
               xs = [float(p.split("x")[0]) for p in area]; ys = [float(p.split("x")[1]) for p in area]

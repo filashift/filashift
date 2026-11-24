@@ -89,6 +89,10 @@ export interface Analysis {
   thumbnail?: string; // zip path of the best thumbnail
   notes: string[];
   error?: string;
+  /** height bands each filament occupies, per plate (object-relative mm) */
+  stacks?: { plate: number; fil: number; z0: number; z1: number }[];
+  /** set when the source was a non-Orca project (PrusaSlicer) translated in memory */
+  translatedFrom?: { slicer: string; translated: string[]; dropped: string[] };
 }
 
 export interface SlotAssignment {
@@ -101,6 +105,8 @@ export interface ConvertOptions {
   keepSpeeds: boolean;
   recenter: boolean;
   slotColors?: Record<number, string>;
+  /** filament-change pauses from planPauses(); heights are object-relative */
+  pauses?: { plate: number; slot: number; fil: number; z: number; color: string }[];
 }
 
 export interface ReportLine {

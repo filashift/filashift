@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -130,6 +131,10 @@ export function ReportDialog() {
             )}
           </div>
         )}
+        <p className="text-xs text-muted-foreground" data-testid="text-report-privacy">
+          Only the text above is sent — never your file. Reports are kept for up to 12 months to fix problems. See the{" "}
+          <Link href="/privacy" className="underline">Privacy Policy</Link>.
+        </p>
         <DialogFooter>
           {state === "sent" ? (
             <Button onClick={() => setOpen(false)}>Close</Button>

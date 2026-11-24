@@ -2,10 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // on filashift.com every page (including /guides/…) loads assets from the site root
+      if (/(^|\.)filashift\.com$/.test(location.hostname) || window.__PRERENDER) document.write('<base href="/">');
+    </script>
     <!-- Impact-Site-Verification: 5d985db7-20f1-4f2d-adc6-f3fb9bc8ba08 -->
     <meta name="impact-site-verification" value="5d985db7-20f1-4f2d-adc6-f3fb9bc8ba08" />
-    <title>FilaShift — 3MF printer converter</title>
-    <meta name="description" content="Convert Bambu Studio and OrcaSlicer 3MF projects to other 3D printers, right in your browser. Files never leave your device." />
+    <title>FilaShift — Free 3MF converter for Bambu Lab, Flashforge, Creality, Prusa and more</title>
+    <meta name="description" content="Convert 3MF projects between Bambu Studio, OrcaSlicer and PrusaSlicer printers, or export 3MF to STL and OBJ, right in your browser. Colours, plates and settings kept; files never leave your device." />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />

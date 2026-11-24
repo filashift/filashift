@@ -50,7 +50,7 @@ export function ProjectFilament({ needs, testId }: { needs: Need[]; testId: stri
             <ShoppingBag className="h-4 w-4 text-primary" />
             Filament for this print
             <span className="font-normal text-muted-foreground">
-              · {rows.length} colour{rows.length === 1 ? "" : "s"}
+              {`· ${rows.length} colour${rows.length === 1 ? "" : "s"}`}
             </span>
           </span>
           <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} />
@@ -83,7 +83,7 @@ function NeedRow({ need, data, cfg, testId }: { need: Need; data: ShopData | nul
         <span className="h-4 w-4 shrink-0 rounded-full border border-black/15 dark:border-white/20" style={{ background: need.color }} aria-hidden />
         {need.slot ? <span className="font-mono text-xs text-muted-foreground">{need.slot}</span> : null}
         <span className="font-medium">{need.type}</span>
-        <span className="text-muted-foreground">· close to {word}</span>
+        <span className="text-muted-foreground">{`· close to ${word}`}</span>
       </div>
       {!data ? (
         <div className="mt-2 h-8 animate-pulse rounded bg-secondary" />
@@ -92,7 +92,7 @@ function NeedRow({ need, data, cfg, testId }: { need: Need; data: ShopData | nul
           {matches.map((m, j) => {
             const link = shopUrl(m.item.u, cfg);
             return (
-              <li key={j} className="flex items-center gap-2 text-xs">
+              <li key={j} className="flex items-center gap-2 text-xs" translate="no">
                 <span className="h-3 w-3 shrink-0 rounded-full border border-black/15 dark:border-white/20" style={{ background: m.hex }} aria-hidden />
                 <span className="min-w-0 flex-1 truncate" title={`${m.item.b} ${m.item.t} · ${m.colour}`}>
                   <span className="font-medium">{m.item.b}</span> {m.colour} · <span className="text-muted-foreground">{m.item.m}</span>
@@ -113,14 +113,14 @@ function NeedRow({ need, data, cfg, testId }: { need: Need; data: ShopData | nul
       )}
       {codes.length > 0 && (
         <p className="mt-1 text-xs text-muted-foreground" data-testid={`${testId}-code`}>
-          Discount code {codes.map((c, i) => (
+          Affiliate discount code {codes.map((c, i) => (
             <span key={i} className="mr-1 select-all rounded border border-dashed border-primary/50 px-1 font-mono text-primary">{c}</span>
           ))}
         </p>
       )}
       <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
         <Link href={more} className="text-primary hover:underline" data-testid={`${testId}-more`}>
-          Compare all {fam === "Other" ? need.type : fam} in {word}
+          {`Compare all ${fam === "Other" ? need.type : fam} in ${word}`}
         </Link>
         {cfg.amazonTag && (
           <a

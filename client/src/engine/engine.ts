@@ -11,6 +11,7 @@
  * the target printer, (2) copy the author's print settings and list every copied key, and (3)
  * leave the printer slot empty so all machine settings come from the target's own profile.
  */
+import { isPrusaProject, prusaToOrca } from "./prusa";
 import { unzipSync, zipSync, strFromU8, strToU8, type Zippable } from "fflate";
 import RULES from "../rules.json";
 import SLICER_KEYS from "./slicer-keys.json";
@@ -234,6 +235,7 @@ function parseModelSettings(xml: string): { objects: MSObject[]; plates: PlateIn
 type Mat = number[]; // 12 numbers, 3MF row-vector convention
 interface ModelObj {
   bbox: [number, number, number, number, number, number] | null;
+  paint?: Set<number>;
   comps: { objectid: string; path: string | null; t: Mat | null }[];
 }
 
@@ -299,7 +301,11 @@ function parseModelObjects(text: string): Map<string, ModelObj> {
       const path = /\bp:path="([^"]+)"/.exec(c[1])?.[1]?.replace(/^\//, "") ?? null;
       comps.push({ objectid: oid, path, t: parseTransform(/\btransform="([^"]+)"/.exec(c[1])?.[1]) });
     }
-    out.set(id, { bbox, comps });
+    let paint: Set<number> | undefined;
+    if (body.includes("paint_color=") || body.includes("mmu_segmentation=")) {
+      paint = new Set([...scanPaint(body).counts.keys()].filter((k) => k > 0));
+    }
+    out.set(id, { bbox, comps, paint });
   }
   return out;
 }
@@ -361,6 +367,138 @@ function itemBoxes(e: Entries, rootText: string): Map<string, [number, number, n
     if (b) out.set(it.objectid, b as [number, number, number, number]);
   }
   return out;
+}
+
+// ---------- per-filament height ranges (for filament-change pauses) ----------
+/** For each plate and used filament: the height band (relative to the object's bottom) it occupies. */
+function filamentStacks(e: Entries, rootText: string, objects: MSObject[], plates: PlateInfo[]): Analysis["stacks"] {
+  const cache = new Map<string, Map<string, ModelObj>>();
+  const load = (path: string) => {
+    if (!cache.has(path)) {
+      const k = findEntry(e, path);
+      cache.set(path, k ? parseModelObjects(dec(e[k])) : new Map());
+    }
+    return cache.get(path)!;
+  };
+  cache.set(ROOT_MODEL, parseModelObjects(rootText));
+  const msById = new Map(objects.map((o) => [o.id, o]));
+  const plateOf = new Map<string, number>();
+  for (const p of plates) for (const id of p.objectIds) if (!plateOf.has(id)) plateOf.set(id, p.id);
+  const out: NonNullable<Analysis["stacks"]> = [];
+  const zr = (b: number[], t: Mat): [number, number] => {
+    let z0 = Infinity, z1 = -Infinity;
+    for (const x of [b[0], b[3]]) for (const y of [b[1], b[4]]) for (const z of [b[2], b[5]]) {
+      const w = applyT(t, x, y, z)[2];
+      z0 = Math.min(z0, w); z1 = Math.max(z1, w);
+    }
+    return [z0, z1];
+  };
+  for (const it of parseBuildItems(rootText)) {
+    const ms = msById.get(it.objectid);
+    const root = load(ROOT_MODEL).get(it.objectid);
+    if (!ms || !root) continue;
+    const plate = plateOf.get(it.objectid) ?? plates[0]?.id ?? 1;
+    const bands: { fil: number; z0: number; z1: number; mod: boolean }[] = [];
+    const visit = (path: string, oid: string, t: Mat, partId: string | null, depth: number) => {
+      const o = load(path).get(oid);
+      if (!o || depth > 8) return;
+      const pid = partId ?? (depth === 1 ? oid : null);
+      const part = ms.parts.find((p) => p.id === pid);
+      const sub = part?.subtype || "normal_part";
+      if (o.bbox && sub !== "negative_part" && sub !== "support_blocker" && sub !== "support_enforcer") {
+        const [z0, z1] = zr(o.bbox, t);
+        const isMod = sub === "modifier_part";
+        const ext = part?.ext || (isMod ? 0 : ms.ext || 1);
+        if (ext) bands.push({ fil: ext, z0, z1, mod: isMod });
+        // painted colours can be anywhere on the part: assume its whole height
+        if (!isMod && o.paint) for (const st of o.paint) bands.push({ fil: st, z0, z1, mod: false });
+      }
+      for (const c of o.comps) visit(c.path || path, c.objectid, mul(c.t || IDENT, t), pid, depth + 1);
+    };
+    visit(ROOT_MODEL, it.objectid, it.t || IDENT, null, 0);
+    const solid = bands.filter((b) => !b.mod);
+    if (!solid.length) continue;
+    const base = Math.min(...solid.map((b) => b.z0));
+    for (const b of bands) out.push({ plate, fil: b.fil, z0: Math.max(0, b.z0 - base), z1: b.z1 - base });
+  }
+  return out;
+}
+
+export interface PausePlan {
+  map: number[];
+  slotColors: Record<number, string>;
+  /** colour changes: on `plate`, slot `slot` switches to source filament `fil` from height `z` (object-relative) */
+  changes: { plate: number; slot: number; fil: number; z: number; color: string }[];
+}
+
+/**
+ * When a project uses more colours than the printer has slots, try to share slots between colours that
+ * never print on the same layers (e.g. a base in one colour and lettering on top in another). Returns null
+ * when the colours overlap in height and pauses cannot replace the missing slots.
+ */
+export function planPauses(a: Analysis, slots: number): PausePlan | null {
+  const used = a.filaments.filter((f) => f.used);
+  if (!a.usedKnown || !a.stacks || used.length <= slots || slots < 1) return null;
+  const EPS = 0.05;
+  // per filament per plate: merged band
+  const band = new Map<number, Map<number, [number, number]>>();
+  for (const s of a.stacks) {
+    if (!used.some((f) => f.index === s.fil)) continue;
+    const m = band.get(s.fil) || new Map();
+    const b = m.get(s.plate);
+    m.set(s.plate, b ? [Math.min(b[0], s.z0), Math.max(b[1], s.z1)] : [s.z0, s.z1]);
+    band.set(s.fil, m);
+  }
+  const lowest = (f: number) => Math.min(...[...(band.get(f)?.values() || [])].map((b) => b[0]));
+  const order = used.map((f) => f.index).filter((f) => band.has(f)).sort((x, y) => lowest(x) - lowest(y) || x - y);
+  if (order.length !== used.length) return null;
+  const slotFils: number[][] = Array.from({ length: slots }, () => []);
+  const fits = (s: number, f: number) =>
+    slotFils[s].every((g) => {
+      for (const [pl, b] of band.get(f)!) {
+        const c = band.get(g)!.get(pl);
+        if (c && b[0] < c[1] - EPS && c[0] < b[1] - EPS) return false;
+        // the later colour must start above the earlier one on this plate
+        if (c && b[0] < c[0]) return false;
+      }
+      return true;
+    });
+  for (const f of order) {
+    let s = slotFils.findIndex((x) => !x.length);
+    if (s < 0) {
+      // reuse the compatible slot whose last colour ends highest (shortest wait)
+      let best = -1, bestTop = -Infinity;
+      slotFils.forEach((x, i) => {
+        if (!fits(i, f)) return;
+        const top = Math.max(...x.flatMap((g) => [...band.get(g)!.values()].map((b) => b[1])));
+        if (top > bestTop) { bestTop = top; best = i; }
+      });
+      s = best;
+    }
+    if (s < 0) return null;
+    slotFils[s].push(f);
+  }
+  const map = a.filaments.map(() => 0);
+  const slotColors: Record<number, string> = {};
+  const changes: PausePlan["changes"] = [];
+  const colorOf = (f: number) => a.filaments[f - 1]?.color || "#FFFFFF";
+  slotFils.forEach((fs, i) => {
+    fs.forEach((f) => (map[f - 1] = i + 1));
+    if (!fs.length) return;
+    slotColors[i + 1] = colorOf(fs[0]);
+    const plates = new Set(fs.flatMap((f) => [...band.get(f)!.keys()]));
+    for (const pl of plates) {
+      const onPlate = fs.filter((f) => band.get(f)!.has(pl)).sort((x, y) => band.get(x)!.get(pl)![0] - band.get(y)!.get(pl)![0]);
+      onPlate.forEach((f, k) => {
+        if (k === 0 && f === fs[0]) return;
+        changes.push({ plate: pl, slot: i + 1, fil: f, z: k === 0 ? 0 : band.get(f)!.get(pl)![0], color: colorOf(f) });
+      });
+    }
+  });
+  // a change at the very first layer is not a pause users can act on; give up in that case
+  if (changes.some((c) => c.z < EPS)) return null;
+  // unused filaments keep the default behaviour (dropped)
+  return { map, slotColors, changes };
 }
 
 // ---------- analysis ----------
@@ -529,6 +667,17 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
     return { entries: e, S: null, analysis: base };
   }
   const a = base;
+  if (isPrusaProject(e)) {
+    try {
+      const t = prusaToOrca(e);
+      e = t.entries;
+      a.translatedFrom = { slicer: "PrusaSlicer", translated: t.translated, dropped: t.dropped };
+      a.notes.push(...t.notes);
+    } catch (err: any) {
+      base.error = `This PrusaSlicer project could not be read (${err?.message || err}).`;
+      return { entries: e, S: null, analysis: base };
+    }
+  }
   a.app = detectApp(e);
   const orcaTag = metaValue(e, "OrcaSlicer");
   a.sourceSlicer = slicerLabel(a.app, orcaTag);
@@ -550,7 +699,7 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   if (a.kind === "prusa" || a.kind === "plain") {
     a.notes.push(
       a.kind === "prusa"
-        ? "PrusaSlicer project detected. This release converts Bambu Studio and Orca-family projects (OrcaSlicer, Creality Print, Orca-Flashforge, Snapmaker Orca, ElegooSlicer and others). Open this file in OrcaSlicer first (it imports PrusaSlicer projects), save it as a project, then convert that file."
+        ? "This PrusaSlicer project has no readable objects or settings. Re-save it in PrusaSlicer 2.4 or newer (File → Save Project) and try again."
         : "This 3MF contains geometry only, with no slicer settings to carry over. Import it directly in your slicer and pick your printer there."
     );
     return { entries: e, S, analysis: a };
@@ -587,6 +736,11 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   const presets = SS.filament_settings_id ? filVector(SS.filament_settings_id, nfil, selfIndex, variants) : Array(nfil).fill("");
 
   const use = analyzeUse(e, SS, nfil, objects, msXml);
+  try {
+    a.stacks = filamentStacks(e, dec(e[findEntry(e, ROOT_MODEL)!]), objects, a.plates);
+  } catch {
+    a.stacks = undefined;
+  }
   a.hasPaint = use.hasPaint;
   a.usedKnown = !!use.used;
   a.usedWhy = use.why;
@@ -704,10 +858,10 @@ function stampSliceInfo(xml: string, fam: "bambu" | "orca"): string {
   return x;
 }
 
-function buildDiffLists(copied: Set<string>, nfil: number): string[] {
+function buildDiffLists(copied: Set<string>, nfil: number, mach: Set<string> = new Set()): string[] {
   const proc = [...copied].filter((k) => S_PRINT.has(k) || S_EXTRA_PROC.has(k) || k === "best_object_pos").sort();
   const fil = [...copied].filter((k) => S_FIL.has(k)).sort();
-  return [proc.join(";"), ...Array(nfil).fill(fil.join(";")), ""];
+  return [proc.join(";"), ...Array(nfil).fill(fil.join(";")), [...mach].sort().join(";")];
 }
 
 export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOptions): ConvertResult {
@@ -718,6 +872,11 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   const kept: string[] = [], replaced: string[] = [], discarded: string[] = [], speeds: string[] = [];
   const warn = (t: string) => lines.push({ level: "warn", text: t });
   const info = (t: string) => lines.push({ level: "info", text: t });
+  if (a.translatedFrom) {
+    const tf = a.translatedFrom;
+    info(`Translated from ${a.sourceSlicer || tf.slicer}: ${tf.translated.length} settings and features mapped to their Orca/Bambu names (layers, walls, infill, supports, brim, seam, ironing, prime tower, colours, temperatures).`);
+    if (tf.dropped.length) info(`Not carried over from ${tf.slicer} (different units or no equivalent; the destination printer's defaults are used): ${tf.dropped.slice(0, 12).join(", ")}${tf.dropped.length > 12 ? ` and ${tf.dropped.length - 12} more` : ""}.`);
+  }
 
   const nfil = a.filaments.length;
   const map = opts.map.slice(0, nfil);
@@ -822,6 +981,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
 
   // ---- 3) copy the author's settings ----
   const copied = new Set<string>();
+  const machDiff = new Set<string>();
   const authorProc = new Set<string>(Array.isArray(S.different_settings_to_system) && S.different_settings_to_system.length ? String(S.different_settings_to_system[0]).split(";").filter(Boolean) : []);
   const slowKeep: Record<string, number> = {};
   for (const k of authorProc) {
@@ -997,6 +1157,28 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       R[k] = Array.isArray(R[k]) ? R[k].map(fix) : fix(R[k]);
     }
   }
+  if (fam === "orca") {
+    // OrcaSlicer validates this range (10-18 mm) even when cutting is unused; some vendor profiles ship 0 or 30
+    if ("retraction_distances_when_cut" in R) {
+      const fix = (x: any) => { const n = num(x); return n === null ? x : String(Math.min(18, Math.max(10, n))); };
+      machDiff.add("retraction_distances_when_cut");
+      R.retraction_distances_when_cut = Array.isArray(R.retraction_distances_when_cut) ? R.retraction_distances_when_cut.map(fix) : fix(R.retraction_distances_when_cut);
+    }
+    const towerOn = ["1", "true"].includes(String(first(R.enable_prime_tower ?? "0")));
+    if (towerOn && nOut > 1 && !["1", "true"].includes(String(first(R.use_relative_e_distances ?? "1")))) {
+      R.use_relative_e_distances = "1";
+      machDiff.add("use_relative_e_distances");
+      info("The prime tower needs relative extrusion, so “Use relative E distances” was switched on (the slicer sends M83 for you).");
+    }
+    if (["1", "true"].includes(String(first(R.use_relative_e_distances ?? "1")))) {
+      const lg = String(first(R.layer_change_gcode ?? "")), bg = String(first(R.before_layer_change_gcode ?? ""));
+      if (!/^\s*G92 E0/im.test(lg) && !/^\s*G92 E0/im.test(bg)) {
+        const v = lg ? `${lg}\nG92 E0` : "G92 E0";
+        R.layer_change_gcode = Array.isArray(R.layer_change_gcode) ? [v] : v;
+        machDiff.add("layer_change_gcode");
+      }
+    }
+  }
   // OrcaSlicer refuses single-nozzle mixes where a filament's nozzle temperature sits outside
   // another filament's recommended range (unless the user turns that safety check off).
   if (fam === "orca" && profile.extruders < 2 && nOut > 1) {
@@ -1012,7 +1194,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (bad.length)
       warn(`OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges (${bad.slice(0, 2).join("; ")}). Use materials that print at similar temperatures, or turn on Preferences → Control → Slicing → Remove mixed temperature restriction if you accept the risk.`);
   }
-  R.different_settings_to_system = buildDiffLists(copied, nOut);
+  R.different_settings_to_system = buildDiffLists(copied, nOut, machDiff);
 
   // ---- 4) plates: re-centre and re-grid ----
   const srcArea = parseArea(S.printable_area);
@@ -1095,12 +1277,19 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       info(`Prime tower width set to the ${profile.model} default (${first(T.prime_tower_width)} mm).`);
     R.prime_tower_width = T.prime_tower_width;
   }
-  const tw = num(first(R.prime_tower_width)) || 35;
+  const tw0 = num(first(R.prime_tower_width)) || 35;
   // purge volume per layer is fixed, so thin layers (small nozzles) make a deeper tower
   const lhOut = num(first(R.layer_height)) || 0.2;
   const tf = Math.min(2.5, Math.max(1, 0.2 / lhOut));
-  const towerDepth = Math.max(tw, 60) * tf;
   if (S.wipe_tower_x !== undefined || S.wipe_tower_y !== undefined) {
+   // very wide vendor towers (some Creality CFS profiles use 180 mm) may not fit beside the model;
+   // then try narrower towers before settling for the least-overlapping spot
+   const widths = [tw0, ...[60, 35].filter((w) => w < tw0)];
+   for (let wi = 0; wi < widths.length; wi++) {
+    const tw = widths[wi];
+    const last = wi === widths.length - 1;
+    const towerDepth = Math.max(tw, 60) * tf;
+    const misses: number[] = [];
     const ax = Array.isArray(S.wipe_tower_x) ? S.wipe_tower_x : [S.wipe_tower_x ?? 15];
     const ay = Array.isArray(S.wipe_tower_y) ? S.wipe_tower_y : [S.wipe_tower_y ?? 15];
     // keep well clear of the edges: slicers grow the tower (brim, skirt, extra wipe depth) beyond
@@ -1143,13 +1332,22 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       }
       const [x, y] = pick || fallback!;
       if (pick && (pick[0] !== first0![0] || pick[1] !== first0![1])) moved++;
-      if (!pick && R.enable_prime_tower !== "0") warn(`${multi ? `Plate ${pid}: the` : "The"} model leaves little free space for the prime tower, so it was placed where it overlaps least. Check the tower in the slicer preview; if it touches the model, move it or scale the model.`);
+      if (!pick) misses.push(pid);
       outX.push(fmt(x, 2));
       outY.push(fmt(y, 2));
     });
+    if (misses.length && !last) continue;
     R.wipe_tower_x = outX;
     R.wipe_tower_y = outY;
-    if (moved && ["1", "true"].includes(String(first(R.enable_prime_tower ?? "0")))) info(`The prime tower was moved to a free corner on ${moved} plate${moved > 1 ? "s" : ""} so it does not overlap the model.`);
+    const towerOn = ["1", "true"].includes(String(first(R.enable_prime_tower ?? "0")));
+    if (tw !== tw0 && towerOn) {
+      R.prime_tower_width = Array.isArray(R.prime_tower_width) ? R.prime_tower_width.map(() => String(tw)) : String(tw);
+      info(`The ${tw0} mm prime tower did not fit beside the model, so it was narrowed to ${tw} mm.`);
+    }
+    if (towerOn) for (const pid of misses) warn(`${multi ? `Plate ${pid}: the` : "The"} model leaves little free space for the prime tower, so it was placed where it overlaps least. Check the tower in the slicer preview; if it touches the model, move it or scale the model.`);
+    if (moved && towerOn) info(`The prime tower was moved to a free corner on ${moved} plate${moved > 1 ? "s" : ""} so it does not overlap the model.`);
+    break;
+   }
   }
 
   const guessPlate = (x: number, y: number): number | null => {
@@ -1267,13 +1465,51 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     }
     outFiles[name] = /\.(png|jpe?g)$/i.test(name) ? [data, { level: 0 }] : data;
   }
+  if (opts.pauses?.length) {
+    const lh = num(first(R.layer_height)) || a.layerHeight || 0.2;
+    const flh = num(first(R.initial_layer_print_height)) || lh;
+    const topZ = (z: number) => {
+      const k = Math.max(1, Math.floor((z + 0.01 - flh + lh / 2) / lh) + 1);
+      return Math.round((flh + k * lh) * 1000) / 1000;
+    };
+    const CG = "Metadata/custom_gcode_per_layer.xml";
+    const prev = outFiles[CG] ? dec(outFiles[CG] as Uint8Array) : "";
+    const mode = opts.map.filter(Boolean).length && Math.max(...opts.map) > 1 ? "MultiAsSingle" : "SingleExtruder";
+    const pauseG = String(first(R.machine_pause_gcode ?? "") || "").trim();
+    const byPlate = new Map<number, string[]>();
+    for (const c of [...opts.pauses].sort((x, y) => x.plate - y.plate || x.z - y.z)) {
+      const l = byPlate.get(c.plate) || [];
+      const msg = `Load ${normalizeColor(c.color)} in slot ${c.slot}`;
+      l.push(
+        pauseG
+          ? `    <layer top_z="${topZ(c.z)}" type="1" extruder="${c.slot}" color="${normalizeColor(c.color)}" extra="${msg}" gcode="${pauseG.replace(/"/g, "&quot;").replace(/\n/g, "&#10;")}"/>\n`
+          : `    <layer top_z="${topZ(c.z)}" type="4" extruder="${c.slot}" color="${normalizeColor(c.color)}" extra="M600" gcode="M600"/>\n`,
+      );
+      byPlate.set(c.plate, l);
+    }
+    let xml = prev || `<?xml version="1.0" encoding="utf-8"?>\n<custom_gcodes_per_layer>\n</custom_gcodes_per_layer>\n`;
+    for (const [pl, ls] of byPlate) {
+      const re = new RegExp(`(<plate>\\s*<plate_info id="${pl}"\\s*/>[\\s\\S]*?)(\\s*<mode\\b|\\s*</plate>)`);
+      if (re.test(xml)) xml = xml.replace(re, (_m, body, tail) => body + "\n" + ls.join("").replace(/\n$/, "") + tail);
+      else xml = xml.replace("</custom_gcodes_per_layer>", `  <plate>\n    <plate_info id="${pl}"/>\n${ls.join("")}    <mode value="${mode}"/>\n  </plate>\n</custom_gcodes_per_layer>`);
+    }
+    outFiles[CG] = strToU8(xml);
+    const n = opts.pauses.length;
+    info(`Added ${n} filament-change pause${n > 1 ? "s" : ""} so ${a.filaments.filter((f) => f.used).length} colours print with ${profile.slots} slot${profile.slots > 1 ? "s" : ""}: ${opts.pauses
+      .slice(0, 6)
+      .map((c) => `slot ${c.slot} → ${normalizeColor(c.color)} at ${topZ(c.z)} mm${a.plates.length > 1 ? ` (plate ${c.plate})` : ""}`)
+      .join("; ")}${n > 6 ? "; …" : ""}. The printer pauses at each one (${pauseG ? `its pause G-code: ${pauseG.split("\n")[0].slice(0, 30)}` : "M600"}); swap the filament from the printer's screen, then resume.`);
+    if (!pauseG) warn("This printer profile has no pause G-code, so the pauses use M600. Check that your firmware supports it (on Klipper it needs an M600 macro).");
+  }
   R.version = fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client;
   outFiles[SETTINGS] = strToU8(JSON.stringify(R, null, 4));
   if (removed.some((r) => r.endsWith(".gcode"))) info("Removed the pre-sliced G-code for the original printer. Slice again before printing.");
   if (paintRemapped) info(`Re-mapped painted colours on ${paintRemapped.toLocaleString()} triangles to the new slot numbers.`);
   if (!identity && !paintRemapped && a.hasPaint && paintNeedsRemap) info("Painted areas already used the kept filament numbers.");
   const merged = groups.filter((g) => g.length > 1);
-  merged.forEach((g) => info(`Filaments ${g.join(", ")} now print from one slot (slot ${map[g[0] - 1]}).`));
+  merged.forEach((g) =>
+    info(opts.pauses?.some((c) => g.includes(c.fil)) ? `Filaments ${g.join(", ")} share slot ${map[g[0] - 1]}, with a pause to swap between them.` : `Filaments ${g.join(", ")} now print from one slot (slot ${map[g[0] - 1]}).`),
+  );
   merged.forEach((g) => {
     const ts = [...new Set(g.map((i) => a.filaments[i - 1]?.type).filter(Boolean))];
     if (ts.length > 1) warn(`Filaments ${g.join(", ")} are different materials (${ts.join(", ")}) but now share slot ${map[g[0] - 1]}. Check that the slot's material suits every part.`);

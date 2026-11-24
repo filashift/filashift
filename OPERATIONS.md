@@ -32,7 +32,7 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 - Backups/history in /root (caddy-backup-*.tgz, Caddyfile.pre-*). Release log: /var/log/filashift-releases.log.
 
 ## Release / rollback
-`./deploy/release.sh` (typecheck, build, upload, atomic swap, smoke test). `./deploy/release.sh --rollback` restores the previous release instantly. After a release, push the commit to the Droplet git repo.
+`./deploy/release.sh` (typecheck, build, prerender, upload, atomic swap, smoke test). `scripts/prerender.mjs` (playwright-core + local Chrome; set `CHROME=` if it isn't found) renders every public route to `dist/public/<route>/index.html` plus `404.html`, `sitemap.xml` and `robots.txt`. Add new routes to its `ROUTES` list (guides are picked up from `client/src/lib/guides.ts` automatically). Caddy serves `{path}/index.html` for pages and `404.html` with status 404 for anything else. `./deploy/release.sh --rollback` restores the previous release instantly. After a release, push the commit to the Droplet git repo.
 
 ## Routine health check
 1. `curl -sI https://filashift.com` 200, `https://www.filashift.com` 301, `http://filashift.com` 308; profiles/index.json and fonts/fonts.css 200.
@@ -60,7 +60,7 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 
 - Service: `filashift-api.service` runs `/opt/filashift/filashift-api.py` (stdlib Python, user caddy) on 127.0.0.1:8787; Caddy proxies `/api/*` with a 16 KB body cap. Source: `deploy/filashift-api.py`, unit `deploy/filashift-api.service`.
 - Endpoints: `POST /api/report` (message, link, email, details, page; honeypot field `website`), `GET /api/health`. Limits: 5 reports per IP per hour, 200 per day overall. No request logging.
-- Reports land in `/var/lib/filashift/reports/<id>.json` with `"status": "new"`. There is no outgoing email: the Ops Teammate checks daily (`ls /var/lib/filashift/reports`), triages, sets `status` to `seen`/`fixed`, and tells David about anything needing a reply (reply from support@jacksoncgc.com). Delete reports older than 12 months (privacy page promise): `find /var/lib/filashift/reports -name '*.json' -mtime +365 -delete`.
+- Reports land in `/var/lib/filashift/reports/<id>.json` with `"status": "new"`. There is no outgoing email: the Ops Teammate checks daily (`ls /var/lib/filashift/reports`), triages, sets `status` to `seen`/`fixed`, and tells David about anything needing a reply (reply from support@jacksoncgc.com). Reports older than 12 months must be deleted (privacy page promise): `deploy/filashift-reports-cleanup.timer` does it daily once installed; otherwise run `find /var/lib/filashift/reports -name '*.json' -mtime +365 -delete`.
 - The 3MF file is never sent; "conversion details" (file name, source/target, counts, warnings, browser) are included only if the visitor leaves the box ticked.
 - Pages: /about, /privacy, /terms, /contact (client/src/pages/info.tsx). Privacy page states no analytics, no cookies, no access logs — keep Caddy without a `log` directive, and update the page if that ever changes.
 
@@ -83,3 +83,14 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 
 ## Ongoing development (weekly)
 Part of the Monday maintenance run: sync the GitHub mirror, triage new GitHub issues/PRs and problem reports, then pick the most valuable small improvement (new printer profiles from new OrcaSlicer/Bambu Studio releases, converter fixes from reports, UI polish, collector fixes). Validate (typecheck, conversion matrix, slicing in both CLIs for engine/profile changes), release with ./deploy/release.sh, commit, push to both remotes, log in /var/log/filashift-releases.log, and summarise for David. Skip the release if validation fails; never claim a printer works until its output slices in its destination slicer.
+
+## Log retention
+- The Privacy Policy says server logs are kept for 30 days. `deploy/journald-filashift.conf` goes in `/etc/systemd/journald.conf.d/filashift.conf` (`MaxRetentionSec=30day`), then `systemctl restart systemd-journald`. Caddy has no access log.
+
+## SEO content and languages
+- Guides: `client/src/lib/guides.ts` (one object per guide: slug, title, meta, steps, sections, FAQ, `updated`). Pages in `client/src/pages/guides.tsx` at `/guides` and `/guides/<slug>`, each with HowTo, FAQPage and Breadcrumb JSON-LD. Update `updated` when a guide changes; the sitemap date is the build date. Guides are English only (marked `lang="en" translate="no"`).
+- Home FAQ answers stay in the HTML (accordion uses forceMount) and feed the FAQPage JSON-LD.
+- Spanish: `client/src/lib/es.json` (exact English string -> Spanish), `client/src/lib/es-patterns.ts` (strings with numbers/names) and `REPORT_ES` in `client/src/lib/i18n.tsx` (conversion report lines). New UI text shows in English until added there. To find gaps, run a Playwright pass in Spanish and list text nodes that still contain English words.
+- Legal pages ship their own Spanish (`client/src/pages/legal.tsx`); the English version prevails.
+- Creators page reads `/var/www/filashift-data/creators.json`: `[{"name":"…","url":"https://…","platform":"MakerWorld","note":"…"}]`. Only list creators who asked.
+- Slicer-tested badges: `client/public/profiles/tested.json` (generated by `scripts/tested.py` from the slice matrix logs). Re-run the matrix and regenerate before changing the date or slicer versions.

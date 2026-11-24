@@ -5,9 +5,16 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+// hash routing (preview hosts): ignore "?query" after the hash path so "#/?printer=x" still matches "/"
+const useHashPath = (): [string, (to: string, o?: { replace?: boolean }) => void] => {
+  const [loc, nav] = useHashLocation();
+  return [loc.split("?")[0] || "/", nav];
+};
 import Home from "@/pages/home";
 import Filament from "@/pages/filament";
 import { About, Contact, Privacy, Terms } from "@/pages/info";
+import Creators from "@/pages/creators";
+import { GuidePage, GuidesIndex } from "@/pages/guides";
 import { ReportDialog } from "@/components/report-dialog";
 import { PATH_ROUTING } from "./routing";
 
@@ -20,6 +27,9 @@ function AppRouter() {
       <Route path="/terms" component={Terms} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
+      <Route path="/creators" component={Creators} />
+      <Route path="/guides" component={GuidesIndex} />
+      <Route path="/guides/:slug" component={GuidePage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -36,7 +46,7 @@ function App() {
             <AppRouter />
           </Router>
         ) : (
-          <Router hook={useHashLocation}>
+          <Router hook={useHashPath}>
             <AppRouter />
           </Router>
         )}

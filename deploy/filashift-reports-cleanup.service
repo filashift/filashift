@@ -1,0 +1,6 @@
+[Unit]
+Description=Delete FilaShift problem reports older than 12 months (Privacy Policy retention)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/find /var/lib/filashift/reports -type f -name "*.json" -mtime +365 -delete

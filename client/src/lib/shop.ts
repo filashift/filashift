@@ -1,3 +1,4 @@
+import { dataUrl } from "@/lib/seo";
 // Shared filament price data, affiliate links and colour matching.
 // Data lives at /data on the server (see OPERATIONS.md); nothing here contacts a third party.
 
@@ -39,7 +40,7 @@ let dataP: Promise<ShopData> | null = null;
 let cfgP: Promise<ShopConfig> | null = null;
 export function loadShopData(): Promise<ShopData> {
   if (!dataP) {
-    dataP = fetch("./data/filament.json", { cache: "no-cache" }).then((r) => {
+    dataP = fetch(dataUrl("filament.json"), { cache: "no-cache" }).then((r) => {
       if (!r.ok) throw new Error("prices unavailable");
       return r.json();
     });
@@ -49,7 +50,7 @@ export function loadShopData(): Promise<ShopData> {
 }
 export function loadShopConfig(): Promise<ShopConfig> {
   if (!cfgP) {
-    cfgP = fetch("./data/config.json", { cache: "no-cache" })
+    cfgP = fetch(dataUrl("config.json"), { cache: "no-cache" })
       .then((r) => (r.ok ? r.json() : {}))
       .catch(() => ({}));
   }

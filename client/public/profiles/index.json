@@ -2104,8 +2104,8 @@
 "short": "CR-10",
 "machine": "Creality CR-10 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+300.0
 ],
 "height": 400.0,
 "extruders": 1,
@@ -2215,8 +2215,8 @@
 "short": "CR-10 Smart",
 "machine": "Creality CR-10 Smart 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+300.0
 ],
 "height": 400.0,
 "extruders": 1,
@@ -2250,8 +2250,8 @@
 "short": "CR-10 Smart Pro",
 "machine": "Creality CR-10 Smart Pro 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+300.0
 ],
 "height": 400.0,
 "extruders": 1,
@@ -2359,8 +2359,8 @@
 "short": "CR-10S Pro V2",
 "machine": "Creality CR-10S Pro V2 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+300.0
 ],
 "height": 400.0,
 "extruders": 1,
@@ -2394,8 +2394,8 @@
 "short": "CR-20 Pro",
 "machine": "Creality CR-20 Pro 0.4 nozzle",
 "bed": [
-0,
-0
+220.0,
+220.0
 ],
 "height": 250.0,
 "extruders": 1,
@@ -2546,8 +2546,8 @@
 "short": "CR-M4 SE",
 "machine": "Creality CR-M4 SE 0.4 nozzle",
 "bed": [
-0,
-0
+420.0,
+420.0
 ],
 "height": 420.0,
 "extruders": 1,
@@ -2581,8 +2581,8 @@
 "short": "Ender-2 Pro",
 "machine": "Creality Ender-2 Pro 0.4 nozzle",
 "bed": [
-0,
-0
+165.0,
+165.0
 ],
 "height": 180.0,
 "extruders": 1,
@@ -2657,8 +2657,8 @@
 "short": "Ender-3 Max",
 "machine": "Creality Ender-3 Max 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+300.0
 ],
 "height": 340.0,
 "extruders": 1,
@@ -2692,8 +2692,8 @@
 "short": "Ender-3 Max Neo",
 "machine": "Creality Ender-3 Max Neo 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+300.0
 ],
 "height": 320.0,
 "extruders": 1,
@@ -2727,8 +2727,8 @@
 "short": "Ender-3 Neo",
 "machine": "Creality Ender-3 Neo 0.4 nozzle",
 "bed": [
-0,
-0
+220.0,
+220.0
 ],
 "height": 250.0,
 "extruders": 1,
@@ -2914,8 +2914,8 @@
 "short": "Ender-3 S1 Sonic",
 "machine": "Creality Ender-3 S1 Sonic 0.4 nozzle",
 "bed": [
-0,
-0
+230.0,
+230.0
 ],
 "height": 270.0,
 "extruders": 1,
@@ -3186,8 +3186,8 @@
 "short": "Ender-3 V4",
 "machine": "Creality Ender-3 V4 0.4 nozzle",
 "bed": [
-0,
-0
+220.0,
+220.0
 ],
 "height": 235.0,
 "extruders": 1,
@@ -3256,8 +3256,8 @@
 "short": "Ender-5 Max",
 "machine": "Creality Ender-5 Max 0.4 nozzle",
 "bed": [
-0,
-0
+400.0,
+400.0
 ],
 "height": 400.0,
 "extruders": 1,
@@ -3407,8 +3407,8 @@
 "short": "Ender-5 S1 Sonic",
 "machine": "Creality Ender-5 S1 Sonic 0.4 nozzle",
 "bed": [
-0,
-0
+220.0,
+220.0
 ],
 "height": 280.0,
 "extruders": 1,
@@ -3634,8 +3634,8 @@
 "short": "K1 Max_CFS-C",
 "machine": "Creality K1 Max_CFS-C 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+300.0
 ],
 "height": 300.0,
 "extruders": 1,
@@ -3714,8 +3714,8 @@
 "short": "K1 SE_CFS-C",
 "machine": "Creality K1 SE_CFS-C 0.4 nozzle",
 "bed": [
-0,
-0
+220.0,
+220.0
 ],
 "height": 250.0,
 "extruders": 1,
@@ -3795,8 +3795,8 @@
 "short": "K1C_CFS-C",
 "machine": "Creality K1C_CFS-C 0.4 nozzle",
 "bed": [
-0,
-0
+220.0,
+220.0
 ],
 "height": 250.0,
 "extruders": 1,
@@ -3835,8 +3835,8 @@
 "short": "K1_CFS-C",
 "machine": "Creality K1_CFS-C 0.4 nozzle",
 "bed": [
-0,
-0
+220.0,
+220.0
 ],
 "height": 250.0,
 "extruders": 1,
@@ -4013,8 +4013,8 @@
 "short": "K2 SE",
 "machine": "Creality K2 SE 0.4 nozzle",
 "bed": [
-0,
-0
+220.0,
+215.0
 ],
 "height": 245.0,
 "extruders": 1,
@@ -4048,8 +4048,8 @@
 "short": "SPARKX i7",
 "machine": "Creality SPARKX i7 0.4 nozzle",
 "bed": [
-0,
-0
+260.0,
+260.0
 ],
 "height": 255.0,
 "extruders": 1,
@@ -4089,8 +4089,8 @@
 "short": "Sermoon D3",
 "machine": "Creality Sermoon D3 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+250.0
 ],
 "height": 300.0,
 "extruders": 1,
@@ -4124,8 +4124,8 @@
 "short": "Sermoon M300",
 "machine": "Creality Sermoon M300 0.4 nozzle",
 "bed": [
-0,
-0
+300.0,
+300.0
 ],
 "height": 200.0,
 "extruders": 1,
@@ -4199,8 +4199,8 @@
 "short": "Sermoon V1 Pro",
 "machine": "Creality Sermoon V1 Pro 0.4 nozzle",
 "bed": [
-0,
-0
+175.0,
+175.0
 ],
 "height": 165.0,
 "extruders": 1,

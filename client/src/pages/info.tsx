@@ -4,18 +4,17 @@ import { Mail, MessageSquareWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { COMPANY, JtsEmblem, SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { openReport } from "@/components/report-dialog";
+import { useLang } from "@/lib/i18n";
+import { usePageMeta } from "@/lib/seo";
+import { LEGAL_UPDATED, privacySections, termsSections } from "./legal";
 
-const UPDATED = "November 23, 2026";
 const EMAIL = "support@jacksoncgc.com";
 
-function Page({ title, intro, children }: { title: string; intro?: ReactNode; children: ReactNode }) {
+function Page({ title, intro, children, desc }: { title: string; intro?: ReactNode; children: ReactNode; desc?: string }) {
   useEffect(() => {
-    document.title = `${title} — FilaShift`;
     window.scrollTo(0, 0);
-    return () => {
-      document.title = "FilaShift — 3MF printer converter";
-    };
   }, [title]);
+  usePageMeta(`${title} — FilaShift`, desc || (typeof intro === "string" ? intro : undefined));
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -42,107 +41,35 @@ function S({ h, children }: { h: string; children: ReactNode }) {
   );
 }
 
-const Mailto = () => <a href={`mailto:${EMAIL}`}>{EMAIL}</a>;
 
 export function Privacy() {
+  const lang = useLang();
+  const es = lang === "es";
   return (
-    <Page title="Privacy" intro={`How FilaShift handles your files and data. Last updated ${UPDATED}.`}>
-      <S h="Your 3MF files stay on your device">
-        <p>
-          <strong>Conversion happens entirely in your browser.</strong> Your project files are read, converted and saved on your own computer or
-          phone. They are never uploaded to FilaShift or anyone else, and we cannot see them.
-        </p>
-      </S>
-      <S h="What the site loads">
-        <p>
-          Your browser downloads the FilaShift app, printer profiles, fonts and filament price lists from filashift.com only. We don't use analytics,
-          advertising trackers, social widgets or cookies, and the site does not contact third-party servers while you use it.
-        </p>
-        <p>
-          The web server does not keep access logs of visitors. Like any website, your internet address is visible to the server while a page is
-          being delivered.
-        </p>
-      </S>
-      <S h="Problem reports and email">
-        <p>
-          If you send a report through "Report a problem", we receive what you type, the optional link and email address, and, only if you leave
-          the box ticked, a short summary of the conversion (file name, source and target printer, plate and filament counts, warnings and your
-          browser version). Never the file itself. Reports are kept for up to 12 months to fix problems and then deleted. We use your email only to
-          reply to you.
-        </p>
-      </S>
-      <S h="Store and affiliate links">
-        <p>
-          Filament prices come from brand stores' public listings. When you click a store or Amazon link you leave FilaShift, and that site's own
-          privacy policy applies. Some links are affiliate links: the store may set a cookie so that FilaShift can earn a small commission if you
-          buy, at no extra cost to you. As an Amazon Associate, FilaShift earns from qualifying purchases.
-        </p>
-      </S>
-      <S h="Children">
-        <p>FilaShift is a general audience tool and does not knowingly collect personal information from children.</p>
-      </S>
-      <S h="Contact">
-        <p>
-          FilaShift is operated by {COMPANY}. Questions about privacy or a request to delete a report: <Mailto />.
-        </p>
-      </S>
+    <Page title={es ? "Privacidad" : "Privacy"} intro={es ? `Cómo trata FilaShift tus archivos y datos. Última actualización: ${LEGAL_UPDATED.es}.` : `How FilaShift handles your files and data. Last updated ${LEGAL_UPDATED.en}.`}>
+      <div translate="no" className="contents">
+        {privacySections(lang).map((x) => (
+          <S key={x.h} h={x.h}>
+            {x.body}
+          </S>
+        ))}
+      </div>
     </Page>
   );
 }
 
 export function Terms() {
+  const lang = useLang();
+  const es = lang === "es";
   return (
-    <Page title="Terms of use" intro={`Last updated ${UPDATED}.`}>
-      <S h="Using FilaShift">
-        <p>
-          FilaShift is a free tool that converts 3D printing project files between slicers and printers. By using it you agree to these terms. If
-          you don't agree, please don't use the site.
-        </p>
-      </S>
-      <S h="Check before you print">
-        <p>
-          Converted projects are a best effort. Printers, slicer versions and filaments differ, so <strong>always open the converted project in your
-          slicer and check the preview, temperatures and speeds before printing.</strong> You are responsible for what you print and for operating
-          your printer safely.
-        </p>
-      </S>
-      <S h="Your files and designers' rights">
-        <p>
-          Only convert files you are allowed to use. Converting a model does not change its licence: follow the designer's terms, including any
-          non-commercial or no-remix conditions, and credit the designer when you share it.
-        </p>
-      </S>
-      <S h="Prices and stores">
-        <p>
-          Filament prices, stock and discounts are collected from store listings several times a day and can be out of date. The store's checkout
-          price is the one that counts. FilaShift does not sell anything and is not responsible for purchases you make from stores. Some store
-          links earn FilaShift a commission.
-        </p>
-      </S>
-      <S h="No warranty">
-        <p>
-          FilaShift is provided "as is", without warranties of any kind. To the extent the law allows, {COMPANY} is not liable for failed prints,
-          damaged equipment, wasted material or any indirect loss arising from using the site.
-        </p>
-      </S>
-      <S h="Open source">
-        <p>
-          The FilaShift software is licensed under the GNU AGPL-3.0. Printer and filament presets are derived from OrcaSlicer and Bambu Studio
-          (AGPL-3.0), and our use of their names describes compatibility only.
-        </p>
-      </S>
-      <S h="Trademarks">
-        <p>
-          Bambu Lab, MakerWorld, Snapmaker, Flashforge, Creality, Prusa, Elegoo, Anycubic, Qidi and other product names are trademarks of their
-          owners. FilaShift is not affiliated with or endorsed by them. The FilaShift name and the JTS emblem belong to {COMPANY}.
-        </p>
-      </S>
-      <S h="Changes and governing law">
-        <p>
-          We may update these terms; the date above shows the latest version. These terms are governed by the laws of the State of Wisconsin,
-          USA. Questions: <Mailto />.
-        </p>
-      </S>
+    <Page title={es ? "Condiciones de uso" : "Terms of use"} intro={es ? `Última actualización: ${LEGAL_UPDATED.es}.` : `Last updated ${LEGAL_UPDATED.en}.`}>
+      <div translate="no" className="contents">
+        {termsSections(lang).map((x) => (
+          <S key={x.h} h={x.h}>
+            {x.body}
+          </S>
+        ))}
+      </div>
     </Page>
   );
 }

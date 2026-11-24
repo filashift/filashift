@@ -14,10 +14,13 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { planPauses } from "@/engine/engine";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { Analysis, ConvertReport } from "@/engine/types";
+import type { ExportResult } from "@/engine/export";
 import { cn } from "@/lib/utils";
 import { ProjectFilament } from "@/components/project-filament";
 import { conversionDetails, openReport } from "@/components/report-dialog";
@@ -30,6 +33,8 @@ export interface Job {
   analysis?: Analysis;
   thumbUrl?: string;
   map: number[];
+  /** print extra colours by pausing for filament swaps (see planPauses) */
+  pauses?: boolean;
   error?: string;
   result?: { url: string; name: string; size: number; report: ConvertReport };
 }
@@ -83,15 +88,19 @@ export function FileCard({
   targetName,
   canConvert,
   onMap,
+  onPauses,
   onConvert,
   onRemove,
   onReset,
+  onExport,
 }: {
   job: Job;
   slots: number;
   targetName: string;
   canConvert: boolean;
   onMap: (filamentIndex: number, slot: number) => void;
+  onPauses: (on: boolean) => void;
+  onExport: (fmt: "stl" | "obj") => ExportResult;
   onConvert: () => void;
   onRemove: () => void;
   onReset: () => void;
@@ -100,6 +109,8 @@ export function FileCard({
   const convertible = !!a && !a.error && (a.kind === "bambu" || a.kind === "orca");
   const sc = a ? slotColors(a, job.map, slots) : [];
   const usedCount = a ? a.filaments.filter((f) => f.used).length : 0;
+  const overSlots = !!a && convertible && usedCount > slots;
+  const plan = overSlots ? planPauses(a!, slots) : null;
 
   return (
     <article className="overflow-hidden rounded-xl border border-card-border bg-card" data-testid={`card-file-${job.id}`}>
@@ -128,7 +139,7 @@ export function FileCard({
               )}
               <Badge variant="secondary" className="font-normal">
                 <Layers className="mr-1 h-3 w-3" />
-                {a.plates.length} plate{a.plates.length === 1 ? "" : "s"} · {a.objectCount} object{a.objectCount === 1 ? "" : "s"}
+                {`${a.plates.length} plate${a.plates.length === 1 ? "" : "s"} · ${a.objectCount} object${a.objectCount === 1 ? "" : "s"}`}
               </Badge>
               {a.hasPaint && (
                 <Badge variant="secondary" className="font-normal">
@@ -166,7 +177,7 @@ export function FileCard({
           <div className="mb-3 flex items-baseline justify-between gap-2">
             <h4 className="text-sm font-medium">Filament → slot</h4>
             <span className="text-xs text-muted-foreground">
-              {usedCount} of {a.filaments.length} used{a.usedKnown ? "" : " (assumed)"}
+              {`${usedCount} of ${a.filaments.length} used${a.usedKnown ? "" : " (assumed)"}`}
             </span>
           </div>
           <ul className="space-y-2">
@@ -229,6 +240,34 @@ export function FileCard({
             </div>
           </div>
 
+          {overSlots && (
+            <div className="mt-3 rounded-lg border border-card-border p-3 text-sm" data-testid={`panel-pauses-${job.id}`}>
+              {plan ? (
+                <label className="flex items-start gap-3">
+                  <Switch checked={!!job.pauses} onCheckedChange={onPauses} className="mt-0.5" data-testid={`switch-pauses-${job.id}`} />
+                  <span>
+                    <span className="font-medium">{`Print all ${usedCount} colours with filament-change pauses`}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {`The colours never share a layer, so the printer can pause ${plan.changes.length} time${plan.changes.length > 1 ? "s" : ""} for you to swap filament instead of merging colours${
+                        job.pauses
+                          ? `: ${plan.changes
+                              .slice(0, 3)
+                              .map((c) => `slot ${c.slot} → ${c.color} from ${c.z.toFixed(1)} mm`)
+                              .join(", ")}${plan.changes.length > 3 ? "…" : ""}.`
+                          : "."
+                      }`}
+                    </span>
+                  </span>
+                </label>
+              ) : (
+                <p className="flex gap-2 text-xs text-muted-foreground">
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>{`This project uses ${usedCount} colours on ${slots} slot${slots > 1 ? "s" : ""}. Some colours print on the same layers${a!.hasPaint ? " or are painted" : ""}, so pauses cannot replace the missing slots; the closest colours share a slot instead.`}</span>
+                </p>
+              )}
+            </div>
+          )}
+
           {a.notes.length > 0 && (
             <ul className="mt-3 space-y-1">
               {a.notes.map((n, i) => (
@@ -247,12 +286,14 @@ export function FileCard({
             data-testid={`button-convert-${job.id}`}
           >
             {job.status === "converting" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-            Convert for {targetName || "printer"}
+            <span>{`Convert for ${targetName || "printer"}`}</span>
           </Button>
         </div>
       )}
 
       {job.result && <ResultPanel job={job} onReset={onReset} />}
+
+      {a && !a.error && job.status !== "reading" && <MeshExport job={job} onExport={onExport} />}
 
       {a && (
         <div className="border-t border-card-border px-4 py-2 text-right">
@@ -285,6 +326,54 @@ export function FileCard({
   );
 }
 
+function MeshExport({ job, onExport }: { job: Job; onExport: (fmt: "stl" | "obj") => ExportResult }) {
+  const [busy, setBusy] = useState<"" | "stl" | "obj">("");
+  const [res, setRes] = useState<{ lines: ExportResult["lines"]; err?: string } | null>(null);
+  const run = async (fmt: "stl" | "obj") => {
+    setBusy(fmt);
+    await new Promise((r) => setTimeout(r, 30));
+    try {
+      const r = onExport(fmt);
+      const url = URL.createObjectURL(r.blob);
+      const el = document.createElement("a");
+      el.href = url;
+      el.download = r.fileName;
+      document.body.appendChild(el);
+      el.click();
+      el.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      setRes({ lines: r.lines });
+    } catch (e: any) {
+      setRes({ lines: [], err: `Export failed: ${e?.message || e}` });
+    }
+    setBusy("");
+  };
+  return (
+    <div className="border-t border-card-border px-4 py-3" data-testid={`panel-export-${job.id}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-auto text-xs text-muted-foreground">Just need the model?</span>
+        {(["stl", "obj"] as const).map((f) => (
+          <Button key={f} size="sm" variant="outline" className="h-8 gap-1.5 text-xs" disabled={!!busy} onClick={() => run(f)} data-testid={`button-export-${f}-${job.id}`}>
+            {busy === f ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            {f === "stl" ? "Export STL" : "Export OBJ"}
+          </Button>
+        ))}
+      </div>
+      {res && (
+        <ul className="mt-2 space-y-1" data-testid={`text-export-${job.id}`}>
+          {res.err && <li className="text-xs text-destructive">{res.err}</li>}
+          {res.lines.map((l, i) => (
+            <li key={i} className={cn("flex gap-2 text-xs", l.level === "warn" ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground")}>
+              {l.level === "ok" ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> : l.level === "warn" ? <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+              {l.text}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
   const r = job.result!;
   const rep = r.report;
@@ -295,7 +384,7 @@ function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
       <div className="flex items-start gap-2">
         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
         <div className="min-w-0">
-          <p className="font-medium">Ready for {rep.target}</p>
+          <p className="font-medium">{`Ready for ${rep.target}`}</p>
           <p className="truncate font-mono text-xs text-muted-foreground" title={r.name}>
             {r.name} · {fmtSize(r.size)}
           </p>
@@ -317,8 +406,8 @@ function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
       <div className="mt-3 flex gap-2 rounded-lg border border-card-border bg-muted/50 p-2.5 text-xs leading-snug" data-testid={`tip-open-project-${job.id}`}>
         <FolderOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
         <p>
-          <span className="font-medium">Open it as a project:</span> in your slicer use <kbd className="whitespace-nowrap rounded border border-border bg-background px-1 font-mono">File → Open Project</kbd>.
-          Dragging it onto the plate or importing it as a model leaves the converted settings behind.
+          <span className="font-medium">Open it as a project:</span>{" "}
+          <span>In your slicer use File → Open Project. Dragging it onto the plate or importing it as a model leaves the converted settings behind.</span>
         </p>
       </div>
 
@@ -361,7 +450,7 @@ function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
             <span>
               Settings details{" "}
               <span className="text-muted-foreground">
-                · {rep.kept.length} kept · {rep.replaced.length} adapted · {rep.speeds.length} speed changes
+                {`· ${rep.kept.length} kept · ${rep.replaced.length} adapted · ${rep.speeds.length} speed changes`}
               </span>
             </span>
             <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
