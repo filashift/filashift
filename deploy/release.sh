@@ -13,6 +13,7 @@ if [[ "${1:-}" == "--rollback" ]]; then
 fi
 [[ -z "$(git status --porcelain --untracked-files=normal)" ]] || { echo "Commit or remove pending changes before releasing." >&2; exit 1; }
 REV=$(git rev-parse --verify HEAD)
+python3 scripts/release-attribution.py verify "$REV"
 npx tsc --noEmit -p .
 npm run build
 node scripts/prerender.mjs
