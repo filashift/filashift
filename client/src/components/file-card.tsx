@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { planPauses } from "@/engine/engine";
+import { planPauses } from "@/engine/mapping";
+import { useLang } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -26,6 +27,7 @@ import { ProjectFilament } from "@/components/project-filament";
 import { conversionDetails, openReport } from "@/components/report-dialog";
 
 export interface Job {
+  stage?: string;
   id: string;
   name: string;
   size: number;
@@ -84,6 +86,7 @@ export function slotColors(a: Analysis, map: number[], slots: number) {
 
 export function FileCard({
   job,
+  bed,onCancel,
   slots,
   targetName,
   canConvert,
@@ -95,17 +98,21 @@ export function FileCard({
   onExport,
 }: {
   job: Job;
+  bed?:[number,number];
+  onCancel:()=>void;
   slots: number;
   targetName: string;
   canConvert: boolean;
   onMap: (filamentIndex: number, slot: number) => void;
   onPauses: (on: boolean) => void;
-  onExport: (fmt: "stl" | "obj") => ExportResult;
+  onExport: (fmt: "stl" | "obj") => Promise<ExportResult>;
   onConvert: () => void;
   onRemove: () => void;
   onReset: () => void;
 }) {
   const a = job.analysis;
+  const es=useLang()==="es";
+  const working=job.status==="reading"||job.status==="converting"||!!job.stage;
   const convertible = !!a && !a.error && (a.kind === "bambu" || a.kind === "orca");
   const sc = a ? slotColors(a, job.map, slots) : [];
   const usedCount = a ? a.filaments.filter((f) => f.used).length : 0;
@@ -157,6 +164,10 @@ export function FileCard({
           <X className="h-4 w-4" />
         </Button>
       </header>
+      {working && <div className="flex items-center justify-between gap-2 border-b px-4 py-2 text-sm">
+        <span role="status" data-testid="operation-stage">{job.stage || "Reading project"}</span>
+        <Button variant="outline" size="sm" onClick={onCancel} data-testid="cancel-operation">{es?"Cancelar":"Cancel"}</Button>
+      </div>}
 
       {(job.error || a?.error) && (
         <div className="flex gap-2 p-4 text-sm text-destructive" data-testid={`text-error-${job.id}`}>
@@ -174,6 +185,18 @@ export function FileCard({
 
       {a && convertible && !job.result && (
         <div className="p-4">
+          <details open className="mb-4 rounded-lg border border-card-border p-3 text-sm" translate="no" data-testid="preflight">
+            <summary className="cursor-pointer font-semibold">{es?"Vista previa de la conversión":"Conversion preview"}</summary>
+            <p className="mt-2"><b>{es?"Se conserva: ":"Kept: "}</b>{es?"geometría y placas del proyecto 3MF.":"3MF project geometry and plate layout."}</p>
+            <p><b>{es?"Cambia: ":"Changed: "}</b>{targetName || "…"} · {usedCount} {es?"colores usados":"used colors"} → {new Set(a.filaments.filter(f=>f.used).map(f=>job.map[f.index-1]).filter(Boolean)).size} {es?"ranuras asignadas":"mapped slots"}{job.pauses?(es?" + pausas":"+ pauses"):""}.</p>
+            <p className="mt-2 font-semibold">{es?"Revisa antes de imprimir":"Needs your attention"}</p>
+            <ul className="list-disc pl-5">{a.plates.map((plate,i)=>{
+              const size=plate.footprint,over=size&&bed&&(size[0]>bed[0]||size[1]>bed[1]);
+              return <li key={`${plate.id}-${i}`}>{es?"Placa":"Plate"} {plate.id}{plate.name?` · ${plate.name}`:""}: {size&&bed?`${es?"Huella estimada":"Estimated footprint"} ${size[0].toFixed(1)} × ${size[1].toFixed(1)} mm / ${bed.join(" × ")} mm. ${over?(es?"Supera la cama en la orientación actual.":"Exceeds the bed in this orientation."):(es?"Dentro del rectángulo de la cama; comprueba altura y márgenes.":"Within the bed rectangle; verify height and clearances.")}`:(es?"Sin medidas fiables; comprueba el tamaño en el laminador.":"Footprint not verified; check fit in your slicer.")}</li>;
+            })}</ul>
+            {overSlots&&!job.pauses&&<p>{es?"Algunos colores compartirán ranura.":"Some colors will share a slot."}</p>}
+            {!!a.translatedFrom?.dropped.length&&<p>{es?"Ajustes sin equivalente: ":"Settings without an equivalent: "}{a.translatedFrom.dropped.join(", ")}.</p>}
+          </details>
           <div className="mb-3 flex items-baseline justify-between gap-2">
             <h4 className="text-sm font-medium">Filament → slot</h4>
             <span className="text-xs text-muted-foreground">
@@ -195,7 +218,7 @@ export function FileCard({
                     </div>
                     {f.preset && <div className="truncate text-xs text-muted-foreground">{f.preset}</div>}
                   </div>
-                  <Select value={String(v)} onValueChange={(s) => onMap(f.index, parseInt(s))}>
+                  <Select disabled={working} value={String(v)} onValueChange={(s) => onMap(f.index, parseInt(s))}>
                     <SelectTrigger className="h-9 w-[132px] shrink-0" data-testid={`select-slot-${job.id}-${f.index}`}>
                       <SelectValue />
                     </SelectTrigger>
@@ -244,7 +267,7 @@ export function FileCard({
             <div className="mt-3 rounded-lg border border-card-border p-3 text-sm" data-testid={`panel-pauses-${job.id}`}>
               {plan ? (
                 <label className="flex items-start gap-3">
-                  <Switch checked={!!job.pauses} onCheckedChange={onPauses} className="mt-0.5" data-testid={`switch-pauses-${job.id}`} />
+                  <Switch disabled={working} checked={!!job.pauses} onCheckedChange={onPauses} className="mt-0.5" data-testid={`switch-pauses-${job.id}`} />
                   <span>
                     <span className="font-medium">{`Print all ${usedCount} colours with filament-change pauses`}</span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
@@ -282,7 +305,7 @@ export function FileCard({
           <Button
             className="mt-4 w-full"
             onClick={onConvert}
-            disabled={!canConvert || job.status === "converting"}
+            disabled={!canConvert || working}
             data-testid={`button-convert-${job.id}`}
           >
             {job.status === "converting" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
@@ -326,14 +349,14 @@ export function FileCard({
   );
 }
 
-function MeshExport({ job, onExport }: { job: Job; onExport: (fmt: "stl" | "obj") => ExportResult }) {
+function MeshExport({ job, onExport }: { job: Job; onExport: (fmt: "stl" | "obj") => Promise<ExportResult> }) {
+  const es=useLang()==="es";
   const [busy, setBusy] = useState<"" | "stl" | "obj">("");
   const [res, setRes] = useState<{ lines: ExportResult["lines"]; err?: string } | null>(null);
   const run = async (fmt: "stl" | "obj") => {
     setBusy(fmt);
-    await new Promise((r) => setTimeout(r, 30));
     try {
-      const r = onExport(fmt);
+      const r = await onExport(fmt);
       const url = URL.createObjectURL(r.blob);
       const el = document.createElement("a");
       el.href = url;
@@ -344,16 +367,17 @@ function MeshExport({ job, onExport }: { job: Job; onExport: (fmt: "stl" | "obj"
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
       setRes({ lines: r.lines });
     } catch (e: any) {
-      setRes({ lines: [], err: `Export failed: ${e?.message || e}` });
+      setRes(e?.name==="AbortError"?null:{ lines: [], err: `Export failed: ${e?.message || e}` });
     }
     setBusy("");
   };
   return (
     <div className="border-t border-card-border px-4 py-3" data-testid={`panel-export-${job.id}`}>
+      <p className="mb-2 text-xs text-muted-foreground" translate="no">{es?"STL solo conserva la forma. OBJ conserva un color base por pieza. Ninguno conserva los colores pintados ni los ajustes de impresión.":"STL keeps shape only. OBJ keeps one base color per part. Neither keeps painted detail or print settings."}</p>
       <div className="flex flex-wrap items-center gap-2">
         <span className="mr-auto text-xs text-muted-foreground">Just need the model?</span>
         {(["stl", "obj"] as const).map((f) => (
-          <Button key={f} size="sm" variant="outline" className="h-8 gap-1.5 text-xs" disabled={!!busy} onClick={() => run(f)} data-testid={`button-export-${f}-${job.id}`}>
+          <Button key={f} size="sm" variant="outline" className="h-8 gap-1.5 text-xs" disabled={!!busy||!!job.stage||job.status==="converting"} onClick={() => run(f)} data-testid={`button-export-${f}-${job.id}`}>
             {busy === f ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
             {f === "stl" ? "Export STL" : "Export OBJ"}
           </Button>

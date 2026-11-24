@@ -5,6 +5,8 @@ const browser=await chromium.launch({executablePath:process.env.CHROME || `${pro
 try {
   for(const es of [false,true]){
     const ctx=await browser.newContext({viewport:{width:es?375:1280,height:800},serviceWorkers:"block"});
+    if(["localhost","127.0.0.1"].includes(new URL(process.env.BASE||"http://localhost:4173").hostname))
+      await ctx.addInitScript(()=>{window.__PRERENDER=true});
     if(!es)await ctx.addInitScript(()=>Object.defineProperty(window,"LanguageModel",{configurable:true,value:{
       availability:async()=>"available",create:async()=>({prompt:async()=>"Local test explanation",destroy:()=>{window.testDestroyed=true}})
     }}));

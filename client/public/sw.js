@@ -1,7 +1,7 @@
 // FilaShift service worker: lets the installed app open offline.
 // Pages: network first, cached copy when offline. Hashed assets, fonts and printer profiles: cache first.
 // Prices (/data) and reports (/api) always go to the network. Project files are never touched.
-const V = "filashift-v2";
+const V = "filashift-v3";
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(V).then((c) => c.addAll(["/", "/favicon.svg", "/fonts/fonts.css", "/profiles/index.json"])).then(() => self.skipWaiting()));
 });
@@ -31,6 +31,7 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(
     caches.open(V).then(async (c) => {
       const hit = await c.match(r);
+      if (hit && immutable) return hit;
       const net = fetch(r).then((res) => {
         if (res.ok) c.put(r, res.clone());
         return res;

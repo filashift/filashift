@@ -5,7 +5,8 @@ import { Download, Lock, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { setLang, useLang } from "@/lib/i18n";
-import { Assistant } from "./assistant";
+import { Assistant } from "./assistant-launcher";
+import { MAJOR_RELEASE } from "@/lib/release";
 
 // public source repository (AGPL-3.0). VITE_SOURCE_URL overrides it at build time.
 export const SOURCE_URL: string = (import.meta as any).env?.VITE_SOURCE_URL || "https://github.com/filashift/filashift";
@@ -77,7 +78,7 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5" data-testid="link-home">
           <Logo />
-          <span className="text-base font-bold tracking-tight">FilaShift</span>
+          <span className="text-base font-bold tracking-tight">FilaShift <sup className="text-[10px] font-semibold text-primary" translate="no">v{MAJOR_RELEASE}</sup></span>
         </Link>
         <span className="flex items-center gap-2 border-l border-border pl-3" title="By Jackson Technology Solutions LLC">
           <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">by</span>
@@ -125,9 +126,12 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
 }
 
 export function SiteFooter({ children }: { children?: ReactNode }) {
+  const es=useLang()==="es";
   return (
     <footer className="border-t border-border bg-card/60">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        <details className="mb-4 text-sm" translate="no"><summary className="w-fit cursor-pointer font-medium text-primary" data-testid="major-release">FilaShift {MAJOR_RELEASE} · {es?"Novedades":"Release notes"}</summary>
+          <p className="mt-2 max-w-prose text-muted-foreground">{es?"Conversión en segundo plano con cancelación, comprobación del tamaño al descomprimir y vista previa por placa. Los archivos siguen en tu dispositivo.":"Conversion runs in the background and can be cancelled. Archives are checked as they unpack, and a preview explains what changes on each plate. Files stay on your device."}</p></details>
         <div className="mb-5 flex flex-wrap items-center gap-4">
           <JtsEmblem className="h-9" />
           <div className="text-sm">

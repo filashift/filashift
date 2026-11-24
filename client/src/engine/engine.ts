@@ -12,7 +12,9 @@
  * leave the printer slot empty so all machine settings come from the target's own profile.
  */
 import { isPrusaProject, prusaToOrca } from "./prusa";
-import { unzipSync, zipSync, strFromU8, strToU8, type Zippable } from "fflate";
+import { zipSync, strFromU8, strToU8, type Zippable } from "fflate";
+import { readArchive } from "./archive";
+export { planPauses, defaultMapping, colorDistance, type PausePlan } from "./mapping";
 import RULES from "../rules.json";
 import SLICER_KEYS from "./slicer-keys.json";
 import { scanPaint, remapPaintText } from "./paint";
@@ -145,17 +147,7 @@ function filVector(v: any, nfil: number, selfIndex: string[], variants: string[]
 export type Entries = Record<string, Uint8Array>;
 
 export function readZip(bytes: Uint8Array): Entries {
-  const raw = unzipSync(bytes);
-  const out: Entries = {};
-  let total = 0;
-  for (const [k, v] of Object.entries(raw)) {
-    const p = k.replace(/\\/g, "/");
-    if (p.endsWith("/") || p.startsWith("/") || p.includes("..")) continue;
-    out[p] = v;
-    total += v.length;
-    if (total > 2_000_000_000) throw new Error("This file expands to more than 2 GB, which exceeds the safety limit.");
-  }
-  return out;
+  return readArchive(bytes);
 }
 
 function findEntry(e: Entries, name: string): string | undefined {
@@ -424,83 +416,6 @@ function filamentStacks(e: Entries, rootText: string, objects: MSObject[], plate
   return out;
 }
 
-export interface PausePlan {
-  map: number[];
-  slotColors: Record<number, string>;
-  /** colour changes: on `plate`, slot `slot` switches to source filament `fil` from height `z` (object-relative) */
-  changes: { plate: number; slot: number; fil: number; z: number; color: string }[];
-}
-
-/**
- * When a project uses more colours than the printer has slots, try to share slots between colours that
- * never print on the same layers (e.g. a base in one colour and lettering on top in another). Returns null
- * when the colours overlap in height and pauses cannot replace the missing slots.
- */
-export function planPauses(a: Analysis, slots: number): PausePlan | null {
-  const used = a.filaments.filter((f) => f.used);
-  if (!a.usedKnown || !a.stacks || used.length <= slots || slots < 1) return null;
-  const EPS = 0.05;
-  // per filament per plate: merged band
-  const band = new Map<number, Map<number, [number, number]>>();
-  for (const s of a.stacks) {
-    if (!used.some((f) => f.index === s.fil)) continue;
-    const m = band.get(s.fil) || new Map();
-    const b = m.get(s.plate);
-    m.set(s.plate, b ? [Math.min(b[0], s.z0), Math.max(b[1], s.z1)] : [s.z0, s.z1]);
-    band.set(s.fil, m);
-  }
-  const lowest = (f: number) => Math.min(...[...(band.get(f)?.values() || [])].map((b) => b[0]));
-  const order = used.map((f) => f.index).filter((f) => band.has(f)).sort((x, y) => lowest(x) - lowest(y) || x - y);
-  if (order.length !== used.length) return null;
-  const slotFils: number[][] = Array.from({ length: slots }, () => []);
-  const fits = (s: number, f: number) =>
-    slotFils[s].every((g) => {
-      for (const [pl, b] of band.get(f)!) {
-        const c = band.get(g)!.get(pl);
-        if (c && b[0] < c[1] - EPS && c[0] < b[1] - EPS) return false;
-        // the later colour must start above the earlier one on this plate
-        if (c && b[0] < c[0]) return false;
-      }
-      return true;
-    });
-  for (const f of order) {
-    let s = slotFils.findIndex((x) => !x.length);
-    if (s < 0) {
-      // reuse the compatible slot whose last colour ends highest (shortest wait)
-      let best = -1, bestTop = -Infinity;
-      slotFils.forEach((x, i) => {
-        if (!fits(i, f)) return;
-        const top = Math.max(...x.flatMap((g) => [...band.get(g)!.values()].map((b) => b[1])));
-        if (top > bestTop) { bestTop = top; best = i; }
-      });
-      s = best;
-    }
-    if (s < 0) return null;
-    slotFils[s].push(f);
-  }
-  const map = a.filaments.map(() => 0);
-  const slotColors: Record<number, string> = {};
-  const changes: PausePlan["changes"] = [];
-  const colorOf = (f: number) => a.filaments[f - 1]?.color || "#FFFFFF";
-  slotFils.forEach((fs, i) => {
-    fs.forEach((f) => (map[f - 1] = i + 1));
-    if (!fs.length) return;
-    slotColors[i + 1] = colorOf(fs[0]);
-    const plates = new Set(fs.flatMap((f) => [...band.get(f)!.keys()]));
-    for (const pl of plates) {
-      const onPlate = fs.filter((f) => band.get(f)!.has(pl)).sort((x, y) => band.get(x)!.get(pl)![0] - band.get(y)!.get(pl)![0]);
-      onPlate.forEach((f, k) => {
-        if (k === 0 && f === fs[0]) return;
-        changes.push({ plate: pl, slot: i + 1, fil: f, z: k === 0 ? 0 : band.get(f)!.get(pl)![0], color: colorOf(f) });
-      });
-    }
-  });
-  // a change at the very first layer is not a pause users can act on; give up in that case
-  if (changes.some((c) => c.z < EPS)) return null;
-  // unused filaments keep the default behaviour (dropped)
-  return { map, slotColors, changes };
-}
-
 // ---------- analysis ----------
 function readHead(u: Uint8Array, n = 6000) {
   return strFromU8(u.subarray(0, Math.min(n, u.length)));
@@ -659,7 +574,9 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   try {
     e = readZip(bytes);
   } catch (err: any) {
-    base.error = "This does not look like a valid .3mf file (it could not be opened as a ZIP archive).";
+    base.error = err?.message?.includes("2 GB") ? err.message : err instanceof RangeError
+      ? "Not enough memory for this project. Try a smaller file or a device with more memory."
+      : "This does not look like a valid .3mf file (it could not be opened as a ZIP archive).";
     return { entries: {}, S: null, analysis: base };
   }
   if (!findEntry(e, ROOT_MODEL)) {
@@ -718,6 +635,37 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
   const { objects, plates } = parseModelSettings(msXml);
   a.objectCount = objects.length;
   a.plates = plates.length ? plates : [{ id: 1, name: "", objectIds: objects.map((o) => o.id) }];
+  // Use slicer-saved footprints when supplied. Missing metadata is not evidence of fit.
+  for (const plate of a.plates) {
+    const key = findEntry(e, `Metadata/plate_${plate.id}.json`);
+    if (!key) continue;
+    try {
+      const boxes = JSON.parse(dec(e[key])).bbox_objects?.map((o: {bbox?: number[]}) => o.bbox);
+      if (!Array.isArray(boxes) || !boxes.length || !boxes.every(b => Array.isArray(b) && b.length === 4 && b.every(Number.isFinite))) continue;
+      const w = Math.max(...boxes.map(b=>b[2])) - Math.min(...boxes.map(b=>b[0]));
+      const h = Math.max(...boxes.map(b=>b[3])) - Math.min(...boxes.map(b=>b[1]));
+      if (w>0 && h>0) plate.footprint = [w,h];
+    } catch { /* optional slicer metadata */ }
+  }
+  // Unsliced projects often lack plate JSON. Only infer a footprint when build
+  // instances can be unambiguously assigned; repeated object IDs can span plates.
+  if (a.plates.some(p=>!p.footprint)) {
+    const root=dec(e[findEntry(e,ROOT_MODEL)!]);
+    const ids=parseBuildItems(root).map(it=>it.objectid);
+    const unit=/<model\b[^>]*\bunit="([^"]+)"/i.exec(root)?.[1]||"millimeter";
+    if (unit==="millimeter" && ids.length && new Set(ids).size===ids.length) {
+      const boxes=itemBoxes(e,root);
+      for (const p of a.plates) {
+        if(p.footprint)continue;
+        const objects=a.plates.length===1 ? ids : p.objectIds;
+        if(!objects.length||!objects.every(id=>boxes.has(id)))continue;
+        const bounds=objects.map(id=>boxes.get(id)!);
+        const extent=bounds.reduce((b,v)=>[Math.min(b[0],v[0]),Math.min(b[1],v[1]),Math.max(b[2],v[2]),Math.max(b[3],v[3])], [Infinity,Infinity,-Infinity,-Infinity]);
+        const w=extent[2]-extent[0],h=extent[3]-extent[1];
+        if(Number.isFinite(w)&&Number.isFinite(h)&&w>0&&h>0)p.footprint=[w,h];
+      }
+    }
+  }
 
   let colours: any[] = Array.isArray(SS.filament_colour) ? SS.filament_colour : [];
   let nfil = colours.length;
@@ -792,47 +740,6 @@ export function pickProcess(profile: PrinterProfile, lh: number): ProcessPreset 
   return best;
 }
 
-// ---------- colour distance for auto-merge ----------
-function hexToLab(hex: string): [number, number, number] {
-  const n = parseInt(hex.slice(1), 16);
-  let r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
-  const lin = (c: number) => (c > 0.04045 ? Math.pow((c + 0.055) / 1.055, 2.4) : c / 12.92);
-  r = lin(r); g = lin(g); b = lin(b);
-  let x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
-  let y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-  let z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
-  const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
-  x = f(x); y = f(y); z = f(z);
-  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
-}
-export function colorDistance(a: string, b: string) {
-  const p = hexToLab(a), q = hexToLab(b);
-  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
-}
-
-/** Default mapping: used filaments get their own slots in order; when there are more than `slots`, the least-used ones are merged into the nearest kept colour. */
-export function defaultMapping(a: Analysis, slots: number, pruneUnused = true): number[] {
-  const fils = a.filaments;
-  const map = fils.map(() => 0);
-  const active = fils.filter((f) => f.used || !pruneUnused || !a.usedKnown);
-  if (active.length <= slots) {
-    active.forEach((f, i) => (map[f.index - 1] = i + 1));
-    return map;
-  }
-  const keep = [...active].sort((x, y) => y.usage - x.usage || x.index - y.index).slice(0, slots).sort((x, y) => x.index - y.index);
-  keep.forEach((f, i) => (map[f.index - 1] = i + 1));
-  for (const f of active) {
-    if (map[f.index - 1]) continue;
-    let bi = 0, bd = Infinity;
-    keep.forEach((k, i) => {
-      const d = colorDistance(f.color, k.color);
-      if (d < bd) { bd = d; bi = i; }
-    });
-    map[f.index - 1] = bi + 1;
-  }
-  return map;
-}
-
 // ---------- conversion ----------
 function setMeta(xml: string, key: string, value: string | null): string {
   const re = new RegExp(`\\s*<metadata name="${key.replace(/[:]/g, "\\$&")}">[^<]*</metadata>`);
@@ -864,7 +771,7 @@ function buildDiffLists(copied: Set<string>, nfil: number, mach: Set<string> = n
   return [proc.join(";"), ...Array(nfil).fill(fil.join(";")), [...mach].sort().join(";")];
 }
 
-export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOptions): ConvertResult {
+export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOptions, onPack?: () => void): ConvertResult {
   const { entries: e, analysis: a } = loaded;
   if (a.kind !== "bambu" && a.kind !== "orca") throw new Error("Only Bambu Studio and Orca-family projects can be converted in this release.");
   const S: Dict = loaded.S || {};
@@ -1520,6 +1427,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   if (S.printer_settings_id === profile.machine) info("The project was already set up for this printer; settings were refreshed anyway.");
   lines.unshift({ level: "ok", text: `Converted for ${profile.model}. Open it in ${profile.slicer} with File → Open Project (not Import), review, then slice.` });
 
+  onPack?.();
   const bytes = zipSync(outFiles, { level: 6 });
   const base = a.fileName.replace(/\.3mf$/i, "");
   const tag = profile.model.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");

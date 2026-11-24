@@ -1,4 +1,5 @@
 import { Switch, Route, Router } from "wouter";
+import { lazy, Suspense } from "react";
 import { useHashLocation } from "wouter/use-hash-location";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,16 +12,20 @@ const useHashPath = (): [string, (to: string, o?: { replace?: boolean }) => void
   return [loc.split("?")[0] || "/", nav];
 };
 import Home from "@/pages/home";
-import Filament from "@/pages/filament";
-import { About, Contact, Privacy, Terms } from "@/pages/info";
-import Creators from "@/pages/creators";
-import { GuidePage, GuidesIndex } from "@/pages/guides";
+const Filament=lazy(()=>import("@/pages/filament"));
+const About=lazy(()=>import("@/pages/info").then(m=>({default:m.About})));
+const Contact=lazy(()=>import("@/pages/info").then(m=>({default:m.Contact})));
+const Privacy=lazy(()=>import("@/pages/info").then(m=>({default:m.Privacy})));
+const Terms=lazy(()=>import("@/pages/info").then(m=>({default:m.Terms})));
+const Creators=lazy(()=>import("@/pages/creators"));
+const GuidePage=lazy(()=>import("@/pages/guides").then(m=>({default:m.GuidePage})));
+const GuidesIndex=lazy(()=>import("@/pages/guides").then(m=>({default:m.GuidesIndex})));
 import { ReportDialog } from "@/components/report-dialog";
 import { PATH_ROUTING } from "./routing";
 
 function AppRouter() {
   return (
-    <Switch>
+    <Suspense fallback={<p role="status" className="p-4">Loading…</p>}><Switch>
       <Route path="/" component={Home} />
       <Route path="/filament" component={Filament} />
       <Route path="/privacy" component={Privacy} />
@@ -31,7 +36,7 @@ function AppRouter() {
       <Route path="/guides" component={GuidesIndex} />
       <Route path="/guides/:slug" component={GuidePage} />
       <Route component={NotFound} />
-    </Switch>
+    </Switch></Suspense>
   );
 }
 

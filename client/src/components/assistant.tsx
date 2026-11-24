@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle } from "lucide-react";
 import { Link } from "wouter";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { GUIDES } from "@/lib/guides";
 import { GUIDES_ES } from "@/lib/guides-es";
@@ -30,7 +29,7 @@ type Model = {availability:(o:Options)=>Promise<string>; create:(o:Options & {si
 const model = () => (window as Window & {LanguageModel?: Model}).LanguageModel;
 const opts = (lang:string):Options=>({expectedInputs:[{type:"text",languages:[lang]}],expectedOutputs:[{type:"text",languages:[lang]}]});
 
-function Help({close}:{close:()=>void}) {
+export default function Help({close}:{close:()=>void}) {
   const lang=useLang(), es=lang==="es", t=(en:string,sp:string)=>es?sp:en;
   const [input,setInput]=useState(""), [asked,setAsked]=useState(""), [available,setAvailable]=useState(false);
   const [answer,setAnswer]=useState(""),[busy,setBusy]=useState(false);
@@ -68,8 +67,4 @@ function Help({close}:{close:()=>void}) {
     </div>
     <p className="text-xs text-muted-foreground">{t("Guide search works without AI. Closing clears your question.","La búsqueda funciona sin IA. Al cerrar se borra tu pregunta.")} <Link href="/privacy" onClick={close} className="underline">{t("Privacy","Privacidad")}</Link></p>
   </DialogContent>;
-}
-export function Assistant(){
-  const [open,setOpen]=useState(false),es=useLang()==="es";
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button variant="outline" size="sm" aria-label={es?"Pregunta a FilaShift":"Ask FilaShift"} title={es?"Pregunta a FilaShift":"Ask FilaShift"}><MessageCircle className="h-4 w-4"/><span className="hidden xl:inline">{es?"Ayuda":"Ask"}</span></Button></DialogTrigger>{open && <Help close={()=>setOpen(false)}/>}</Dialog>;
 }

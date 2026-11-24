@@ -13,15 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PrinterPicker, slotLabel, TestedNote, useTested } from "@/components/printer-picker";
 import { FileCard, type Job } from "@/components/file-card";
-import { exportMesh } from "@/engine/export";
-import { analyze, convert, defaultMapping, planPauses, type Loaded } from "@/engine/engine";
+import { ProjectWorker } from "@/lib/project-worker";
+import { defaultMapping, planPauses } from "@/engine/mapping";
 import type { PrinterIndexEntry, PrinterProfile } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PRINTER = "snapmaker-u1";
 const QUICK = ["snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu-lab-x1-carbon", "bambu-lab-a1", "bambu-lab-p1s", "creality-k2-plus"];
 
-const loadedFiles = new Map<string, Loaded>();
 const profileCache = new Map<string, Promise<PrinterProfile>>();
 function getProfile(id: string) {
   if (!profileCache.has(id)) {
@@ -37,7 +36,6 @@ function getProfile(id: string) {
 }
 
 let seq = 0;
-const tick = () => new Promise((r) => setTimeout(r, 30));
 
 export default function Home() {
   usePageMeta("FilaShift — Free 3MF converter for Bambu Lab, Flashforge, Creality, Prusa and more");
@@ -62,6 +60,15 @@ export default function Home() {
   const [loadErr, setLoadErr] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const jobsRef = useRef(jobs);
+  const pool = useRef(new Map<string,ProjectWorker>()).current;
+  const mounted = useRef(true);
+  useEffect(()=>{
+    mounted.current=true;
+    return ()=>{mounted.current=false;pool.forEach(p=>p.stop());pool.clear();for(const j of jobsRef.current){
+      if(j.thumbUrl) URL.revokeObjectURL(j.thumbUrl);
+      if(j.result) URL.revokeObjectURL(j.result.url);
+    }};
+  },[pool]);
   jobsRef.current = jobs;
   const slotsRef = useRef(slots);
   slotsRef.current = slots;
@@ -107,12 +114,14 @@ export default function Home() {
       js.map((j) => {
         if (!j.analysis || j.analysis.error) return j;
         if (j.result) URL.revokeObjectURL(j.result.url);
-        return { ...j, map: defaultMapping(j.analysis, slots), pauses: false, result: undefined, status: j.status === "error" ? j.status : "ready" };
+        return { ...j, map: defaultMapping(j.analysis, slots), pauses: false, result: undefined, status: j.status === "converting" ? "converting" : j.status === "error" ? "error" : "ready" };
       }),
     );
   }, [slots, targetId, nz]);
 
   const patch = (id: string, p: Partial<Job>) => setJobs((js) => js.map((j) => (j.id === id ? { ...j, ...p } : j)));
+  const settingsKey=JSON.stringify([profileId,slots,keepSpeeds,recenter]);
+  const activeSettings=useRef(settingsKey); activeSettings.current=settingsKey;
 
   const addFiles = useCallback(
     async (list: FileList | File[]) => {
@@ -121,26 +130,26 @@ export default function Home() {
       if (rejected) setLoadErr(`${rejected} file${rejected > 1 ? "s were" : " was"} skipped: only .3mf projects are supported.`);
       else setLoadErr("");
       for (const f of files) {
+        if(!mounted.current) break;
         const id = `f${++seq}`;
+        const session=new ProjectWorker(f);
+        pool.set(id,session);
         setJobs((js) => [...js, { id, name: f.name, size: f.size, status: "reading", map: [] }]);
-        await tick();
         try {
-          const bytes = new Uint8Array(await f.arrayBuffer());
-          const L = analyze(bytes, f.name);
-          loadedFiles.set(id, L);
-          const a = L.analysis;
-          let thumbUrl: string | undefined;
-          if (a.thumbnail && L.entries[a.thumbnail]) {
-            thumbUrl = URL.createObjectURL(new Blob([L.entries[a.thumbnail]], { type: "image/png" }));
-          }
+          // Keep at most one idle unpacked source; older jobs can reopen their local File.
+          pool.forEach((p,key)=>{if(key!==id && !p.busy)p.stop()});
+          const {analysis:a,thumbnail}=await session.run({kind:"inspect"},stage=>patch(id,{stage}));
+          if(!pool.has(id))continue;
+          const thumbUrl=thumbnail?URL.createObjectURL(thumbnail):undefined;
           patch(id, {
             analysis: a,
+            stage: undefined,
             thumbUrl,
             status: a.error ? "error" : "ready",
             map: a.error ? [] : defaultMapping(a, slotsRef.current),
           });
         } catch (e: any) {
-          patch(id, { status: "error", error: `Could not read this file: ${e?.message || e}` });
+          if(e?.name!=="AbortError")patch(id, { stage:undefined,status: "error", error: `Could not read this file: ${e?.message || e}` });
         }
       }
     },
@@ -148,17 +157,19 @@ export default function Home() {
   );
   const runConvert = async (id: string) => {
     const job = jobsRef.current.find((j) => j.id === id);
-    const L = loadedFiles.get(id);
-    if (!job || !L || !profile) return;
+    const session = pool.get(id);
+    if (!job || !session || session.busy || !profile || settingsKey!==activeSettings.current) return;
     patch(id, { status: "converting", error: undefined });
-    await tick();
     try {
       const plan = job.pauses && job.analysis ? planPauses(job.analysis, slots) : null;
-      const res = convert(L, { ...profile, slots }, plan ? { map: plan.map, keepSpeeds, recenter, slotColors: plan.slotColors, pauses: plan.changes } : { map: job.map, keepSpeeds, recenter });
+      const res = await session.run({kind:"convert",profile:{...profile,slots},options:plan ? { map: plan.map, keepSpeeds, recenter, slotColors: plan.slotColors, pauses: plan.changes } : { map: job.map, keepSpeeds, recenter }},stage=>patch(id,{stage}));
+      session.stop();
+      if(!pool.has(id))return;
+      if(settingsKey!==activeSettings.current){patch(id,{status:"ready",stage:undefined});return}
       const url = URL.createObjectURL(new Blob([res.bytes], { type: "model/3mf" }));
-      patch(id, { status: "done", result: { url, name: res.report.outputName, size: res.bytes.length, report: res.report } });
+      patch(id, { status: "done",stage:undefined, result: { url, name: res.report.outputName, size: res.bytes.length, report: res.report } });
     } catch (e: any) {
-      patch(id, { status: "ready", error: `Conversion failed: ${e?.message || e}` });
+      patch(id, { stage:undefined,status: "ready", error: e?.name==="AbortError" ? undefined : `Conversion failed: ${e?.message || e}` });
     }
   };
 
@@ -185,7 +196,7 @@ export default function Home() {
     const j = jobsRef.current.find((x) => x.id === id);
     if (j?.thumbUrl) URL.revokeObjectURL(j.thumbUrl);
     if (j?.result) URL.revokeObjectURL(j.result.url);
-    loadedFiles.delete(id);
+    pool.get(id)?.stop();pool.delete(id);
     setJobs((js) => js.filter((x) => x.id !== id));
   };
 
@@ -281,13 +292,16 @@ export default function Home() {
               <FileCard
                 key={j.id}
                 job={j}
+                bed={profile?.bed}
+                onCancel={()=>{if(j.status==="reading")removeJob(j.id);else pool.get(j.id)?.stop()}}
                 slots={slots}
                 targetName={target?.model || ""}
                 canConvert={!!profile}
-                onExport={(fmt) => {
-                  const L = loadedFiles.get(j.id);
-                  if (!L) throw new Error("The file is no longer loaded. Add it again.");
-                  return exportMesh(L.entries, j.name, fmt);
+                onExport={async(fmt) => {
+                  const session=pool.get(j.id);
+                  if (!session || session.busy) throw new Error("The file is busy or no longer loaded.");
+                  try{return await session.run({kind:fmt},stage=>patch(j.id,{stage}))}
+                  finally{session.stop();patch(j.id,{stage:undefined})}
                 }}
                 onPauses={(on) =>
                   setJobs((js) =>

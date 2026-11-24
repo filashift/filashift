@@ -59,6 +59,7 @@ export interface SourceFilament {
 }
 
 export interface PlateInfo {
+  footprint?: [number, number];
   id: number;
   name: string;
   objectIds: string[];
