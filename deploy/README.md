@@ -12,6 +12,11 @@ It uses an in-memory catalog, never included in the release.
 Run it independently against the current build, or set `BASE=https://filashift.com`
 for a separate smoke test using the live catalog. Use `CHROME` to override the executable.
 
+The release also runs `npm run test:release:mobile-es:bambu` as a separate blocking
+check before the five-printer suite. It uses the Spanish guide’s printer shortcuts
+to reach the A1 and X1 Carbon sections, then tests their PLA and PETG links respectively.
+Run that command on its own to isolate the Bambu shopping paths.
+
 1. Create Droplet: Ubuntu 24.04 LTS, Basic, Regular SSD, the smallest size ($4–6/mo) is enough; pick the closest US region (e.g. New York).
 2. Authentication: choose **SSH Key** (add yours).
 3. Advanced options → **Add initialization scripts** → paste `digitalocean-cloud-init.yaml`.

@@ -6,9 +6,12 @@ import { preview } from "vite";
 import { assertX1AmsWarning } from "./assert-x1-ams-warning.mjs";
 
 // Keep expectations independent of the guide: a swapped or missing CTA must fail.
-const picks = [
-  ["Flashforge Creator 5 Pro", "PLA"], ["Bambu Lab A1", "PLA"],
-  ["Bambu Lab X1 Carbon", "PETG"], ["Original Prusa MK4S", "PETG"], ["Snapmaker U1", "PLA"],
+const bambuPicks = [["Bambu Lab A1", "PLA"], ["Bambu Lab X1 Carbon", "PETG"]];
+const bambuOnly = process.argv[2] === "--bambu";
+assert(process.argv.length === 2 || (bambuOnly && process.argv.length === 3), "Expected no arguments or --bambu");
+const picks = bambuOnly ? bambuPicks : [
+  ["Flashforge Creator 5 Pro", "PLA"], ...bambuPicks,
+  ["Original Prusa MK4S", "PETG"], ["Snapmaker U1", "PLA"],
 ];
 const items = ["PLA","PETG"].map(m => ({
   b:"Fixture", r:"Fixture", t:`Test ${m}`, v:"Black", c:["Black"], f:m, m,
@@ -34,15 +37,21 @@ try {
   const errors=[];
   page.on("pageerror", e=>errors.push(e.message));
   const guide=`${base}/guides/filament-buying-guide-five-printers`;
-  await page.goto(`${guide}?lang=en`);
-  await page.getByRole("button",{name:"Bambu Lab X1 Carbon",exact:true}).tap();
-  await assertX1AmsWarning(page.getByRole("region",{name:"Bambu Lab X1 Carbon",exact:true}),"en");
-  console.log("PASS X1 Carbon original AMS warning: English content and placement");
+  if (!bambuOnly) {
+    await page.goto(`${guide}?lang=en`);
+    await page.getByRole("button",{name:"Bambu Lab X1 Carbon",exact:true}).tap();
+    await assertX1AmsWarning(page.getByRole("region",{name:"Bambu Lab X1 Carbon",exact:true}),"en");
+    console.log("PASS X1 Carbon original AMS warning: English content and placement");
+  }
   await page.goto(`${guide}?lang=es`);
   assert(await page.evaluate(()=>navigator.maxTouchPoints>0 && innerWidth<500));
   for (const [printer,material] of picks) {
     try {
       const card=page.getByRole("region",{name:printer,exact:true});
+      if (bambuOnly) {
+        await page.getByRole("button",{name:printer,exact:true}).tap();
+        assert(await card.evaluate(el=>document.activeElement===el),"Printer shortcut did not focus the matching section");
+      }
       if (printer === "Bambu Lab X1 Carbon") {
         await assertX1AmsWarning(card,"es");
         console.log("PASS X1 Carbon original AMS warning: Spanish content and placement");

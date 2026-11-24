@@ -9,6 +9,7 @@
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "test:release:mobile-es": "node scripts/check-spanish-mobile-spools.mjs",
+    "test:release:mobile-es:bambu": "node scripts/check-spanish-mobile-spools.mjs --bambu",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
