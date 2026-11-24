@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { chromium, devices } from "playwright-core";
 import { preview } from "vite";
+import { assertX1AmsWarning } from "./assert-x1-ams-warning.mjs";
 
 // Keep expectations independent of the guide: a swapped or missing CTA must fail.
 const picks = [
@@ -32,11 +33,20 @@ try {
   const page=await ctx.newPage();
   const errors=[];
   page.on("pageerror", e=>errors.push(e.message));
-  await page.goto(`${base}/guides/filament-buying-guide-five-printers?lang=es`);
+  const guide=`${base}/guides/filament-buying-guide-five-printers`;
+  await page.goto(`${guide}?lang=en`);
+  await page.getByRole("button",{name:"Bambu Lab X1 Carbon",exact:true}).tap();
+  await assertX1AmsWarning(page.getByRole("region",{name:"Bambu Lab X1 Carbon",exact:true}),"en");
+  console.log("PASS X1 Carbon original AMS warning: English content and placement");
+  await page.goto(`${guide}?lang=es`);
   assert(await page.evaluate(()=>navigator.maxTouchPoints>0 && innerWidth<500));
   for (const [printer,material] of picks) {
     try {
       const card=page.getByRole("region",{name:printer,exact:true});
+      if (printer === "Bambu Lab X1 Carbon") {
+        await assertX1AmsWarning(card,"es");
+        console.log("PASS X1 Carbon original AMS warning: Spanish content and placement");
+      }
       await card.getByRole("link",{name:`Comparar bobinas de ${material}`,exact:true}).tap();
       for(const phase of ["tap","reload"]) {
         if(phase==="reload"){

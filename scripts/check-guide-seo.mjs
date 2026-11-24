@@ -1,6 +1,7 @@
 // Run against production or a path-routed local preview: BASE=https://filashift.com node scripts/check-guide-seo.mjs
 import assert from "node:assert/strict";
 import { chromium } from "playwright-core";
+import { assertX1AmsWarning } from "./assert-x1-ams-warning.mjs";
 const base = process.env.BASE || "https://filashift.com";
 const browser = await chromium.launch({executablePath: process.env.CHROME || `${process.env.HOME}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`});
 try {
@@ -28,11 +29,7 @@ try {
     const cards = page.locator("article section[id]");
     await cards.first().waitFor();
     assert.equal(await cards.count(),5);
-    const warning=page.locator("#bambu-lab-x1-carbon aside");
-    assert.match(await warning.locator("h3").innerText(),lang==="es"?/AMS original/:/Original AMS/);
-    const caution=await warning.innerText();
-    for(const term of (lang==="es"?["50 a 68 mm","cartón","TPU blando","PVA húmedo","soporte externo"]:["50–68 mm","cardboard","soft TPU","damp PVA","external spool holder"])) assert(caution.includes(term));
-    assert(await warning.evaluate(el=>Boolean(el.compareDocumentPosition(el.parentElement.querySelector('a[href*="pack=single"]')) & Node.DOCUMENT_POSITION_FOLLOWING)));
+    await assertX1AmsWarning(page.getByRole("region",{name:"Bambu Lab X1 Carbon",exact:true}),lang);
     assert.equal(await cards.first().locator("h2").innerText(),"Flashforge Creator 5 Pro");
     const jumps=page.locator("article nav button");
     assert.equal(await jumps.count(),5);

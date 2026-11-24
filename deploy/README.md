@@ -6,7 +6,9 @@ PlateShift is a static site: HTML, JavaScript and JSON printer profiles (~18 MB)
 The normal `deploy/release.sh` workflow builds and prerenders the candidate, then runs
 `npm run test:release:mobile-es` before any upload or swap. This Chromium mobile-emulation
 test taps the five Spanish single-spool links and reloads each finder result with the
-saved language cleared. It uses an in-memory catalog, never included in the release.
+saved language cleared. It also checks that the X1 Carbon original AMS warning appears
+before the PETG link in both English and Spanish, visually and in reading order.
+It uses an in-memory catalog, never included in the release.
 Run it independently against the current build, or set `BASE=https://filashift.com`
 for a separate smoke test using the live catalog. Use `CHROME` to override the executable.
 
