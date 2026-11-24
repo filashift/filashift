@@ -3,6 +3,13 @@
 PlateShift is a static site: HTML, JavaScript and JSON printer profiles (~18 MB). Conversion runs in the visitor's browser, so the server only hands out files. No Node.js, database or backend process is needed on the server.
 
 ## DigitalOcean quick path
+The normal `deploy/release.sh` workflow builds and prerenders the candidate, then runs
+`npm run test:release:mobile-es` before any upload or swap. This Chromium mobile-emulation
+test taps the five Spanish single-spool links and reloads each finder result with the
+saved language cleared. It uses an in-memory catalog, never included in the release.
+Run it independently against the current build, or set `BASE=https://filashift.com`
+for a separate smoke test using the live catalog. Use `CHROME` to override the executable.
+
 1. Create Droplet: Ubuntu 24.04 LTS, Basic, Regular SSD, the smallest size ($4–6/mo) is enough; pick the closest US region (e.g. New York).
 2. Authentication: choose **SSH Key** (add yours).
 3. Advanced options → **Add initialization scripts** → paste `digitalocean-cloud-init.yaml`.

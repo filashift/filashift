@@ -17,6 +17,8 @@ python3 scripts/release-attribution.py verify "$REV"
 npx tsc --noEmit -p .
 npm run build
 node scripts/prerender.mjs
+# Always validate this candidate, never a BASE override pointing at the old site.
+BASE= npm run test:release:mobile-es
 rm -rf dist/public/data
 rm -f /tmp/filashift-site.zip; (cd dist/public && zip -qr /tmp/filashift-site.zip .)
 scp -i "$KEY" -q /tmp/filashift-site.zip "$HOST":/tmp/site.zip
