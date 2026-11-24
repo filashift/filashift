@@ -40,3 +40,13 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 3. On server: `systemctl is-active caddy`, `journalctl -u caddy --since -24h | grep -i error`, `df -h /`, `free -m`, `uptime`, pending `apt list --upgradable`, reboot-required flag.
 4. DigitalOcean API (credential handle for api.digitalocean.com in the vault): droplet status, backups present, firewall status, alert policies.
 5. Caddy updates: `apt update && apt install caddy` then `caddy validate --config /etc/caddy/Caddyfile` and reload.
+6. Filament prices: `systemctl status filashift-filament.service` succeeded within 6h; `https://filashift.com/data/filament.json` `updated` is < 8h old and `count` is in the hundreds (about 900 in Nov 2026).
+
+## Filament price finder (filashift.com/filament)
+- Page: `client/src/pages/filament.tsx` (route `/filament`; filashift.com uses real paths, other hosts use `#/` routing, see `client/src/routing.ts`). Shared header/footer in `client/src/components/site-chrome.tsx`.
+- Collector: `scripts/collect_filament.py` (Python stdlib only), installed at `/opt/filashift/collect_filament.py`. Reads each brand store's public Shopify `products.json` and writes `/var/www/filashift-data/filament.json`. It refuses to overwrite the file when fewer than 50 offers parse, so a bad run leaves the last good data in place.
+- Schedule: `deploy/filashift-filament.service` + `.timer` in `/etc/systemd/system/`, runs at 00/06/12/18:15 UTC (+ up to 10 min random) as user caddy. Manual run: `systemctl start filashift-filament.service`; logs: `journalctl -u filashift-filament`.
+- Serving: Caddy maps `/data/*` to `/var/www/filashift-data` (5 min cache). This folder is outside the web root so releases never wipe it. After a code change to the collector, reinstall it: `install -m 755 scripts/collect_filament.py /opt/filashift/`.
+- `/var/www/filashift-data/config.json` = `{"amazonTag":""}`. Set the Amazon Associates tag (e.g. `name-20`) there to turn on the tagged Amazon search box and the Associates disclosure; no release needed. Amazon product prices need the Creators API, available after 10 qualifying sales in 30 days.
+- Stores (edit `STORES` in the script): us.polymaker.com, us.elegoo.com, eryone3d.com, www.overture3d.com, atomicfilament.com, www.inslogic3d.com, www.jayo3d.com, www.amolen.com, www.protopasta.com, kingroon.com, www.printedsolid.com (reseller, brand = vendor). Test locally with `python3 scripts/collect_filament.py /tmp/out.json --cache /tmp/fil` and check counts per store before deploying a parser change.
+- Stores must be public filament retailers' own listings; only add a store if its product feed is publicly available and terms allow linking. No product images are shown, so visitors make no third-party requests.

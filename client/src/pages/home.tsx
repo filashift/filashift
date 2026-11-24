@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Download, FolderOpen, Lock, Moon, Sun, Upload, Cpu, ShieldCheck } from "lucide-react";
+import { Download, FolderOpen, Upload, Cpu, ShieldCheck } from "lucide-react";
+import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -11,20 +12,7 @@ import type { PrinterIndexEntry, PrinterProfile } from "@/engine/types";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PRINTER = "snapmaker-u1";
-// public source repository (AGPL-3.0). Set VITE_SOURCE_URL at build time; the link is hidden until then.
-const SOURCE_URL: string = (import.meta as any).env?.VITE_SOURCE_URL || "";
-const COMPANY = "Jackson Technology Solutions LLC, a subsidiary of Jackson Consolidated Group of Companies LLC";
 const QUICK = ["snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu-lab-x1-carbon", "bambu-lab-a1", "bambu-lab-p1s", "creality-k2-plus"];
-
-function Logo() {
-  return (
-    <svg viewBox="0 0 32 32" className="h-8 w-8" aria-label="FilaShift logo">
-      <rect width="32" height="32" rx="7" className="fill-primary" />
-      <path d="M7 20h11M7 15h14M7 10h9" className="stroke-primary-foreground" strokeWidth="2.6" strokeLinecap="round" fill="none" />
-      <path d="M20 21.5l5-4-5-4" fill="none" className="stroke-primary-foreground" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 const loadedFiles = new Map<string, Loaded>();
 const profileCache = new Map<string, Promise<PrinterProfile>>();
@@ -45,7 +33,6 @@ let seq = 0;
 const tick = () => new Promise((r) => setTimeout(r, 30));
 
 export default function Home() {
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const [printers, setPrinters] = useState<PrinterIndexEntry[]>([]);
   const [targetId, setTargetId] = useState(DEFAULT_PRINTER);
   const [profile, setProfile] = useState<PrinterProfile | null>(null);
@@ -60,10 +47,6 @@ export default function Home() {
   jobsRef.current = jobs;
   const slotsRef = useRef(slots);
   slotsRef.current = slots;
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
 
   useEffect(() => {
     fetch("./profiles/index.json")
@@ -182,22 +165,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
-          <Logo />
-          <div className="flex items-baseline gap-2">
-            <span className="text-base font-bold tracking-tight">FilaShift</span>
-            <span className="text-xs text-muted-foreground">by JTS</span>
-          </div>
-          <div className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
-            <Lock className="mr-1 hidden h-3.5 w-3.5 sm:block" />
-            <span className="mr-2 hidden sm:inline">Files stay on your device</span>
-            <Button size="icon" variant="ghost" onClick={() => setDark((d) => !d)} aria-label="Toggle dark mode" data-testid="button-theme">
-              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         <section className="mb-8 max-w-2xl">
@@ -382,8 +350,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto max-w-6xl space-y-2 px-4 py-6 text-xs text-muted-foreground sm:px-6">
+      <SiteFooter>
           <p>
             Always open the converted file in your slicer, check the preview and slice it yourself before printing. FilaShift adapts
             settings automatically and cannot guarantee every project prints the same on another machine.
@@ -403,20 +370,7 @@ export default function Home() {
             </a>{" "}
             (MIT). Not affiliated with Bambu Lab, Snapmaker, Flashforge, Creality, Prusa or MakerWorld.
           </p>
-          <p>
-            {SOURCE_URL && (
-              <>
-                FilaShift is free software under the AGPL-3.0.{" "}
-                <a className="underline hover:text-foreground" href={SOURCE_URL} target="_blank" rel="noreferrer" data-testid="link-source">
-                  Source code on GitHub
-                </a>
-                .{" "}
-              </>
-            )}
-            © {new Date().getFullYear()} {COMPANY}.
-          </p>
-        </div>
-      </footer>
+      </SiteFooter>
     </div>
   );
 }

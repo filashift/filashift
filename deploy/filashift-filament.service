@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh FilaShift filament prices
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=caddy
+Group=caddy
+ExecStart=/usr/bin/python3 /opt/filashift/collect_filament.py /var/www/filashift-data/filament.json
+TimeoutStartSec=900
+Nice=10

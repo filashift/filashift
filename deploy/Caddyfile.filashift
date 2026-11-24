@@ -4,18 +4,37 @@
 }
 
 (site) {
-	root * /var/www/plateshift
 	encode zstd gzip
-	file_server
-	@assets path /assets/*
-	header @assets Cache-Control "public, max-age=31536000, immutable"
-	@profiles path /profiles/*
-	header @profiles Cache-Control "public, max-age=86400"
-	header /index.html Cache-Control "no-cache"
 	header {
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
 		-Server
+	}
+
+	# filament prices and site config, refreshed by filashift-filament.timer (kept outside the release folder)
+	handle_path /data/* {
+		root * /var/www/filashift-data
+		header Cache-Control "public, max-age=300"
+		file_server
+	}
+
+	handle {
+		root * /var/www/plateshift
+		redir /filament/ /filament permanent
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		@profiles path /profiles/*
+		header @profiles Cache-Control "public, max-age=86400"
+		# app pages such as /filament are served by index.html
+		@spa {
+			not file
+			not path *.*
+		}
+		header @spa Cache-Control "no-cache"
+		header /index.html Cache-Control "no-cache"
+		header / Cache-Control "no-cache"
+		rewrite @spa /index.html
+		file_server
 	}
 }
 
