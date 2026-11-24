@@ -12,7 +12,7 @@ PlateShift is a static site: HTML, JavaScript and JSON printer profiles (~18 MB)
    ssh root@YOUR_DROPLET_IP 'unzip -o /tmp/plateshift-site.zip -d /var/www/plateshift'
    ```
 5. Open http://YOUR_DROPLET_IP — PlateShift should load.
-6. Domain + HTTPS: add an A record pointing your domain at the droplet IP, then on the server edit `/etc/caddy/Caddyfile`, replace `:80` with the domain and run `systemctl reload caddy`. Caddy obtains the certificate automatically.
+6. Domain + HTTPS: in Porkbun DNS, delete the default parking records for `filashift.com` (the ALIAS/A record to `uixie.porkbun.com` and the `*`/`www` CNAMEs), then add `A  @  167.99.104.154` and `A  www  167.99.104.154`. The server already runs `Caddyfile.filashift` (installed as `/etc/caddy/Caddyfile`), so Caddy obtains the certificate automatically as soon as DNS resolves; `www` redirects to `https://filashift.com`. Check with `dig +short filashift.com` and `curl -I https://filashift.com`.
 
 ## 1. Server
 Any small Linux VPS (1 vCPU, 512 MB–1 GB RAM, Ubuntu 24.04 LTS) is plenty. Point your domain's DNS A record (and AAAA for IPv6) at the server's IP address.

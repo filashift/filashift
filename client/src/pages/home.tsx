@@ -15,7 +15,7 @@ const QUICK = ["snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu
 
 function Logo() {
   return (
-    <svg viewBox="0 0 32 32" className="h-8 w-8" aria-label="PlateShift logo">
+    <svg viewBox="0 0 32 32" className="h-8 w-8" aria-label="FilaShift logo">
       <rect width="32" height="32" rx="7" className="fill-primary" />
       <path d="M7 20h11M7 15h14M7 10h9" className="stroke-primary-foreground" strokeWidth="2.6" strokeLinecap="round" fill="none" />
       <path d="M20 21.5l5-4-5-4" fill="none" className="stroke-primary-foreground" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -183,7 +183,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
           <Logo />
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-bold tracking-tight">PlateShift</span>
+            <span className="text-base font-bold tracking-tight">FilaShift</span>
             <span className="text-xs text-muted-foreground">by JTS</span>
           </div>
           <div className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
@@ -202,7 +202,7 @@ export default function Home() {
           <p className="mt-2 text-sm text-muted-foreground">
             Drop a project from any Bambu Studio or Orca-family slicer, choose the printer you own, and map the colours to its slots.
             It works in every direction: Bambu to Flashforge, Snapmaker, Creality or Prusa, and back to Bambu again.
-            PlateShift swaps in that printer's profiles, keeps the designer's model, painting and print settings, and removes
+            FilaShift swaps in that printer's profiles, keeps the designer's model, painting and print settings, and removes
             anything unsafe for your machine. Everything runs in this browser tab.
           </p>
         </section>
@@ -382,7 +382,7 @@ export default function Home() {
       <footer className="border-t border-border">
         <div className="mx-auto max-w-6xl space-y-2 px-4 py-6 text-xs text-muted-foreground sm:px-6">
           <p>
-            Always open the converted file in your slicer, check the preview and slice it yourself before printing. PlateShift adapts
+            Always open the converted file in your slicer, check the preview and slice it yourself before printing. FilaShift adapts
             settings automatically and cannot guarantee every project prints the same on another machine.
           </p>
           <p>

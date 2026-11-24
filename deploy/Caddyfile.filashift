@@ -1,0 +1,30 @@
+(site) {
+	root * /var/www/plateshift
+	encode zstd gzip
+	file_server
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	@profiles path /profiles/*
+	header @profiles Cache-Control "public, max-age=86400"
+	header /index.html Cache-Control "no-cache"
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+# HTTPS certificates are issued automatically once DNS points here
+filashift.com {
+	import site
+	header Strict-Transport-Security "max-age=31536000"
+}
+
+www.filashift.com {
+	redir https://filashift.com{uri} permanent
+}
+
+# plain IP access keeps working
+:80 {
+	import site
+}

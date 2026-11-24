@@ -1043,12 +1043,29 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     }
     boxes.set(pid, fit);
   });
+  const towerOn = ["1", "true"].includes(String(first(S.enable_prime_tower ?? "0"))) && reps.filter(Boolean).length > 1;
   const ncx = dstArea.minx + dstArea.w / 2, ncy = dstArea.miny + dstArea.h / 2;
   const shifts = new Map<number, [number, number]>();
   for (const pid of pids) {
     const fit = boxes.get(pid);
     if (!opts.recenter && srcArea) shifts.set(pid, [0, 0]);
-    else if (fit) shifts.set(pid, [ncx - (fit[0] + fit[2]) / 2, ncy - (fit[1] + fit[3]) / 2]);
+    else if (fit) {
+      // centre the designer's layout as a whole: objects plus the prime tower they left room for,
+      // so the model does not slide into the tower's spot. Fall back to objects only if that won't fit.
+      let g = fit;
+      const i = pids.indexOf(pid);
+      const twx = S.wipe_tower_x, twy = S.wipe_tower_y;
+      if (towerOn && twx !== undefined && twy !== undefined) {
+        const ax = Array.isArray(twx) ? twx : [twx], ay = Array.isArray(twy) ? twy : [twy];
+        const tx = num(ax[Math.min(i, ax.length - 1)]), ty = num(ay[Math.min(i, ay.length - 1)]);
+        const stw = num(first(S.prime_tower_width ?? "")) || 35;
+        if (tx != null && ty != null) {
+          const u: [number, number, number, number] = [Math.min(fit[0], tx), Math.min(fit[1], ty), Math.max(fit[2], tx + stw), Math.max(fit[3], ty + stw)];
+          if (u[2] - u[0] <= dstArea.w - 4 && u[3] - u[1] <= dstArea.h - 4) g = u;
+        }
+      }
+      shifts.set(pid, [ncx - (g[0] + g[2]) / 2, ncy - (g[1] + g[3]) / 2]);
+    }
     else if (srcArea) shifts.set(pid, [ncx - (srcArea.minx + srcArea.w / 2), ncy - (srcArea.miny + srcArea.h / 2)]);
     else shifts.set(pid, [0, 0]);
   }
@@ -1084,7 +1101,12 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       const fit = boxes.get(pid);
       const obj = fit ? [fit[0] + dx - 5, fit[1] + dy - 5, fit[2] + dx + 5, fit[3] + dy + 5] : null;
       let pick: [number, number] | undefined, first0: [number, number] | undefined, fallback: [number, number] | undefined;
-      for (const [m, depth] of tries) {
+      // the designer's spot, moved with the model, when it is on the bed and clear of every object
+      const keep: [number, number] = [sx + dx, sy + dy];
+      const pb0 = (parts.get(pid) || (obj ? [obj] : [])).map((b) => (b === obj ? b : [b[0] + dx - 5, b[1] + dy - 5, b[2] + dx + 5, b[3] + dy + 5]));
+      const onBed = keep[0] >= dstArea.minx + 3 && keep[1] >= dstArea.miny + 3 && keep[0] + tw <= dstArea.minx + dstArea.w - 8 && keep[1] + Math.max(tw, 45) <= dstArea.miny + dstArea.h - 3;
+      if (onBed && !pb0.some((o) => keep[0] < o[2] && keep[0] + tw > o[0] && keep[1] < o[3] && keep[1] + tw > o[1])) { pick = keep; first0 = keep; }
+      for (const [m, depth] of pick ? [] : tries) {
         const xlo = dstArea.minx + m, xhi = dstArea.minx + dstArea.w - tw - 2 * m;
         const ylo = dstArea.miny + m, yhi = dstArea.miny + dstArea.h - depth - m;
         const clampX = (v: number) => Math.min(Math.max(v, xlo), xhi);
@@ -1107,7 +1129,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       }
       const [x, y] = pick || fallback!;
       if (pick && (pick[0] !== first0![0] || pick[1] !== first0![1])) moved++;
-      if (!pick && R.enable_prime_tower !== "0") warn(`${multi ? `Plate ${pid}: ` : ""}the model leaves no clear spot for the prime tower; it was put where it overlaps least. Check it in the slicer, or scale or rotate the model, before slicing.`);
+      if (!pick && R.enable_prime_tower !== "0") warn(`${multi ? `Plate ${pid}: the` : "The"} model leaves little free space for the prime tower, so it was placed where it overlaps least. Check the tower in the slicer preview; if it touches the model, move it or scale the model.`);
       outX.push(fmt(x, 2));
       outY.push(fmt(y, 2));
     });
@@ -1165,7 +1187,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (w > dstArea.w || h > dstArea.h) {
       const rot = h <= dstArea.w && w <= dstArea.h;
       const pct = Math.floor(Math.min(dstArea.w / w, dstArea.h / h) * 95);
-      warn(`${lab}the model footprint is ${w.toFixed(0)} × ${h.toFixed(0)} mm, larger than the ${dstArea.w.toFixed(0)} × ${dstArea.h.toFixed(0)} mm bed. ${rot ? "Rotating it 90° in the slicer should make it fit." : `Scale it to about ${pct}% or split it before slicing.`}`);
+      warn(`${lab ? lab + "the" : "The"} model footprint is ${w.toFixed(0)} × ${h.toFixed(0)} mm, larger than the ${dstArea.w.toFixed(0)} × ${dstArea.h.toFixed(0)} mm bed. ${rot ? "Rotating it 90° in the slicer should make it fit." : `Scale it to about ${pct}% or split it before slicing.`}`);
     } else {
       const x0 = fit[0] + dx, y0 = fit[1] + dy, x1 = fit[2] + dx, y1 = fit[3] + dy;
       if (x0 < dstArea.minx - 0.5 || y0 < dstArea.miny - 0.5 || x1 > dstArea.minx + dstArea.w + 0.5 || y1 > dstArea.miny + dstArea.h + 0.5)
