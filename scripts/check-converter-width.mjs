@@ -38,7 +38,7 @@ try {
       await search.waitFor();
       await search.fill("Snapmaker U1");
       await fits("picker open");
-      await page.getByRole("option",{name:/Snapmaker U1/i}).first().tap();
+      await page.getByTestId("option-printer-snapmaker-u1").first().tap();
       assert.match(await picker.innerText(),/Snapmaker U1/i);
       await fits("printer selected");
       assert.deepEqual(errors,[]);
