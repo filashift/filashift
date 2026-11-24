@@ -57,3 +57,9 @@ The printer profiles are derived from OrcaSlicer's system profiles (AGPL-3.0). B
 
 ## Updating
 Rebuild (`npm run build`) and upload `dist/public/` again. Asset file names change with each build, so visitors always get the new version.
+
+## Caddy version and certificate backup
+
+The server runs Caddy from the official repository (`/etc/apt/sources.list.d/caddy-stable.list`), upgraded from Ubuntu's 2.6.2 to 2.11.9. Update it with `apt update && apt install caddy`; unattended-upgrades only covers Ubuntu's own packages, so Caddy updates are manual.
+
+`Caddyfile.filashift` sets a global `email support@jacksoncgc.com`. Let's Encrypt is used first, and ZeroSSL takes over automatically if Let's Encrypt fails. ZeroSSL refuses Caddy requests without an email (error `caddy_legacy_user_removed`). Backups from the upgrade are in `/root/` on the server (`caddy-backup-*.tgz`, `Caddyfile.pre-upgrade`, `Caddyfile.pre-email`).

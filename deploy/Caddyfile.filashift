@@ -1,3 +1,8 @@
+{
+	# account email for Let's Encrypt and the ZeroSSL backup issuer (ZeroSSL requires one)
+	email support@jacksoncgc.com
+}
+
 (site) {
 	root * /var/www/plateshift
 	encode zstd gzip
