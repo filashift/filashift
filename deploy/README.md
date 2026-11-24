@@ -18,6 +18,11 @@ Spanish shortcut must focus its own printer section, and that section’s shoppi
 link must open the correct single-spool results and retain Spanish after reload.
 Use `npm run test:release:mobile-es:bambu` to run just the two Bambu paths on demand.
 
+`npm run test:release:mobile-en:shortcuts` is the English pre-upload check for the
+Flashforge Creator 5 Pro and Snapmaker U1. In mobile touch emulation it taps each
+shortcut, checks that focus moves to the matching section, then opens that section’s
+PLA single-spool results and verifies the English filters before and after reload.
+
 1. Create Droplet: Ubuntu 24.04 LTS, Basic, Regular SSD, the smallest size ($4–6/mo) is enough; pick the closest US region (e.g. New York).
 2. Authentication: choose **SSH Key** (add yours).
 3. Advanced options → **Add initialization scripts** → paste `digitalocean-cloud-init.yaml`.

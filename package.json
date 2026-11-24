@@ -11,6 +11,7 @@
     "test:release:mobile-es": "node scripts/check-spanish-mobile-spools.mjs",
     "test:release:mobile-es:bambu": "node scripts/check-spanish-mobile-spools.mjs --bambu",
     "test:release:mobile-es:shortcuts": "node scripts/check-spanish-mobile-spools.mjs --shortcuts",
+    "test:release:mobile-en:shortcuts": "node scripts/check-spanish-mobile-spools.mjs --english-shortcuts",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {

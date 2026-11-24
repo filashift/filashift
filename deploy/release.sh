@@ -18,6 +18,7 @@ npx tsc --noEmit -p .
 npm run build
 node scripts/prerender.mjs
 # Always validate this candidate, never a BASE override pointing at the old site.
+BASE= npm run test:release:mobile-en:shortcuts
 BASE= npm run test:release:mobile-es:shortcuts
 BASE= npm run test:release:mobile-es
 rm -rf dist/public/data
