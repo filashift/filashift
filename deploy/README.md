@@ -12,10 +12,11 @@ It uses an in-memory catalog, never included in the release.
 Run it independently against the current build, or set `BASE=https://filashift.com`
 for a separate smoke test using the live catalog. Use `CHROME` to override the executable.
 
-The release also runs `npm run test:release:mobile-es:bambu` as a separate blocking
-check before the five-printer suite. It uses the Spanish guide’s printer shortcuts
-to reach the A1 and X1 Carbon sections, then tests their PLA and PETG links respectively.
-Run that command on its own to isolate the Bambu shopping paths.
+Before the five-printer suite, `npm run test:release:mobile-es:shortcuts` runs as a
+single blocking check for the Creator 5 Pro, A1, X1 Carbon and Snapmaker U1. Each
+Spanish shortcut must focus its own printer section, and that section’s shopping
+link must open the correct single-spool results and retain Spanish after reload.
+Use `npm run test:release:mobile-es:bambu` to run just the two Bambu paths on demand.
 
 1. Create Droplet: Ubuntu 24.04 LTS, Basic, Regular SSD, the smallest size ($4–6/mo) is enough; pick the closest US region (e.g. New York).
 2. Authentication: choose **SSH Key** (add yours).

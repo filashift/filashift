@@ -7,12 +7,13 @@ import { assertX1AmsWarning } from "./assert-x1-ams-warning.mjs";
 
 // Keep expectations independent of the guide: a swapped or missing CTA must fail.
 const bambuPicks = [["Bambu Lab A1", "PLA"], ["Bambu Lab X1 Carbon", "PETG"]];
-const bambuOnly = process.argv[2] === "--bambu";
-assert(process.argv.length === 2 || (bambuOnly && process.argv.length === 3), "Expected no arguments or --bambu");
-const picks = bambuOnly ? bambuPicks : [
-  ["Flashforge Creator 5 Pro", "PLA"], ...bambuPicks,
-  ["Original Prusa MK4S", "PETG"], ["Snapmaker U1", "PLA"],
-];
+const creator = ["Flashforge Creator 5 Pro", "PLA"];
+const u1 = ["Snapmaker U1", "PLA"];
+const mode = process.argv[2];
+assert(!mode || (["--shortcuts","--bambu"].includes(mode) && process.argv.length === 3), "Expected no arguments, --shortcuts or --bambu");
+const picks = mode === "--bambu" ? bambuPicks : mode === "--shortcuts"
+  ? [creator, ...bambuPicks, u1]
+  : [creator, ...bambuPicks, ["Original Prusa MK4S", "PETG"], u1];
 const items = ["PLA","PETG"].map(m => ({
   b:"Fixture", r:"Fixture", t:`Test ${m}`, v:"Black", c:["Black"], f:m, m,
   d:1.75, kg:1, n:1, form:"spool", p:20, ppk:20, was:null, ok:true,
@@ -37,7 +38,7 @@ try {
   const errors=[];
   page.on("pageerror", e=>errors.push(e.message));
   const guide=`${base}/guides/filament-buying-guide-five-printers`;
-  if (!bambuOnly) {
+  if (!mode) {
     await page.goto(`${guide}?lang=en`);
     await page.getByRole("button",{name:"Bambu Lab X1 Carbon",exact:true}).tap();
     await assertX1AmsWarning(page.getByRole("region",{name:"Bambu Lab X1 Carbon",exact:true}),"en");
@@ -48,7 +49,7 @@ try {
   for (const [printer,material] of picks) {
     try {
       const card=page.getByRole("region",{name:printer,exact:true});
-      if (bambuOnly) {
+      if (mode) {
         await page.getByRole("button",{name:printer,exact:true}).tap();
         assert(await card.evaluate(el=>document.activeElement===el),"Printer shortcut did not focus the matching section");
       }

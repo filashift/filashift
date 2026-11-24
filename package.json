@@ -10,6 +10,7 @@
     "check": "tsc",
     "test:release:mobile-es": "node scripts/check-spanish-mobile-spools.mjs",
     "test:release:mobile-es:bambu": "node scripts/check-spanish-mobile-spools.mjs --bambu",
+    "test:release:mobile-es:shortcuts": "node scripts/check-spanish-mobile-spools.mjs --shortcuts",
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
