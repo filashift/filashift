@@ -53,8 +53,16 @@ export function GuidesIndex() {
           "Flujos de trabajo breves y probados para pasar proyectos de impresión 3D entre laminadores e impresoras, y para convertir archivos 3MF a STL u OBJ.",
         )}
       </p>
-      <ul className="mt-8 space-y-3" data-testid="list-guides">
-        {GUIDES.map(loc).map((g) => (
+      <div data-testid="list-guides">
+      {[true, false].map(mesh => <section key={String(mesh)} className="mt-8">
+      <h2 className="mb-2 text-xl font-semibold">{mesh
+        ? L("Convert 3MF to STL or OBJ", "Convertir 3MF a STL u OBJ")
+        : L("Convert 3MF between slicers and printers", "Convertir 3MF entre laminadores e impresoras")}</h2>
+      <p className="mb-4 text-sm text-muted-foreground">{mesh
+        ? L("Choose this if you need the model’s shape for another program.", "Elige esta opción si necesitas la geometría del modelo para otro programa.")
+        : L("Keep a project in 3MF when you need its plates, colors, and print settings on another printer.", "Mantén el proyecto en formato 3MF si necesitas sus placas, colores y ajustes de impresión en otra impresora.")}</p>
+      <ul className="space-y-3">
+        {GUIDES.filter(g => (g.slug === "3mf-to-stl") === mesh).map(loc).map((g) => (
           <li key={g.slug}>
             <Link
               href={`/guides/${g.slug}`}
@@ -70,7 +78,8 @@ export function GuidesIndex() {
             </Link>
           </li>
         ))}
-      </ul>
+      </ul></section>)}
+      </div>
     </Shell>
   );
 }
@@ -188,8 +197,7 @@ export function GuidePage() {
         </div>
         <p className="mt-8 text-xs text-muted-foreground">
           {es ? "Actualizado el " : "Updated "}
-          {new Date(g.updated + "T12:00:00Z").toLocaleDateString(es ? "es-ES" : "en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}.{" "}
-          {L("Tested with", "Probado con")} OrcaSlicer 2.5.2, Bambu Studio 2.9 {L("and", "y")} PrusaSlicer 2.8.
+          <time dateTime={g.updated}>{new Date(g.updated + "T12:00:00Z").toLocaleDateString(es ? "es-ES" : "en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}</time>.
         </p>
       </article>
 

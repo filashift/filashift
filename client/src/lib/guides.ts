@@ -1,6 +1,8 @@
 // Step-by-step guides for the searches people actually make (3MF to STL, MakerWorld to Flashforge, …).
 // Each guide leads with numbered steps, then explains what is kept, what is lost and how to fix common problems.
 
+import { FILE_LIMIT } from "./conversion-facts";
+
 export interface Guide {
   slug: string;
   title: string; // <h1>
@@ -61,13 +63,13 @@ export const GUIDES: Guide[] = [
     ],
     faq: [
       { q: "Is the 3MF uploaded?", a: "No. The export runs in your browser tab. Nothing is sent to FilaShift or anyone else." },
-      { q: "Is there a size limit?", a: "No upload means no upload limit. Very large projects are limited only by your device's memory." },
+      { q: "Is there a size limit?", a: FILE_LIMIT.en },
       {
         q: "Can I convert STL back to 3MF?",
         a: "Import the STL into Bambu Studio, OrcaSlicer or PrusaSlicer and save the project: the result is a 3MF. Colours and settings have to be set up again because the STL never had them.",
       },
     ],
-    updated: "2026-11-23",
+    updated: "2026-11-24",
   },
   {
     slug: "makerworld-to-flashforge",

@@ -1,4 +1,6 @@
 import { GUIDES } from "@/lib/guides";
+import { FILE_LIMIT } from "@/lib/conversion-facts";
+import { tr, useLang } from "@/lib/i18n";
 import { useJsonLd, usePageMeta } from "@/lib/seo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
@@ -9,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { PrinterPicker, slotLabel, TestedNote } from "@/components/printer-picker";
+import { PrinterPicker, slotLabel, TestedNote, useTested } from "@/components/printer-picker";
 import { FileCard, type Job } from "@/components/file-card";
 import { exportMesh } from "@/engine/export";
 import { analyze, convert, defaultMapping, planPauses, type Loaded } from "@/engine/engine";
@@ -718,11 +720,11 @@ export const FAQ = [
   },
   {
     q: "What does Slicer-tested mean?",
-    a: "Before each release we convert sample projects (a painted multi-colour Bambu Studio project and a PrusaSlicer project) for every printer in the list and slice them with the real OrcaSlicer or Bambu Studio command-line slicer. Printers marked Slicer-tested sliced without errors. It is a strong sign, not a guarantee for your file, so still check the preview before printing.",
+    a: "A Slicer-tested badge means sample projects converted for that printer profile sliced without errors in its destination slicer. It is not a physical print test or a guarantee for your file. Check the preview before printing.",
   },
   {
     q: "Is there a file size limit?",
-    a: "There is no upload, so there is no upload limit. Files are processed in your browser's memory: projects of a few hundred megabytes work on a typical computer, and phones handle smaller ones. As a safety limit, a 3MF may not expand to more than 2 GB.",
+    a: FILE_LIMIT.en,
   },
   {
     q: "Will it print exactly the same?",
@@ -730,21 +732,34 @@ export const FAQ = [
   },
   {
     q: "Does it cost anything?",
-    a: "No. FilaShift is free, with no account and no limits. Some store links on the filament price page are affiliate links that may earn a commission, which helps keep the converter running.",
+    a: "No. FilaShift is free and does not require an account. Some store links on the filament price page are affiliate links that may earn a commission, which helps keep the converter running.",
   },
 ];
 
 function Faq() {
+  const lang = useLang(), tested = useTested();
+  const questions = FAQ.map(f => {
+    let a = f.a === FILE_LIMIT.en ? FILE_LIMIT[lang] : tr(lang, f.a);
+    if (tested && f.q === "What does Slicer-tested mean?") {
+      const results = Object.values(tested.printers);
+      const passed = results.filter(r => r.ok).length;
+      const versions = Object.entries(tested.slicers).map(([name,v]) => `${name} ${v}`).join("; ");
+      a += lang === "es"
+        ? ` Última prueba registrada (${tested.date}): ${passed} de ${results.length} perfiles pasaron. Laminadores: ${versions}.`
+        : ` Last recorded test (${tested.date}): ${passed} of ${results.length} profiles passed. Slicers: ${versions}.`;
+    }
+    return {q: tr(lang,f.q), a};
+  });
   useJsonLd("ld-faq", {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    mainEntity: questions.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
   });
   return (
     <section className="mb-4 mt-14">
       <SectionTitle id="faq" kicker="FAQ" title="Common questions" />
-      <Accordion type="single" collapsible className="rounded-xl border border-card-border bg-card px-4">
-        {FAQ.map((f, i) => (
+      <Accordion translate="no" type="single" collapsible className="rounded-xl border border-card-border bg-card px-4">
+        {questions.map((f, i) => (
           <AccordionItem key={i} value={`q${i}`} className={i === FAQ.length - 1 ? "border-b-0" : ""}>
             <AccordionTrigger className="text-left text-sm font-medium" data-testid={`faq-${i}`}>
               {f.q}

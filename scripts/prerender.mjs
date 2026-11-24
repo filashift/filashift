@@ -42,6 +42,7 @@ await ctx.addInitScript(() => {
 });
 
 const out = [];
+const modified = new Map();
 for (const route of ROUTES) {
   const page = await ctx.newPage();
   const errs = [];
@@ -50,6 +51,11 @@ for (const route of ROUTES) {
   await page.waitForSelector("h1", { timeout: 15000 });
   await page.waitForTimeout(300);
   if (errs.length) throw new Error(`${route}: ${errs.join("; ")}`);
+  if (route.startsWith("/guides/")) {
+    const date = await page.locator("article time[datetime]").getAttribute("datetime");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date ?? "")) throw new Error(`Missing editorial date: ${route}`);
+    modified.set(route, date);
+  }
   let html = await page.evaluate(() => {
     document.documentElement.classList.remove("dark");
     document.documentElement.lang = "en";
@@ -71,10 +77,9 @@ await browser.close();
 server.close();
 
 // sitemap + robots
-const today = new Date().toISOString().slice(0, 10);
 const urls = out
   .filter((r) => r !== "/404")
-  .map((r) => `  <url><loc>${SITE}${r === "/" ? "/" : r}</loc><lastmod>${today}</lastmod></url>`)
+  .map((r) => `  <url><loc>${SITE}${r === "/" ? "/" : r}</loc>${modified.has(r) ? `<lastmod>${modified.get(r)}</lastmod>` : ""}</url>`)
   .join("\n");
 fs.writeFileSync(path.join(ROOT, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`);
 fs.writeFileSync(path.join(ROOT, "robots.txt"), `User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${SITE}/sitemap.xml\n`);

@@ -1,6 +1,7 @@
 // Spanish versions of the guides in guides.ts, keyed by slug. Keep them in step with the English text
 // (same steps, sections and FAQ) and update `updated` in guides.ts when either changes.
 import type { Guide } from "./guides";
+import { FILE_LIMIT } from "./conversion-facts";
 
 export type GuideText = Pick<Guide, "title" | "meta" | "desc" | "intro" | "steps" | "cta" | "sections" | "faq">;
 
@@ -51,7 +52,7 @@ export const GUIDES_ES: Record<string, GuideText> = {
     ],
     faq: [
       { q: "¿Se sube el 3MF?", a: "No. La exportación se hace en la pestaña de tu navegador. No se envía nada a FilaShift ni a nadie más." },
-      { q: "¿Hay un límite de tamaño?", a: "Como no hay subida, no hay límite de subida. Los proyectos muy grandes solo están limitados por la memoria de tu dispositivo." },
+      { q: "¿Hay un límite de tamaño?", a: FILE_LIMIT.es },
       {
         q: "¿Puedo convertir un STL de vuelta a 3MF?",
         a: "Importa el STL en Bambu Studio, OrcaSlicer o PrusaSlicer y guarda el proyecto: el resultado es un 3MF. Los colores y ajustes hay que configurarlos de nuevo porque el STL nunca los tuvo.",

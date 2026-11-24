@@ -86,7 +86,7 @@ export function About() {
       </S>
       <S h="What makes it different">
         <ul>
-          <li>Files never leave your device. No upload, no account, no limits.</li>
+          <li>Files never leave your device. No upload or account is needed.</li>
           <li>Works in both directions across 225 printers from 15 brands.</li>
           <li>A plain conversion report for every file, so nothing changes silently.</li>
           <li>Filament price comparison by the kilogram across brand stores.</li>
