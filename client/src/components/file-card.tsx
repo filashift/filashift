@@ -206,7 +206,9 @@ export function FileCard({
             <p className="mt-2 font-semibold">{T("Needs your attention")}</p>
             <ul className="list-disc pl-5">{a.plates.map((plate,i)=>{
               const size=plate.footprint,over=size&&bed&&(size[0]>bed[0]||size[1]>bed[1]);
-              return <li key={`${plate.id}-${i}`}>{T("Plate")} {plate.id}{plate.name?` · ${plate.name}`:""}: {size&&bed?`${T("Estimated footprint")} ${size[0].toFixed(1)} × ${size[1].toFixed(1)} mm / ${bed.join(" × ")} mm. ${over?(T("Exceeds the bed in this orientation.")):(T("Within the bed rectangle; verify height and clearances."))}`:(T("Footprint not verified; check fit in your slicer."))}</li>;
+              return <li key={`${plate.id}-${i}`}>{T("Plate")} {plate.id}{plate.name?` · ${plate.name}`:""}: {size&&bed?`${T("Estimated footprint")} ${size[0].toFixed(1)} × ${size[1].toFixed(1)} mm / ${bed.join(" × ")} mm. ${over?(T("Exceeds the bed in this orientation.")):(T("Within the bed rectangle; verify height and clearances."))}`:(T("Footprint not verified; check fit in your slicer."))}
+                {over && <span className="block" data-testid="bed-fit-next-step">{T("To keep the original size, try rotating the model in your slicer. For separate parts, try Arrange or move some to another plate. Check the layout before slicing.")}</span>}
+              </li>;
             })}</ul>
             {overSlots&&!job.pauses&&<p>{T("Some colors will share a slot.")}</p>}
             {!!a.translatedFrom?.dropped.length&&<p>{T("Settings without an equivalent: ")}{a.translatedFrom.dropped.join(", ")}.</p>}
