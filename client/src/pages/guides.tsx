@@ -1,4 +1,5 @@
 import { Link, useRoute } from "wouter";
+import { limits, reelSpecs } from "@/lib/reel-fit";
 import { ArrowRight, BookOpen, CheckCircle2, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -137,7 +138,7 @@ export function GuidePage() {
       : null,
   );
   if (!g) return <NotFound />;
-  const spoolLink = (material?:string) => `/filament?pack=single&d=1.75${material ? `&f=${material}&t=${material}` : ""}${es ? "&lang=es" : ""}`;
+  const spoolLink = (material?:string, model?:string) => `/filament?pack=single&d=1.75${material ? `&f=${material}&t=${material}` : ""}${model==="bambu-lab-x1-carbon"?"&feeder=ams":model==="snapmaker-u1"?"&feeder=u1":""}${es ? "&lang=es" : ""}`;
   const href = g.shopping ? spoolLink() : g.printer ? `/?printer=${g.printer}` : "/";
   const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 4).map(loc);
   return (
@@ -195,7 +196,15 @@ export function GuidePage() {
                 <h3 id={`${s.model}-warning`} className="font-semibold">{s.warning.title}</h3>
                 <ul className="mt-2 list-disc space-y-2 pl-5">{s.warning.items.map(item=><li key={item}>{item}</li>)}</ul>
               </aside>}
-              {s.material && <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Button asChild variant="outline"><Link href={spoolLink(s.material)}>{L(`Compare ${s.material} spools`,`Comparar bobinas de ${s.material}`)}</Link></Button><a className="text-sm text-primary underline" href={s.source}>{L("Manufacturer’s guide","Guía del fabricante")}<span className="sr-only">: {s.h}</span></a></div>}
+              {(s.model==="bambu-lab-x1-carbon"||s.model==="snapmaker-u1")&&<div translate="no" className="my-4 rounded-lg border p-4 text-sm" data-testid="atomic-reel-guide">
+                <h3 className="mb-2 font-semibold">{L("Atomic Filament: check the reel","Atomic Filament: comprueba el carrete")}</h3>
+                <p><strong>{s.model==="snapmaker-u1"?L("1 kg: Outside size limits.","1 kg: Fuera de los límites."):L("1 kg: Within size limits.","1 kg: Dentro de los límites.")}</strong>{" "}
+                  {s.model==="snapmaker-u1"?L("Atomic’s AMS-compatible reel is 67 mm wide, but its 51 mm center hole is smaller than the U1 holder’s 52 mm minimum.","El carrete de Atomic compatible con AMS mide 67 mm de ancho, pero su orificio de 51 mm es menor que el mínimo de 52 mm del soporte U1."):L("Atomic’s AMS-compatible reel is 67 mm wide and 200 mm across. Both measurements are within the original AMS limits (50–68 mm wide, 197–202 mm across).","El carrete de Atomic compatible con AMS mide 67 mm de ancho y 200 mm de diámetro exterior. Ambas medidas están dentro de los límites del AMS original (50–68 mm de ancho y 197–202 mm de diámetro exterior).")}</p>
+                <p className="mt-2"><strong>{L("3.5 kg jumbo: Outside size limits.","Jumbo de 3,5 kg: Fuera de los límites.")}</strong>{" "}{s.model==="snapmaker-u1"?L("At 95 mm wide it exceeds the U1’s 70 mm limit, as well as its 1 kg capacity.","Sus 95 mm de ancho superan el máximo de 70 mm de la U1; también supera la capacidad de 1 kg."):L("At 95 mm wide and 305 mm across, it exceeds both AMS limits.","Con 95 mm de ancho y 305 mm de diámetro exterior, supera ambos límites del AMS.")}</p>
+                <p className="mt-2 text-muted-foreground">{L("These labels compare published measurements, not how the material feeds. If the exact reel is unverified, ask the seller before ordering.","Estas etiquetas comparan medidas publicadas, no garantizan que el material avance bien. Si el carrete exacto no está verificado, pregunta en la tienda antes de comprar.")}</p>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-primary underline"><a href={reelSpecs}>{L("Atomic reel dimensions","Medidas de los carretes Atomic")}</a><a href={s.model==="snapmaker-u1"?limits.u1:limits.ams}>{s.model==="snapmaker-u1"?L("Snapmaker U1 limits","Límites de la Snapmaker U1"):L("Original AMS limits","Límites del AMS original")}</a></div>
+              </div>}
+              {s.material && <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Button asChild variant="outline"><Link href={spoolLink(s.material,s.model)}>{L(`Compare ${s.material} spools`,`Comparar bobinas de ${s.material}`)}</Link></Button><a className="text-sm text-primary underline" href={s.source}>{L("Manufacturer’s guide","Guía del fabricante")}<span className="sr-only">: {s.h}</span></a></div>}
               {s.model === "snapmaker-u1" && <a className="mt-2 inline-block text-sm text-primary underline" href="https://wiki.snapmaker.com/en/FAQ/u1">{L("Snapmaker spool dimensions FAQ","Preguntas frecuentes sobre las dimensiones de bobina")}</a>}
               {s.list && (
                 <ul className="space-y-1.5">

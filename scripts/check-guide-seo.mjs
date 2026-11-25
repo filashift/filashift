@@ -55,7 +55,7 @@ try {
     for(const [i, material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
       const card=cards.nth(i);
       assert.match(await card.locator('a[href^="https:"]').first().getAttribute("href"),/^https:/);
-      assert.equal(await card.locator('a[href^="/filament"]').getAttribute("href"),`/filament?pack=single&d=1.75&f=${material}&t=${material}${lang==="es"?"&lang=es":""}`);
+      assert.equal(await card.locator('a[href^="/filament"]').getAttribute("href"),`/filament?pack=single&d=1.75&f=${material}&t=${material}${i===2?"&feeder=ams":i===4?"&feeder=u1":""}${lang==="es"?"&lang=es":""}`);
     }
     for(const [i,material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
       await cards.nth(i).locator('a[href^="/filament"]').click();

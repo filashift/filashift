@@ -59,6 +59,15 @@ try {
         await assertX1AmsWarning(card,lang);
         console.log(`PASS X1 Carbon original AMS warning: ${lang} content and placement`);
       }
+      const ams=printer==="Bambu Lab X1 Carbon", u1=printer==="Snapmaker U1";
+      const fit=card.getByTestId("atomic-reel-guide");
+      assert.equal(await fit.count(),ams||u1?1:0);
+      if(ams||u1){
+        const labels=await fit.locator("strong").allTextContents();
+        assert.deepEqual(labels,[english?`1 kg: ${ams?"Within":"Outside"} size limits.`:`1 kg: ${ams?"Dentro":"Fuera"} de los límites.`,english?"3.5 kg jumbo: Outside size limits.":"Jumbo de 3,5 kg: Fuera de los límites."]);
+        assert.equal(await fit.locator("a").count(),2);
+        assert.match(await fit.innerText(),ams?/200 mm/:/51 mm/);
+      }
       await card.getByRole("link",{name:english ? `Compare ${material} spools` : `Comparar bobinas de ${material}`,exact:true}).tap();
       for(const phase of ["tap","reload"]) {
         if(phase==="reload"){
@@ -73,6 +82,7 @@ try {
         assert.equal(await page.locator("html").getAttribute("lang"),lang);
         for(const [id,value] of Object.entries({"select-type":material,"select-pack":english?"Single spool":"Una bobina","select-diameter":"1.75 mm","select-sort":english?"Lowest total price":"Menor precio total"})) assert.equal(await page.getByTestId(id).innerText(),value,id);
         assert.equal(await page.getByTestId("switch-instock").getAttribute("aria-checked"),"true");
+        assert.equal(await page.getByTestId("feeder").inputValue(),ams?"ams":u1?"u1":"none");
         assert.deepEqual(errors,[]);
       }
       await page.goBack();

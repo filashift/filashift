@@ -43,7 +43,7 @@ export default function Filament() {
   const [family, setFamily] = useState(() => (FAMILIES.includes(q0.get("f") || "") ? q0.get("f")! : "All"));
   const [type, setType] = useState(() => q0.get("t")?.slice(0,40) || "all");
   const [brand, setBrand] = useState("all");
-  const [feeder,setFeeder]=useState<Feeder>("none");
+  const [feeder,setFeeder]=useState<Feeder>(()=>q0.get("feeder")==="ams"?"ams":q0.get("feeder")==="u1"?"u1":"none");
   const [dia, setDia] = useState(() => ["2.85","any"].includes(q0.get("d") || "") ? q0.get("d")! : "1.75");
   const [pack, setPack] = useState(() => ["single","multi"].includes(q0.get("pack") || "") ? q0.get("pack")! : "any");
   const [sort, setSort] = useState(pack === "single" ? "price" : "ppk");
