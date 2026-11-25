@@ -286,7 +286,9 @@ try {
   browser = await webkit.launch();
   {
     const { ctx, page, bad } = await context(webkit, { ...devices["iPhone 13"], viewport: { width: 320, height: 700 } });
-    await page.goto(`${base}/?lang=es`);
+    // The prerendered input exists before React replaces it and binds file intake.
+    // Wait for the initial load (including the printer catalog) before choosing a file.
+    await page.goto(`${base}/?lang=es`, { waitUntil: "networkidle" });
     await page.getByTestId("input-file").setInputFiles(PAINT);
     await addPrinter(page, "Snapmaker U1", "snapmaker-u1");
     await page.getByTestId("batch-panel").waitFor();
