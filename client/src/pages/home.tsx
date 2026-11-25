@@ -581,7 +581,7 @@ export default function Home() {
             <div className="space-y-5 rounded-xl border border-card-border bg-card p-4 shadow-sm lg:sticky lg:top-20">
               <div>
                 <h2 className="mb-2 text-sm font-medium">Target printer</h2>
-                <PrinterPicker printers={printers} value={targetId} onChange={setTargetId} />
+                <PrinterPicker printers={printers} value={targetId} onChange={setTargetId} showWonderMakerShortcut />
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {quick.map((p) => (
                     <button

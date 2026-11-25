@@ -103,6 +103,7 @@ export function PrinterPicker({
   testId = "button-printer-picker",
   placeholder = "Choose a printer",
   exclude,
+  showWonderMakerShortcut = false,
 }: {
   printers: PrinterIndexEntry[];
   value: string;
@@ -111,6 +112,7 @@ export function PrinterPicker({
   placeholder?: string;
   /** printers already chosen elsewhere (shown checked and not selectable) */
   exclude?: string[];
+  showWonderMakerShortcut?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -136,6 +138,7 @@ export function PrinterPicker({
     <CommandItem
       key={key}
       value={`${key} ${p.model} ${p.vendor}`}
+      keywords={p.vendor === "WonderMaker" ? ["wondermakers", "wonder makers"] : undefined}
       disabled={exclude?.includes(p.id)}
       onSelect={() => {
         onChange(p.id);
@@ -155,7 +158,7 @@ export function PrinterPicker({
   );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(next) => { if (next) setSearch(""); setOpen(next); }}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -179,6 +182,14 @@ export function PrinterPicker({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
+      {showWonderMakerShortcut && printers.some(p => p.vendor === "WonderMaker") && (
+        <button type="button" aria-haspopup="dialog" aria-expanded={open && search === "WonderMaker"}
+          data-testid="filter-wondermaker-printers" translate="no"
+          className="mt-2 rounded-full border border-border px-2.5 py-1 text-xs hover:border-primary hover:text-primary"
+          onClick={() => { setSearch("WonderMaker"); setOpen(true); }}>
+          WonderMaker ZR / ZR Ultra / ZR Ultra S
+        </button>
+      )}
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-1rem)] p-0" collisionPadding={8} align="start">
         <Command>
           <CommandInput placeholder={`Search ${printers.length} printers…`} value={search} onValueChange={setSearch} data-testid="input-printer-search" />
@@ -188,7 +199,7 @@ export function PrinterPicker({
               <p className="mt-1 text-xs text-muted-foreground">Ask us to add it. We only list printers whose converted files slice in their own slicer.</p>
               <RequestPrinterButton className="mt-3" search={search} onBeforeOpen={() => setOpen(false)} />
             </CommandEmpty>
-            <CommandGroup heading="Popular">{groups.popular.map((p) => item(p, `pop-${p.id}`))}</CommandGroup>
+            {!search.trim() && <CommandGroup heading="Popular">{groups.popular.map((p) => item(p, `pop-${p.id}`))}</CommandGroup>}
             {groups.vendors.map(([vendor, list]) => (
               <CommandGroup key={vendor} heading={vendor}>
                 {list.map((p) => item(p, p.id))}
