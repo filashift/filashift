@@ -281,4 +281,168 @@ export const GUIDES_FR: Record<string, GuideText> = {
       },
     ],
   },
+  "creality-print-to-bambu": {
+    title: "Convertir un projet Creality Print pour Bambu Lab",
+    meta: "Convertir des 3MF Creality Print, ElegooSlicer et Anycubic Slicer Next pour Bambu Studio | FilaShift",
+    desc: "Transférez un projet 3MF Creality Print (ainsi que des projets ElegooSlicer ou Anycubic Slicer Next) vers une imprimante Bambu Lab : couleurs attribuées aux emplacements AMS, profils Bambu appliqués et réglages propres au trancheur d'origine supprimés. Avec les limites des filaments mélangés de Creality Print et des plateaux spéciaux.",
+    intro:
+      "Creality Print, ElegooSlicer et Anycubic Slicer Next reposent tous sur le même code qu'OrcaSlicer et Bambu Studio : leurs projets 3MF peuvent donc passer sur une imprimante Bambu Lab. FilaShift reconnaît lequel de ces trancheurs a enregistré le fichier, conserve le modèle, la peinture et les réglages du créateur, et applique les profils d'imprimante, de traitement et de filament propres à Bambu Lab.",
+    steps: [
+      "Dans Creality Print, ElegooSlicer ou Anycubic Slicer Next, enregistrez le projet avec Fichier → Enregistrer le projet sous (un projet .3mf, pas un STL exporté ni du G-code).",
+      "Déposez le 3MF dans FilaShift et choisissez votre imprimante Bambu Lab. La fiche du fichier indique quel trancheur a enregistré le projet.",
+      "Attribuez chaque couleur à un emplacement AMS. Si vous avez moins d'emplacements que le projet n'a de couleurs, les couleurs proches partagent un emplacement.",
+      "Convertissez, téléchargez et lisez le rapport, en particulier les lignes sur les plateaux et les filaments mélangés.",
+      open("Bambu Studio"),
+    ],
+    cta: "Convertir pour la Bambu Lab X1 Carbon",
+    sections: [
+      {
+        h: "Ce qui est conservé",
+        list: [
+          "Tous les plateaux, objets et pièces, avec les couleurs peintes, les supports peints et les coutures.",
+          "La hauteur de couche, les parois, le remplissage, les supports, la bordure, la couture et le lissage du créateur, traduits avec les noms et les unités de Bambu Studio (par exemple, les largeurs de ligne en pourcentage deviennent des millimètres).",
+          "Les types et couleurs de filament, associés aux profils de filament propres à Bambu Lab pour que l'AMS les reconnaisse.",
+        ],
+      },
+      {
+        h: "Ce qui est supprimé ou modifié",
+        list: [
+          "Les réglages que seul le trancheur d'origine comprend ne sont pas copiés : les clés de purge CFS et de méthode multicolore de Creality, support_mms d'Elegoo, ainsi que les réglages d'emplacements ACE et les variantes en acier trempé d'Anycubic. Les réglages normaux contiennent déjà les valeurs que vous avez choisies.",
+          "Le fichier ne se présente plus comme provenant de Creality Print, d'ElegooSlicer ou d'Anycubic Slicer Next : il reçoit un en-tête Bambu Studio propre et le creality.config de Creality est supprimé.",
+          "La tour de purge utilise la largeur par défaut de l'imprimante Bambu (certains profils CFS utilisent des tours bien plus larges), et les valeurs hors des plages autorisées par Bambu Studio sont ramenées à la limite et figurent dans le rapport.",
+          "Les fichiers convertis s'ouvrent dans Bambu Studio 2.9.1 ou ultérieur.",
+        ],
+      },
+      {
+        h: "Limites à vérifier",
+        list: [
+          "Les filaments mélangés de Creality Print 7 (mélanges de couleurs) n'existent que dans Creality Print. Aucun autre trancheur ne peut les imprimer : les pièces ou la peinture qui utilisent un mélange s'impriment donc avec l'emplacement 1. Le rapport vous avertit ; réattribuez ces pièces dans Bambu Studio.",
+          "Les plateaux propres à Creality, comme Epoxy Resin ou Customized, n'ont pas d'équivalent chez Bambu. Le plateau de l'imprimante Bambu est utilisé et le rapport l'indique ; vérifiez la température du plateau avant d'imprimer.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Cela fonctionne-t-il aussi pour ElegooSlicer et Anycubic Slicer Next ?",
+        a: "Oui. FilaShift reconnaît les projets ElegooSlicer et Anycubic Slicer Next, même quand Anycubic Slicer Next présente le fichier comme provenant de Bambu Studio, et les convertit de la même manière.",
+      },
+      {
+        q: "Comment cela a-t-il été testé ?",
+        a: "Les projets de test ElegooSlicer et Anycubic Slicer Next ont été exportés avec leurs propres outils en ligne de commande. Les projets de test Creality Print sont construits à partir des profils et de la structure de fichier de Creality Print, car son outil en ligne de commande ne peut pas enregistrer de projets. Les fichiers convertis ont été tranchés sans erreur dans les outils en ligne de commande des trancheurs de destination. Ce sont des tests logiciels, pas des impressions physiques.",
+      },
+      {
+        q: "Puis-je revenir de Bambu Lab vers une imprimante Creality ?",
+        a: "Oui. La conversion fonctionne dans les deux sens : déposez un projet Bambu Studio et choisissez votre imprimante Creality.",
+      },
+    ],
+  },
+  "bambu-to-prusaslicer-mmu3-xl": {
+    title: "De Bambu Studio à PrusaSlicer pour MMU3 et XL (projets PrusaSlicer natifs)",
+    meta: "Convertir des 3MF Bambu Studio et MakerWorld pour PrusaSlicer avec MMU3 et Prusa XL | FilaShift",
+    desc: "Transformez un 3MF Bambu Studio ou MakerWorld en projet PrusaSlicer 2.9 natif pour la Prusa MK4S MMU3, la CORE One MMU3 ou la XL : profils système PrusaSlicer, couleurs peintes, changements de couleur et plateaux convertis en plateaux PrusaSlicer. Explique ce que changent les profils PrusaSlicer.",
+    intro:
+      "Pour les imprimantes Prusa, FilaShift peut écrire un véritable projet PrusaSlicer au lieu d'un fichier OrcaSlicer. Il utilise les profils système propres à PrusaSlicer pour votre imprimante, que PrusaSlicer affiche donc comme profils système, et reprend les pièces, la peinture et les changements de couleur dans le format propre à PrusaSlicer.",
+    steps: [
+      "Téléchargez le 3MF depuis MakerWorld ou enregistrez votre projet dans Bambu Studio.",
+      "Déposez-le dans FilaShift et choisissez votre imprimante Prusa, par exemple la MK4S MMU3, la CORE One MMU3, la XL 2T ou la XL 5T.",
+      "Dans le panneau des réglages, laissez Sortie pour : PrusaSlicer (l'option par défaut pour les imprimantes Prusa). Les imprimantes qui n'existent que dans PrusaSlicer, comme la MK4S MMU3 et la XL 2T, reçoivent toujours un projet PrusaSlicer.",
+      "Attribuez chaque couleur à un emplacement MMU3 ou à un outil de la XL, puis convertissez et lisez le rapport.",
+      open("PrusaSlicer 2.9 ou ultérieur"),
+    ],
+    cta: "Convertir pour la Prusa MK4S MMU3",
+    sections: [
+      {
+        h: "Ce que contient le projet PrusaSlicer",
+        list: [
+          "Les profils système d'imprimante, d'impression et de filament de PrusaSlicer pour votre imprimante ; le profil d'impression retenu est celui dont la hauteur de couche est la plus proche de celle du projet.",
+          "Les objets avec leurs pièces, noms, extrudeurs, modificateurs et réglages par objet.",
+          "Les couleurs peintes, les supports peints et les coutures peintes dans le format propre à PrusaSlicer.",
+          "Les changements de couleur et les pauses sous forme de changements par couche PrusaSlicer (M600), et chaque plateau comme un plateau PrusaSlicer distinct.",
+        ],
+      },
+      {
+        h: "Les profils PrusaSlicer fixent températures et vitesses",
+        p: [
+          "PrusaSlicer stocke ses réglages autrement que Bambu Studio : les températures et les vitesses proviennent donc des profils PrusaSlicer pour votre imprimante et votre filament, et non du projet d'origine. Les choix du créateur qui peuvent être repris, comme les parois, le remplissage et les supports, sont appliqués par-dessus les profils et listés dans le rapport.",
+          "Les réglages par objet sans équivalent dans PrusaSlicer gardent les valeurs du profil (le rapport les liste). La hauteur de couche variable et les modificateurs par plage de hauteur ne sont pas repris.",
+        ],
+      },
+      {
+        h: "Différences entre MMU3 et XL",
+        list: [
+          "Les imprimantes à MMU3 ont une seule buse et ont besoin d'une tour de purge. FilaShift vérifie la place disponible pour la tour de PrusaSlicer, plus large, et la déplace vers un endroit libre ; s'il n'y en a pas, le rapport vous demande de mettre le modèle à l'échelle ou de le réorganiser.",
+          "Sur le MMU3, un changement de couleur pour un filament qui n'imprime pas à cette hauteur devient une pause (M601). C'est ainsi que PrusaSlicer le gère.",
+          "La XL change de tête d'outil au lieu de charger du filament : chaque couleur va donc à un outil. Quand il y a plus de couleurs que d'outils, les couleurs les plus proches partagent un outil.",
+          "Si un modèle est plus grand que le plateau, le convertisseur avertit et propose une échelle. Mettez-le à l'échelle ou découpez-le dans PrusaSlicer avant de trancher.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Puis-je quand même obtenir un fichier OrcaSlicer pour ma Prusa ?",
+        a: "Oui, pour les imprimantes Prusa prises en charge par OrcaSlicer : choisissez Sortie pour : OrcaSlicer dans le panneau des réglages. Les imprimantes qui n'existent que dans PrusaSlicer, comme la MK4S MMU3, la MK3S MMU3 et la XL 2T, reçoivent toujours un projet PrusaSlicer.",
+      },
+      {
+        q: "Pourquoi les températures diffèrent-elles du projet Bambu ?",
+        a: "La sortie PrusaSlicer utilise les profils de filament propres à PrusaSlicer, qui fixent les températures pour votre imprimante et votre matériau. Vérifiez-les dans PrusaSlicer si vous avez besoin des valeurs du créateur.",
+      },
+      {
+        q: "Comment cela a-t-il été testé ?",
+        a: "Des projets d'exemple, dont deux projets MakerWorld peints, ont été convertis pour chaque imprimante Prusa et chaque variante de buse, puis tranchés avec l'outil en ligne de commande de PrusaSlicer. Les seuls échecs concernaient un modèle MakerWorld plus grand que le plateau de la CORE One MMU3, que le convertisseur signale avec une échelle suggérée. Ce sont des tests logiciels, pas des impressions physiques.",
+      },
+    ],
+  },
+  "bambu-h3c-p3c-multicolour": {
+    title: "Multicolore sur les changeurs d'outils Bambu Lab H3C et P3C (PrintTools, outil TPU)",
+    meta: "Convertir des 3MF multicolores pour les PrintTools des Bambu Lab H3C et P3C | FilaShift",
+    desc: "Comment FilaShift attribue chaque couleur d'un projet 3MF à un PrintTool sur les changeurs d'outils Bambu Lab H3C et P3C, garde le filament rigide à l'écart de l'outil TPU 2,85 mm de la H3C et partage l'AMS quand vous avez plus de couleurs que d'outils.",
+    intro:
+      "Les Bambu Lab H3C et P3C changent de PrintTool complet au lieu de faire passer toutes les couleurs par une seule buse. Quand vous convertissez un projet pour elles, FilaShift écrit un outil pour chaque filament dans le fichier, afin que Bambu Studio conserve cette attribution au lieu de la deviner.",
+    steps: [
+      "Téléchargez le 3MF du projet depuis MakerWorld ou enregistrez-le dans Bambu Studio, OrcaSlicer ou un autre trancheur pris en charge.",
+      "Déposez-le dans FilaShift et choisissez la Bambu Lab H3C ou P3C.",
+      "Attribuez chaque couleur à un emplacement, puis convertissez.",
+      "Lisez le rapport : il indique quel filament va sur quel PrintTool et quel outil vous devez éventuellement installer.",
+      open("Bambu Studio 2.9.1 ou ultérieur"),
+    ],
+    cta: "Convertir pour la Bambu Lab H3C",
+    sections: [
+      {
+        h: "Comment les filaments sont attribués aux PrintTools",
+        list: [
+          "Chaque couleur utilisée par le modèle reçoit son propre PrintTool, et le fichier est réglé sur Nozzle Manual pour que Bambu Studio conserve l'attribution. Le rapport la liste, par exemple filament 1 → PrintTool 1.",
+          "La H3C d'origine compte 9 PrintTools : huit pour du filament 1,75 mm et un, le PrintTool 8, pour du TPU 2,85 mm. La P3C d'origine compte 5 PrintTools dans 7 docks.",
+          "Quand un projet provient du même modèle d'imprimante, chaque filament garde si possible l'outil qu'il y utilisait.",
+          "Quand tous les outils installés sont utilisés, FilaShift vous demande, avec un avertissement, d'installer un autre outil dans un dock libre (P3C) ; au-delà, les couleurs supplémentaires partagent le PrintTool 1 via l'AMS. Le rapport indique lesquelles.",
+        ],
+      },
+      {
+        h: "L'outil TPU 2,85 mm de la H3C",
+        list: [
+          "Seul le filament flexible 2,85 mm va sur l'outil TPU, avec le profil de filament TPU 2,85 mm de l'imprimante. Le filament rigide ne lui est jamais attribué.",
+          "Le filament flexible 1,75 mm (du TPU issu d'un projet AMS, par exemple) ne peut pas utiliser l'outil 2,85 mm : il s'imprime donc avec un PrintTool standard. Le rapport l'indique.",
+          "Sur la P3C, un filament TPU 2,85 mm nécessite un outil TPU supplémentaire dans un dock libre. FilaShift le demande avec un avertissement : installez cet outil avant d'imprimer ou changez de filament.",
+        ],
+      },
+      {
+        h: "Limites à vérifier",
+        list: [
+          "Les projets qui utilisaient des tailles de buse différentes selon l'outil reçoivent une taille de buse unique sur la H3C et la P3C, avec un avertissement, car lors des tests les fichiers convertis avec des tailles mélangées ne se tranchaient pas de façon fiable. Réglez la buse de chaque outil dans Bambu Studio si vous avez besoin de tailles différentes.",
+          "S'il faut plus d'outils que l'imprimante d'origine n'en possède, le rapport nomme les outils à installer. Vous pouvez aussi fusionner des couleurs avant de convertir.",
+          "La H2C fonctionne différemment : Bambu Studio attribue automatiquement son rack de hotends pour réduire la purge.",
+          "Une conversion de la H3C ou de la P3C vers une imprimante à buse unique conserve les couleurs sous forme d'emplacements AMS.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "Bambu Studio va-t-il modifier mon attribution d'outils ?",
+        a: "Pas sur la H3C et la P3C : le fichier utilise le mode Nozzle Manual, donc Bambu Studio conserve le PrintTool de chaque filament. Si un outil indiqué dans le fichier est absent ou ne convient pas au filament, Bambu Studio en choisit un autre.",
+      },
+      {
+        q: "Cela a-t-il été testé ?",
+        a: "Oui, de façon logicielle. Les projets d'exemple standard convertis pour la H3C et la P3C se tranchent sans erreur dans l'outil en ligne de commande de Bambu Studio (voir la page des résultats de test). Des projets de test avec un filament TPU 2,85 mm, 10 couleurs et des tailles de buse mélangées sont aussi convertis et tranchés, et l'attribution des outils est relue dans le G-code. Ce ne sont pas des tests d'impression physique.",
+      },
+    ],
+  },
 };
