@@ -8,6 +8,8 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 ## Code
 
 Use US spelling in English interface copy. After prerendering, the release gate runs `node scripts/check-us-english.mjs` on the English pages, including accessibility text and search metadata. Do not rename slicer fields, printer or filament names, or published guide URLs to enforce this rule.
+
+The release gate also runs `scripts/check-wondermaker-finder.mjs` on desktop Chrome and iPhone-sized WebKit. The family shortcut and plural searches must show all three distinct ZR models; reopening the picker must restore the full list. This checks model selection, not slicer certification.
 - Public clone: `git clone https://github.com/filashift/filashift.git` (branch `master`). Keep private origin details in the operator runbook.
 - Engine: `client/src/engine/engine.ts` (3MF parsing, profile mapping, plate fitting, prime tower placement, filament mapping, report).
 - UI: `client/src/pages/home.tsx`. Footer company name constant `COMPANY`; `/source` offers the production commit archive and repository. Set `VITE_SOURCE_URL` to select a different source repository for a fork.
