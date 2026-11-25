@@ -625,10 +625,17 @@ export interface Loaded {
  * just clear of it along one axis when the bed has room; otherwise keep the centred shift.
  */
 function avoidExcluded(fit: [number, number, number, number], shift: [number, number], bed: { minx: number; miny: number; w: number; h: number }, ex: unknown): [number, number] {
-  const pts = (Array.isArray(ex) ? ex : []).map((p) => String(p).split("x").map(Number)).filter((p) => p.length === 2 && p.every(Number.isFinite));
-  if (pts.length < 3) return shift;
-  const r = [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))];
-  if (r[2] - r[0] <= 0 || r[3] - r[1] <= 0) return shift;
+  // Only a single axis-aligned rectangle is handled (Bambu X1/P1, Elegoo Centauri, Qidi Q2...). Areas made
+  // of several polygons (Anycubic Kobra 3 edge strips, Qidi X-Plus 4 / X-Max 4 / Q1 Pro) keep the plain
+  // centred shift: a bounding box of several strips would cover the whole bed.
+  const raw = (Array.isArray(ex) ? ex : [ex]).flatMap((p) => String(p ?? "").split(","));
+  const pts = raw.map((p) => p.trim().split("x").map(Number)).filter((p) => p.length === 2 && p.every(Number.isFinite));
+  if (pts.length !== raw.length || pts.length < 4 || pts.length > 5) return shift;
+  if (pts.length === 5 && (pts[4][0] !== pts[0][0] || pts[4][1] !== pts[0][1])) return shift;
+  const quad = pts.slice(0, 4);
+  const xs = [...new Set(quad.map((p) => p[0]))], ys = [...new Set(quad.map((p) => p[1]))];
+  if (xs.length !== 2 || ys.length !== 2 || new Set(quad.map((p) => p.join("x"))).size !== 4) return shift;
+  const r = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
   const m = 1; // clearance kept from the excluded area and the bed edge
   const b = [fit[0] + shift[0], fit[1] + shift[1], fit[2] + shift[0], fit[3] + shift[1]];
   if (b[0] >= r[2] + m || b[2] <= r[0] - m || b[1] >= r[3] + m || b[3] <= r[1] - m) return shift;
