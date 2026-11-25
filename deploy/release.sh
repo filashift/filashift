@@ -31,6 +31,7 @@ BASE= node scripts/check-header-theme.mjs
 BASE= node scripts/check-csp.mjs
 BASE= node scripts/check-filament-extras.mjs
 BASE= node scripts/check-content-pages.mjs
+BASE= node scripts/check-seo-locales.mjs
 python3 scripts/test-printer-request.py
 BASE= node scripts/check-batch-preview.mjs
 npx tsx scripts/check-big-models.ts
