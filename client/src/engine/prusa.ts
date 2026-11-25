@@ -175,7 +175,7 @@ export function prusaToOrca(e: Entries): PrusaTranslation {
   const notes: string[] = [];
   const translated: string[] = [];
   const dropped = new Set<string>();
-  if (!cfgKey) notes.push("The PrusaSlicer project has no saved print settings, so only geometry, parts and colours were carried over.");
+  if (!cfgKey) notes.push("The PrusaSlicer project has no saved print settings, so only geometry, parts and colors were carried over.");
 
   // ---- settings ----
   const S: Dict = {};
@@ -202,7 +202,7 @@ export function prusaToOrca(e: Entries): PrusaTranslation {
   S.printer_settings_id = P.printer_settings_id || S.printer_model;
   S.print_settings_id = P.print_settings_id || "";
   S.different_settings_to_system = [translated.join(";")];
-  translated.push("filament colours and types", "nozzle temperatures");
+  translated.push("filament colors and types", "nozzle temperatures");
   // most-noticed keys we do not move (Prusa speeds/widths are in different units)
   for (const k of ["perimeter_speed", "infill_speed", "external_perimeter_speed", "extrusion_width", "perimeter_extrusion_width", "infill_extrusion_width", "start_gcode", "end_gcode", "first_layer_speed", "travel_speed"]) if (P[k] != null) dropped.add(k);
 
@@ -346,9 +346,9 @@ export function prusaToOrca(e: Entries): PrusaTranslation {
     const mode = /<mode\s+value="([^"]+)"/.exec(x)?.[1] || "SingleExtruder";
     if (codes.length) {
       out["Metadata/custom_gcode_per_layer.xml"] = enc(`<?xml version="1.0" encoding="utf-8"?>\n<custom_gcodes_per_layer>\n  <plate>\n    <plate_info id="1"/>\n${codes.join("")}    <mode value="${mode}"/>\n  </plate>\n</custom_gcodes_per_layer>\n`);
-      translated.push(`${codes.length} layer colour change${codes.length > 1 ? "s" : ""}/pause${codes.length > 1 ? "s" : ""}`);
+      translated.push(`${codes.length} layer color change${codes.length > 1 ? "s" : ""}/pause${codes.length > 1 ? "s" : ""}`);
     }
   }
-  if (paintRenamed) translated.push("painted colours, supports and seams");
+  if (paintRenamed) translated.push("painted colors, supports and seams");
   return { entries: out, settings: S, version, translated, dropped: [...dropped], notes };
 }

@@ -241,7 +241,7 @@ export function applyTools(R: Dict, profile: PrinterProfile, tt: ToolTarget, p: 
   if (tpu175.length && tpuTool)
     info.push(`Filament ${tpu175.map((j) => j + 1).join(", ")} is 1.75 mm ${p.types[tpu175[0]]}, which the 2.85 mm TPU tool cannot take; it prints from a standard PrintTool.`);
   if (fitted.length)
-    warn.push(`More tools are needed than the stock ${profile.model} has fitted: install ${fitted.map((id) => `${lab(id)}${tt.slots[id].vol === "TPU285" ? " (2.85 mm TPU)" : ""}`).join(", ")} before printing, or merge colours.`);
+    warn.push(`More tools are needed than the stock ${profile.model} has fitted: install ${fitted.map((id) => `${lab(id)}${tt.slots[id].vol === "TPU285" ? " (2.85 mm TPU)" : ""}`).join(", ")} before printing, or merge colors.`);
   if (shared.length)
     info.push(`Filament ${shared.map((j) => j + 1).join(", ")} share${shared.length > 1 ? "" : "s"} ${lab(tt.amsSlot)} through the AMS, because every other tool is in use.`);
   return { info, warn };

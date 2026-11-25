@@ -14,11 +14,11 @@ const FAQ = [
   },
   {
     q: "Which files can I convert?",
-    a: "3MF projects saved by Bambu Studio, the OrcaSlicer family (OrcaSlicer, Creality Print, ElegooSlicer, Anycubic Slicer Next, Orca-Flashforge, Snapmaker Orca) and PrusaSlicer 2.4 or newer, including MakerWorld and Printables downloads. PrusaSlicer projects keep their parts, painted colours, colour changes and main print settings; speeds and line widths use the new printer's defaults because PrusaSlicer stores them differently.",
+    a: "3MF projects saved by Bambu Studio, the OrcaSlicer family (OrcaSlicer, Creality Print, ElegooSlicer, Anycubic Slicer Next, Orca-Flashforge, Snapmaker Orca) and PrusaSlicer 2.4 or newer, including MakerWorld and Printables downloads. PrusaSlicer projects keep their parts, painted colors, color changes and main print settings; speeds and line widths use the new printer's defaults because PrusaSlicer stores them differently.",
   },
   {
     q: "Can I convert 3MF to STL or OBJ?",
-    a: "Yes. Add the 3MF and use Export STL or Export OBJ under the file. Parts stay in their plate positions, in millimetres, with one file per plate. STL keeps only the shape; OBJ also keeps one colour per part. Painted colours, plates and print settings only survive in a 3MF, so convert the 3MF instead when you want to keep them.",
+    a: "Yes. Add the 3MF and use Export STL or Export OBJ under the file. Parts stay in their plate positions, in millimeters, with one file per plate. STL keeps only the shape; OBJ also keeps one color per part. Painted colors, plates and print settings only survive in a 3MF, so convert the 3MF instead when you want to keep them.",
   },
   {
     q: "Can I convert STL back to 3MF?",
@@ -26,15 +26,15 @@ const FAQ = [
   },
   {
     q: "How do I keep slicer settings when switching printers?",
-    a: "Download the project 3MF, not the STL: on MakerWorld use the 3MF download of the print profile you want, and on Printables download the 3MF file. Then convert it here. FilaShift keeps the designer's layer height, walls, infill, supports, seam and colours, swaps in your printer's machine and filament profiles, and lists every change in the report.",
+    a: "Download the project 3MF, not the STL: on MakerWorld use the 3MF download of the print profile you want, and on Printables download the 3MF file. Then convert it here. FilaShift keeps the designer's layer height, walls, infill, supports, seam and colors, swaps in your printer's machine and filament profiles, and lists every change in the report.",
   },
   {
     q: "Can I convert back to Bambu?",
     a: "Yes. Conversion works in every direction, for example Bambu to Flashforge, Flashforge to Snapmaker, Creality back to Bambu, or PrusaSlicer to Bambu Studio.",
   },
   {
-    q: "What happens to multi-colour prints?",
-    a: "Each colour is matched to one of your printer's filament slots. If the project has more colours than you have slots, extra colours share the closest slot, or, when colours sit at different heights, FilaShift can add filament-change pauses so every colour still prints. You can change every mapping before converting.",
+    q: "What happens to multi-color prints?",
+    a: "Each color is matched to one of your printer's filament slots. If the project has more colors than you have slots, extra colors share the closest slot, or, when colors sit at different heights, FilaShift can add filament-change pauses so every color still prints. You can change every mapping before converting.",
   },
   {
     q: "What does Slicer-tested mean?",
@@ -57,7 +57,7 @@ const FAQ = [
 export default function FaqPage() {
   const lang = useLang(), tested = useTested(), T = (s: string, v?: Record<string, string | number>) => tr(lang, s, v);
   const title = T("Frequently asked questions");
-  const intro = T("Answers about project files, privacy, colour mapping and printer profiles.");
+  const intro = T("Answers about project files, privacy, color mapping and printer profiles.");
   usePageMeta(`${title} | FilaShift`, intro);
   useEffect(() => { window.scrollTo(0,0); }, []);
   const questions = FAQ.map(f => {

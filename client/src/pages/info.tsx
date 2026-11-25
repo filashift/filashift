@@ -99,7 +99,7 @@ export function About() {
       <S h="Why we built it">
         <p>
           Great models are often published for one printer. Opening a Bambu Lab project on a Flashforge, Snapmaker or Creality machine (or the other
-          way round) usually means losing colours, plates or settings. FilaShift rewrites the project for your printer while keeping the geometry,
+          way round) usually means losing colors, plates or settings. FilaShift rewrites the project for your printer while keeping the geometry,
           painting, plates and the designer's important settings, and tells you exactly what changed.
         </p>
       </S>

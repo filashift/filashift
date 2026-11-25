@@ -89,7 +89,7 @@ export function ReportDialog() {
                 maxLength={4000}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="For example: the colours were wrong after opening the file in Flashforge Orca"
+                placeholder="For example: the colors were wrong after opening the file in Flashforge Orca"
                 data-testid="input-report-message"
               />
             </div>

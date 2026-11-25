@@ -285,9 +285,9 @@ export function FileCard({
                 <label className="flex items-start gap-3">
                   <Switch disabled={working} checked={!!job.pauses} onCheckedChange={onPauses} className="mt-0.5" data-testid={`switch-pauses-${job.id}`} />
                   <span>
-                    <span className="font-medium">{`Print all ${usedCount} colours with filament-change pauses`}</span>
+                    <span className="font-medium">{`Print all ${usedCount} colors with filament-change pauses`}</span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
-                      {`The colours never share a layer, so the printer can pause ${plan.changes.length} time${plan.changes.length > 1 ? "s" : ""} for you to swap filament instead of merging colours${
+                      {`The colors never share a layer, so the printer can pause ${plan.changes.length} time${plan.changes.length > 1 ? "s" : ""} for you to swap filament instead of merging colors${
                         job.pauses
                           ? `: ${plan.changes
                               .slice(0, 3)
@@ -301,7 +301,7 @@ export function FileCard({
               ) : (
                 <p className="flex gap-2 text-xs text-muted-foreground">
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  <span>{`This project uses ${usedCount} colours on ${slots} slot${slots > 1 ? "s" : ""}. Some colours print on the same layers${a!.hasPaint ? " or are painted" : ""}, so pauses cannot replace the missing slots; the closest colours share a slot instead.`}</span>
+                  <span>{`This project uses ${usedCount} colors on ${slots} slot${slots > 1 ? "s" : ""}. Some colors print on the same layers${a!.hasPaint ? " or are painted" : ""}, so pauses cannot replace the missing slots; the closest colors share a slot instead.`}</span>
                 </p>
               )}
             </div>
@@ -418,7 +418,7 @@ function PreviewButton({ id, disabled, onClick }: { id: string; disabled: boolea
   return (
     <Button variant="outline" size="sm" className="mt-3 h-8 gap-1.5 text-xs" disabled={disabled} onClick={onClick} data-testid={`button-preview-${id}`}>
       <Eye className="h-3.5 w-3.5" />
-      Preview colours in 3D
+      Preview colors in 3D
     </Button>
   );
 }

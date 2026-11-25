@@ -2,7 +2,7 @@
 
 Move a 3MF print project to a different 3D printer, right in your browser.
 
-Drop a project from Bambu Studio or an Orca-family slicer (OrcaSlicer, Creality Print, Orca-Flashforge, Snapmaker Orca, ElegooSlicer, Anycubic Slicer Next, QIDI Studio), pick the printer you own, and map the colours to its filament slots. FilaShift swaps in that printer's machine, process and filament profiles, keeps the designer's model, painting and print settings, and removes settings that are unsafe for the new machine. It works in every direction: Bambu to Flashforge, Snapmaker, Creality or Prusa, and back again.
+Drop a project from Bambu Studio or an Orca-family slicer (OrcaSlicer, Creality Print, Orca-Flashforge, Snapmaker Orca, ElegooSlicer, Anycubic Slicer Next, QIDI Studio), pick the printer you own, and map the colors to its filament slots. FilaShift swaps in that printer's machine, process and filament profiles, keeps the designer's model, painting and print settings, and removes settings that are unsafe for the new machine. It works in every direction: Bambu to Flashforge, Snapmaker, Creality or Prusa, and back again.
 
 Live site: https://filashift.com
 
@@ -16,7 +16,7 @@ All conversion happens in the browser tab. Project files are never uploaded; the
 
 ## How it was tested
 
-`scripts/matrix.ts` converts source projects to a list of target printers, and `scripts/slice-matrix.sh` slices every result with the destination slicer's command-line interface (OrcaSlicer 2.5.2, Bambu Studio 2.9.2, PrusaSlicer 2.9.4) and reads the settings back from the G-code. `scripts/roundtrip.ts` converts a project through a chain of printers and checks the painted colours come back unchanged. The latest run (2026-11-24) sliced 678 of 678 OrcaSlicer and Bambu Studio conversions (three sample projects from Bambu Studio, OrcaSlicer and PrusaSlicer to all 226 of those printers) and 313 of 315 PrusaSlicer conversions (the three samples plus two painted MakerWorld projects to all 63 Prusa printer and nozzle variants; the other two are a MakerWorld model larger than the CORE One MMU3 bed, which the converter flags with a scale suggestion). All 234 printers are slicer-tested.
+`scripts/matrix.ts` converts source projects to a list of target printers, and `scripts/slice-matrix.sh` slices every result with the destination slicer's command-line interface (OrcaSlicer 2.5.2, Bambu Studio 2.9.2, PrusaSlicer 2.9.4) and reads the settings back from the G-code. `scripts/roundtrip.ts` converts a project through a chain of printers and checks the painted colors come back unchanged. The latest run (2026-11-24) sliced 678 of 678 OrcaSlicer and Bambu Studio conversions (three sample projects from Bambu Studio, OrcaSlicer and PrusaSlicer to all 226 of those printers) and 313 of 315 PrusaSlicer conversions (the three samples plus two painted MakerWorld projects to all 63 Prusa printer and nozzle variants; the other two are a MakerWorld model larger than the CORE One MMU3 bed, which the converter flags with a scale suggestion). All 234 printers are slicer-tested.
 
 ## Known limits
 
@@ -28,6 +28,8 @@ The separate 2026-11-25 ZR Ultra check sliced five converted projects in OrcaSli
 - PrusaSlicer projects can be opened and exported (PrusaSlicer 2.4+ in, 2.9 projects out). PrusaSlicer output uses PrusaSlicer's presets for temperatures and speeds; variable layer height and layer-range modifiers are not carried over.
 
 ## Development
+
+Use US English for FilaShift's English interface, guides, conversion messages, and search metadata (for example, `color`, `gray`, and `millimeters`). Keep source-format keys such as `filament_colour`, vendor product names, and published URLs intact. After building and prerendering, run `node scripts/check-us-english.mjs` to check the English pages.
 
 ```bash
 npm install

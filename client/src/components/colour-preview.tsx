@@ -50,7 +50,7 @@ export function ColourPreviewDialog({
     setErr("");
     load(request.jobId).then(
       (m) => live && setMesh(m),
-      (e) => live && setErr(e?.name === "AbortError" ? "Preview cancelled." : `The preview could not be prepared: ${e?.message || e}`),
+      (e) => live && setErr(e?.name === "AbortError" ? "Preview canceled." : `The preview could not be prepared: ${e?.message || e}`),
     );
     return () => {
       live = false;
@@ -60,7 +60,7 @@ export function ColourPreviewDialog({
     <Dialog open={!!request} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[92vh] w-[calc(100vw-1rem)] max-w-4xl overflow-y-auto p-4 sm:p-6" data-testid="dialog-preview">
         <DialogHeader>
-          <DialogTitle>Before and after colours</DialogTitle>
+          <DialogTitle>Before and after colors</DialogTitle>
           <DialogDescription>
             <span translate="no">{request?.fileName}</span>
           </DialogDescription>

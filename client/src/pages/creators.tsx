@@ -10,7 +10,7 @@ type Creator = { name: string; url: string; platform?: string; note?: string };
 const EMAIL = "support@jacksoncgc.com";
 
 export default function Creators() {
-  usePageMeta("Creators — FilaShift", "Designers who make multi-colour 3MF projects that convert well between Bambu Lab, Flashforge, Creality, Prusa and other printers.");
+  usePageMeta("Creators — FilaShift", "Designers who make multi-color 3MF projects that convert well between Bambu Lab, Flashforge, Creality, Prusa and other printers.");
   const [list, setList] = useState<Creator[] | null>(null);
   useEffect(() => {
     fetch(dataUrl("creators.json"), { cache: "no-cache" })
@@ -26,7 +26,7 @@ export default function Creators() {
           Creators
         </h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Designers whose multi-colour projects convert cleanly between printers. Every creator here asked to be listed. We show only the name and
+          Designers whose multi-color projects convert cleanly between printers. Every creator here asked to be listed. We show only the name and
           profile link they gave us.
         </p>
 
@@ -58,7 +58,7 @@ export default function Creators() {
           <div className="mt-8 rounded-xl border border-dashed border-border p-8 text-center" data-testid="text-creators-empty">
             <Palette className="mx-auto h-8 w-8 text-primary" />
             <p className="mt-3 font-medium">The first creators are being added.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Design multi-colour models? You could be one of them.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Design multi-color models? You could be one of them.</p>
           </div>
         )}
 

@@ -339,11 +339,11 @@ export function exportMesh(input: Uint8Array | Entries, fileName: string, format
   }
   lines.push({
     level: "ok",
-    text: `Exported ${m.triangles.toLocaleString("en-US")} triangles from ${nParts} part${nParts === 1 ? "" : "s"}${many ? ` on ${m.plates.length} plates (one file per plate)` : ""} as ${format.toUpperCase()}, in millimetres, with the parts in their plate positions.`,
+    text: `Exported ${m.triangles.toLocaleString("en-US")} triangles from ${nParts} part${nParts === 1 ? "" : "s"}${many ? ` on ${m.plates.length} plates (one file per plate)` : ""} as ${format.toUpperCase()}, in millimeters, with the parts in their plate positions.`,
   });
-  if (format === "stl") lines.push({ level: "info", text: "STL stores shape only: colours, filament assignments, plates and print settings are not included. Use OBJ to keep part colours, or convert the 3MF instead to keep everything." });
-  else lines.push({ level: "info", text: "OBJ keeps one colour per part (from its filament) in the .mtl file. Print settings are not included." });
-  if (m.painted) lines.push({ level: "warn", text: "This project has painted-on colours. STL and OBJ cannot store painting, so painted areas export in the part's base colour. Convert the 3MF to keep painting." });
+  if (format === "stl") lines.push({ level: "info", text: "STL stores shape only: colors, filament assignments, plates and print settings are not included. Use OBJ to keep part colors, or convert the 3MF instead to keep everything." });
+  else lines.push({ level: "info", text: "OBJ keeps one color per part (from its filament) in the .mtl file. Print settings are not included." });
+  if (m.painted) lines.push({ level: "warn", text: "This project has painted-on colors. STL and OBJ cannot store painting, so painted areas export in the part's base color. Convert the 3MF to keep painting." });
   if (m.modifiers) lines.push({ level: "info", text: `Skipped ${m.modifiers} modifier, negative or support-blocker volume${m.modifiers === 1 ? "" : "s"}, which only affect slicing.` });
   return { blob, fileName: out, lines };
 }

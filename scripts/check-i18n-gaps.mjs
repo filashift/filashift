@@ -174,7 +174,7 @@ if (!staticOnly) {
           await ask.click();
           const box = page.locator('[role="dialog"] textarea, [role="dialog"] input[type="text"], [role="dialog"] input:not([type])').first();
           await box.waitFor({ timeout: 10000 }).catch(() => gap(lang, "/ helper", "helper input not found"));
-          if (await box.count()) { await box.fill("colours missing after opening"); await box.press("Enter"); await page.waitForTimeout(800); }
+          if (await box.count()) { await box.fill("colors missing after opening"); await box.press("Enter"); await page.waitForTimeout(800); }
           await scan("/ helper");
           await page.keyboard.press("Escape");
         } else gap(lang, "/ helper", "helper button not found");

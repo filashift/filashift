@@ -147,7 +147,7 @@ export default function Filament() {
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <Button size="sm" variant={pack === "single" ? "default" : "outline"} aria-pressed={pack==="single"} onClick={()=>changePack("single")}>One spool for this print</Button>
           <Button size="sm" variant={pack === "multi" ? "default" : "outline"} aria-pressed={pack==="multi"} onClick={()=>changePack("multi")}>Compare bulk prices</Button>
-          {color && <Button size="sm" variant="outline" onClick={()=>setColor("")} data-testid="clear-project-colour"><span style={{background:color}} className="mr-2 h-3 w-3 rounded-full border"/><span>Approximate colour:</span>&nbsp;{nearestName(color)} · <span>Clear</span></Button>}
+          {color && <Button size="sm" variant="outline" onClick={()=>setColor("")} data-testid="clear-project-colour"><span style={{background:color}} className="mr-2 h-3 w-3 rounded-full border"/><span>Approximate color:</span>&nbsp;{nearestName(color)} · <span>Clear</span></Button>}
         </div>
         {pack==="single" && <p className="mb-4 text-sm text-muted-foreground">One ready-to-use spool, up to 1.25 kg. Refills, multipacks and unconfirmed packaging are excluded. Prices exclude shipping and tax.</p>}
         <div translate="no" className="mb-4 rounded-lg border px-3 py-2 text-sm">
@@ -179,7 +179,7 @@ export default function Filament() {
         <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-[1.4fr_repeat(5,minmax(0,1fr))]">
           <div className="relative col-span-2 sm:col-span-3 lg:col-span-1">
             <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Colour, brand or product" className="pl-8" data-testid="input-search" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Color, brand or product" className="pl-8" data-testid="input-search" />
           </div>
           <Select value={type} onValueChange={setType}>
             <SelectTrigger data-testid="select-type" aria-label="Type"><SelectValue /></SelectTrigger>
@@ -217,7 +217,7 @@ export default function Filament() {
               <SelectItem value="ppk">Lowest price per kg</SelectItem>
               <SelectItem value="price">Lowest total price</SelectItem>
               <SelectItem value="deal">Biggest discount</SelectItem>
-              {color && <SelectItem value="colour">Closest colour</SelectItem>}
+              {color && <SelectItem value="colour">Closest color</SelectItem>}
             </SelectContent>
           </Select>
         </div>
@@ -244,20 +244,20 @@ export default function Filament() {
               <Button size="sm" variant="outline" disabled={low === null} onClick={() => low !== null && setWatched(addWatched(watched, search, low))} data-testid="watch-search"><Bell className="mr-1.5 h-3.5 w-3.5" /><span>Watch this search</span></Button>
             )}
             <span className="text-xs text-muted-foreground">Saved only in this browser, never sent to FilaShift. No account or email.</span>
-            {color && <span className="text-xs text-muted-foreground">With a colour, only close matches count.</span>}
+            {color && <span className="text-xs text-muted-foreground">With a color, only close matches count.</span>}
           </div>
         )}
 
         {color && data && (
           <p className="mb-4 text-xs text-muted-foreground" data-testid="text-colour-help">
-            Colour closeness is ΔE (CIEDE2000) between the project colour and the store's swatch, or a colour estimated from its name. Under 5 is very close, under 12 is close.
+            Color closeness is ΔE (CIEDE2000) between the project color and the store's swatch, or a color estimated from its name. Under 5 is very close, under 12 is close.
           </p>
         )}
         {noCloseColour && (
           <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200" role="status" data-testid="no-close-colour">
-            <p className="font-medium">No close colour match</p>
-            <p className="mt-1">{list.length ? "None of these offers is a close colour match. The nearest ones are listed, but they will look noticeably different." : "No offer with these filters is close to this colour."}</p>
-            <Button size="sm" variant="outline" className="mt-2" onClick={() => setColor("")} data-testid="show-all-colours">Show all colours</Button>
+            <p className="font-medium">No close color match</p>
+            <p className="mt-1">{list.length ? "None of these offers is a close color match. The nearest ones are listed, but they will look noticeably different." : "No offer with these filters is close to this color."}</p>
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => setColor("")} data-testid="show-all-colours">Show all colors</Button>
           </div>
         )}
 
@@ -411,7 +411,7 @@ function Offer({ it, rank, cfg, feeder, hit }: { it: Item; rank: number; cfg: Co
             <span className="h-3 w-3 rounded-full border border-black/15 dark:border-white/20" style={{ background: hit.hex }} aria-hidden />
             <span className={cn("font-medium", hit.de <= CLOSE ? "text-primary" : "text-amber-700 dark:text-amber-300")}>{hit.de <= VERY_CLOSE ? "Very close" : hit.de <= CLOSE ? "Close match" : "Noticeably different"}</span>
             <span className="font-mono tabular-nums text-muted-foreground" translate="no">{`ΔE ${hit.de.toFixed(1)}`}</span>
-            {hit.estimated && <span className="text-muted-foreground">colour estimated from its name</span>}
+            {hit.estimated && <span className="text-muted-foreground">color estimated from its name</span>}
           </div>
         )}
         {status&&<div translate="no" data-testid="reel-fit" data-status={status} className="mt-2 text-xs">

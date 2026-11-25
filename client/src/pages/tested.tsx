@@ -87,7 +87,7 @@ export default function TestedPage() {
           isAccessibleForFree: true,
           creator: { "@type": "Organization", name: "Jackson Technology Solutions LLC", url: siteUrl("/about", PATH_LANG ?? "en") },
           measurementTechnique: L("Sample projects converted by FilaShift and sliced with the OrcaSlicer, Bambu Studio and PrusaSlicer command-line interfaces"),
-          variableMeasured: ["printer profile", "destination slicer", "slicer version", "slice tests passed", "slice tests run", "colour slots"].map((v) => L(v)),
+          variableMeasured: ["printer profile", "destination slicer", "slicer version", "slice tests passed", "slice tests run", "color slots"].map((v) => L(v)),
           distribution: [
             { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: `${SITE}/profiles/tested.json` },
             { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: `${SITE}/profiles/index.json` },
@@ -184,7 +184,7 @@ export default function TestedPage() {
                   <th scope="col" className="py-2 pr-3 font-medium">Printer</th>
                   <th scope="col" className="py-2 pr-3 font-medium">Result</th>
                   <th scope="col" className="py-2 pr-3 font-medium">Slicer and version</th>
-                  <th scope="col" className="py-2 pr-3 font-medium">Colour slots</th>
+                  <th scope="col" className="py-2 pr-3 font-medium">Color slots</th>
                   <th scope="col" className="py-2 pr-3 font-medium">Tested</th>
                   <th scope="col" className="py-2 font-medium">Notes</th>
                 </tr>
@@ -222,7 +222,7 @@ export default function TestedPage() {
                         </ul>
                       </td>
                       <td className="col-span-2 md:py-2.5 md:pr-3 md:align-top">
-                        <span className="mr-1 text-xs text-muted-foreground md:hidden">Colour slots:</span>
+                        <span className="mr-1 text-xs text-muted-foreground md:hidden">Color slots:</span>
                         <span>{slotLabel(p)}</span>
                         {p.nozzles && p.nozzles.length > 1 && <div className="text-xs text-muted-foreground">{`Nozzles: ${p.nozzles.join(", ")} mm`}</div>}
                       </td>

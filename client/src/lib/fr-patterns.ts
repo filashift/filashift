@@ -51,13 +51,13 @@ addPatterns("fr", [
   [/^Ready for (.+)$/, "Prêt pour $1"],
   [/^(\d+) plates? · (\d+) objects?$/, (_m, p, o) => `${p} ${s(p, "plateau", "plateaux")} · ${o} ${s(o, "objet", "objets")}`],
   [/^(\d+) of (\d+) used( \(assumed\))?$/, (_m, a, b, x) => `${a} sur ${b} ${s(a, "utilisé", "utilisés")}${x ? " (supposé)" : ""}`],
-  [/^This project uses (\d+) colours on (\d+) slots?\. Some colours print on the same layers( or are painted)?, so pauses cannot replace the missing slots; the closest colours share a slot instead\.$/, (_m, c, n, p) =>
+  [/^This project uses (\d+) colors on (\d+) slots?\. Some colors print on the same layers( or are painted)?, so pauses cannot replace the missing slots; the closest colors share a slot instead\.$/, (_m, c, n, p) =>
     `Ce projet utilise ${c} couleurs sur ${n} ${s(n, "emplacement", "emplacements")}. Certaines couleurs s'impriment sur les mêmes couches${p ? " ou sont peintes" : ""} : des pauses ne peuvent donc pas remplacer les emplacements manquants, et les couleurs les plus proches partagent un emplacement.`],
-  [/^Print all (\d+) colours with filament-change pauses$/, "Imprimer les $1 couleurs avec des pauses de changement de filament"],
-  [/^The colours never share a layer, so the printer can pause (\d+) times? for you to swap filament instead of merging colours(.*)$/, (_m, n, rest) =>
+  [/^Print all (\d+) colors with filament-change pauses$/, "Imprimer les $1 couleurs avec des pauses de changement de filament"],
+  [/^The colors never share a layer, so the printer can pause (\d+) times? for you to swap filament instead of merging colors(.*)$/, (_m, n, rest) =>
     `Les couleurs ne partagent jamais une couche : l'imprimante peut donc faire ${n} ${s(n, "pause", "pauses")} pour que vous changiez de filament au lieu de fusionner des couleurs${rest.replace(/slot (\d+) → (.+?) from ([\d.]+) mm/g, "emplacement $1 → $2 à partir de $3 mm")}`],
   [/^· (\d+) kept · (\d+) adapted · (\d+) speed changes$/, "· $1 conservés · $2 adaptés · $3 changements de vitesse"],
-  [/^· (\d+) colours?$/, (_m, n) => `· ${n} ${s(n, "couleur", "couleurs")}`],
+  [/^· (\d+) colors?$/, (_m, n) => `· ${n} ${s(n, "couleur", "couleurs")}`],
   [/^· close to (.+)$/, (_m, w) => `· proche de : ${colourFr(w)}`],
   [/^Compare all (.+) in (.+)$/, (_m, t, w) => `Comparer tout le ${t === "Other" ? "filament" : t} ${colourFr(w)}`],
   [/^(\d[\d,]*) offers from (\d+) stores · updated (.+)$/, (_m, a, b, t) => `${a} offres de ${b} boutiques · mis à jour ${agoFr(t)}`],

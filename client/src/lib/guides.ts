@@ -28,12 +28,12 @@ export const GUIDES: Guide[] = [
     slug: "3mf-to-stl",
     title: "How to convert 3MF to STL or OBJ",
     meta: "Convert 3MF to STL or OBJ free, in your browser | FilaShift",
-    desc: "Convert a 3MF file to STL or OBJ in seconds without uploading it. Parts stay in place, units are converted to millimetres, and OBJ keeps part colours. Step-by-step guide with fixes for common problems.",
+    desc: "Convert a 3MF file to STL or OBJ in seconds without uploading it. Parts stay in place, units are converted to millimeters, and OBJ keeps part colors. Step-by-step guide with fixes for common problems.",
     intro:
       "STL and OBJ are plain mesh formats that almost every 3D tool can open. FilaShift turns a 3MF into STL or OBJ inside your browser, so the file is never uploaded.",
     steps: [
       "Open the FilaShift converter and drop your .3mf file onto the page (or click to choose it).",
-      "Under the file, click Export STL for a shape-only mesh, or Export OBJ to also keep one colour per part.",
+      "Under the file, click Export STL for a shape-only mesh, or Export OBJ to also keep one color per part.",
       "Save the download. A project with several plates gives one file per plate in a .zip.",
       "Open the STL or OBJ in your slicer or 3D software and check the size and orientation.",
     ],
@@ -42,26 +42,26 @@ export const GUIDES: Guide[] = [
       {
         h: "What is kept and what is lost",
         list: [
-          "Kept: every printable part, positioned exactly as it sits on the plate, in millimetres (3MF files in inches, centimetres or microns are scaled for you).",
-          "OBJ only: one material per part, coloured from its filament, in a matching .mtl file.",
-          "Lost in both: painted-on colours, filament assignments, plates, supports and every print setting. Neither STL nor OBJ can store them.",
+          "Kept: every printable part, positioned exactly as it sits on the plate, in millimeters (3MF files in inches, centimeters or microns are scaled for you).",
+          "OBJ only: one material per part, colored from its filament, in a matching .mtl file.",
+          "Lost in both: painted-on colors, filament assignments, plates, supports and every print setting. Neither STL nor OBJ can store them.",
           "Skipped: modifier, negative and support-blocker volumes, which only matter to the slicer.",
         ],
       },
       {
         h: "STL or OBJ: which should I pick?",
         p: [
-          "Pick STL when another person or program just needs the shape: it is the most widely supported format. Pick OBJ when you want to see which part is which colour, for example in Blender or a renderer.",
-          "If you are moving a print to a different printer, you usually don't want either. Convert the 3MF itself instead: FilaShift keeps the colours, painting, plates and the designer's settings.",
+          "Pick STL when another person or program just needs the shape: it is the most widely supported format. Pick OBJ when you want to see which part is which color, for example in Blender or a renderer.",
+          "If you are moving a print to a different printer, you usually don't want either. Convert the 3MF itself instead: FilaShift keeps the colors, painting, plates and the designer's settings.",
         ],
       },
       {
         h: "Fixing common problems",
         list: [
-          "The model is tiny or huge: the program you opened it in assumed inches or metres. FilaShift always writes millimetres; set the import unit to mm.",
+          "The model is tiny or huge: the program you opened it in assumed inches or meters. FilaShift always writes millimeters; set the import unit to mm.",
           "Holes or missing faces: the original mesh was not watertight. Most slicers repair this on import; Bambu Studio and OrcaSlicer offer Fix model, and PrusaSlicer repairs automatically.",
           "Parts are merged into one: STL has no part list. Use OBJ, which keeps a named object per part, or split the parts in your slicer.",
-          "The colours are gone: STL has no colour at all, and OBJ has one colour per part. Painted detail only survives in a 3MF.",
+          "The colors are gone: STL has no color at all, and OBJ has one color per part. Painted detail only survives in a 3MF.",
         ],
       },
     ],
@@ -79,14 +79,14 @@ export const GUIDES: Guide[] = [
     slug: "makerworld-to-flashforge",
     title: "Convert MakerWorld and Bambu Studio 3MF files for Flashforge",
     meta: "Print MakerWorld 3MF on Flashforge AD5X, AD5M and Creator 5 | FilaShift",
-    desc: "Convert MakerWorld and Bambu Studio 3MF projects for the Flashforge AD5X, Adventurer 5M and Creator 5 without rebuilding colours, plates or settings. Free, private, step by step.",
+    desc: "Convert MakerWorld and Bambu Studio 3MF projects for the Flashforge AD5X, Adventurer 5M and Creator 5 without rebuilding colors, plates or settings. Free, private, step by step.",
     intro:
-      "MakerWorld projects are saved for Bambu Lab printers. Opening one on a Flashforge usually drops the colours or the settings. FilaShift rewrites the project with Flashforge's own printer and filament profiles and keeps the rest.",
+      "MakerWorld projects are saved for Bambu Lab printers. Opening one on a Flashforge usually drops the colors or the settings. FilaShift rewrites the project with Flashforge's own printer and filament profiles and keeps the rest.",
     printer: "flashforge-ad5x",
     steps: [
       "On MakerWorld, open the model, choose the print profile you want and download it as a 3MF (not the STL).",
       "Drop the 3MF into FilaShift and choose your Flashforge printer: AD5X, Adventurer 5M / 5M Pro or Creator 5.",
-      "Check the colour list. Each project colour is matched to one of the four IFS slots (AD5X) or toolheads (Creator 5); change any match you like.",
+      "Check the color list. Each project color is matched to one of the four IFS slots (AD5X) or toolheads (Creator 5); change any match you like.",
       "Click Convert, download the new 3MF and read the report.",
       OPEN.replace("your slicer", "OrcaSlicer or Orca-Flashforge"),
     ],
@@ -95,7 +95,7 @@ export const GUIDES: Guide[] = [
       {
         h: "What carries over",
         list: [
-          "Every plate, object and painted colour, with the paint re-numbered to your slots.",
+          "Every plate, object and painted color, with the paint re-numbered to your slots.",
           "The designer's layer height, walls, infill, top and bottom layers, supports, brim and seam settings.",
           "Flashforge's machine settings, start and end G-code and filament temperatures replace the Bambu ones, so the printer is driven correctly.",
           "The prime tower is moved to a free spot on the 220 × 220 mm bed when the original spot no longer fits.",
@@ -104,7 +104,7 @@ export const GUIDES: Guide[] = [
       {
         h: "Single-extruder Flashforge printers",
         p: [
-          "The Adventurer 5M and 5M Pro have one filament path. FilaShift can either merge all colours into one, or, when colours sit at different heights (signs, badges, keychains), add filament-change pauses so the printer stops for you to swap filament.",
+          "The Adventurer 5M and 5M Pro have one filament path. FilaShift can either merge all colors into one, or, when colors sit at different heights (signs, badges, keychains), add filament-change pauses so the printer stops for you to swap filament.",
         ],
       },
       {
@@ -126,14 +126,14 @@ export const GUIDES: Guide[] = [
     slug: "makerworld-to-creality",
     title: "Convert MakerWorld and Bambu Studio 3MF files for Creality printers",
     meta: "Print MakerWorld 3MF on Creality K1, K2, Hi and Ender-3 V3 | FilaShift",
-    desc: "Convert Bambu Studio and MakerWorld 3MF projects for Creality K1, K2 Plus, Hi with CFS and Ender-3 V3, keeping colours, plates and the designer's settings.",
+    desc: "Convert Bambu Studio and MakerWorld 3MF projects for Creality K1, K2 Plus, Hi with CFS and Ender-3 V3, keeping colors, plates and the designer's settings.",
     intro:
       "Creality printers use OrcaSlicer-family profiles (OrcaSlicer and Creality Print). FilaShift converts Bambu projects to those profiles and lists every change, so you can print MakerWorld models on a K1, K2 or Ender without starting over.",
     printer: "creality-k2-plus",
     steps: [
       "Download the MakerWorld model as a 3MF with the print profile you want.",
       "Drop it into FilaShift and pick your Creality printer, for example K2 Plus (CFS), Hi (CFS), K1C or Ender-3 V3.",
-      "Match colours to your CFS slots, or use filament-change pauses on single-extruder models.",
+      "Match colors to your CFS slots, or use filament-change pauses on single-extruder models.",
       "Convert, download and read the report.",
       OPEN.replace("your slicer", "OrcaSlicer"),
     ],
@@ -142,7 +142,7 @@ export const GUIDES: Guide[] = [
       {
         h: "What carries over",
         list: [
-          "Plates, objects and painted colours.",
+          "Plates, objects and painted colors.",
           "Layer height, walls, infill, supports, brim, seam and ironing.",
           "Creality's machine limits, start and end G-code and filament profiles.",
           "Creality CFS profiles use very wide prime towers; when one doesn't fit beside the model, FilaShift narrows it and tells you.",
@@ -165,14 +165,14 @@ export const GUIDES: Guide[] = [
     slug: "bambu-to-snapmaker-u1",
     title: "Convert Bambu Studio and MakerWorld projects for the Snapmaker U1",
     meta: "Print MakerWorld 3MF on the Snapmaker U1 toolchanger | FilaShift",
-    desc: "Move Bambu Studio and MakerWorld 3MF projects to the Snapmaker U1 four-toolhead printer with colours mapped to toolheads and the designer's settings kept.",
+    desc: "Move Bambu Studio and MakerWorld 3MF projects to the Snapmaker U1 four-toolhead printer with colors mapped to toolheads and the designer's settings kept.",
     intro:
-      "The Snapmaker U1 prints up to four colours with four toolheads instead of an AMS. FilaShift maps each project colour to a toolhead and swaps in the U1's own profiles.",
+      "The Snapmaker U1 prints up to four colors with four toolheads instead of an AMS. FilaShift maps each project color to a toolhead and swaps in the U1's own profiles.",
     printer: "snapmaker-u1",
     steps: [
       "Download the project 3MF from MakerWorld or save it from Bambu Studio.",
       "Drop it into FilaShift; the Snapmaker U1 is selected by default.",
-      "Check which colour goes to which toolhead.",
+      "Check which color goes to which toolhead.",
       "Convert, download and read the report.",
       OPEN.replace("your slicer", "Snapmaker Orca or OrcaSlicer"),
     ],
@@ -181,12 +181,12 @@ export const GUIDES: Guide[] = [
       {
         h: "Why toolchangers need less purging",
         p: [
-          "An AMS printer purges filament on every colour change; a toolchanger parks one toolhead and picks up another. FilaShift uses the U1's own prime tower size, so the tower is much smaller than on a Bambu printer.",
+          "An AMS printer purges filament on every color change; a toolchanger parks one toolhead and picks up another. FilaShift uses the U1's own prime tower size, so the tower is much smaller than on a Bambu printer.",
         ],
       },
       {
-        h: "More than four colours",
-        p: ["When a project has more colours than toolheads, FilaShift shares the closest colours or adds pauses so you can swap filament at the right height."],
+        h: "More than four colors",
+        p: ["When a project has more colors than toolheads, FilaShift shares the closest colors or adds pauses so you can swap filament at the right height."],
       },
     ],
     faq: [{ q: "Can I convert U1 projects for Bambu?", a: "Yes, conversion works in both directions." }],
@@ -196,14 +196,14 @@ export const GUIDES: Guide[] = [
     slug: "prusaslicer-to-bambu",
     title: "Open PrusaSlicer and Printables 3MF projects in Bambu Studio or OrcaSlicer",
     meta: "Convert PrusaSlicer / Printables 3MF to Bambu Studio and OrcaSlicer | FilaShift",
-    desc: "Convert PrusaSlicer and Printables 3MF projects for Bambu Lab, Flashforge, Creality and other printers, keeping parts, painted colours, colour changes and the main print settings.",
+    desc: "Convert PrusaSlicer and Printables 3MF projects for Bambu Lab, Flashforge, Creality and other printers, keeping parts, painted colors, color changes and the main print settings.",
     intro:
-      "PrusaSlicer stores its projects differently from Bambu Studio and OrcaSlicer, so opening one in the other usually loses the parts, colours and settings. FilaShift translates the PrusaSlicer project first, then converts it for your printer.",
+      "PrusaSlicer stores its projects differently from Bambu Studio and OrcaSlicer, so opening one in the other usually loses the parts, colors and settings. FilaShift translates the PrusaSlicer project first, then converts it for your printer.",
     printer: "bambu-lab-x1-carbon",
     steps: [
       "Download the 3MF from Printables, or save your project in PrusaSlicer 2.4 or newer.",
       "Drop it into FilaShift and pick the printer you own: Bambu Lab, Flashforge, Creality, Snapmaker or another brand.",
-      "Check the colour list: each PrusaSlicer extruder becomes a filament.",
+      "Check the color list: each PrusaSlicer extruder becomes a filament.",
       "Convert and read the report: it lists the settings that were translated and those that weren't.",
       OPEN.replace("your slicer", "Bambu Studio or OrcaSlicer"),
     ],
@@ -213,8 +213,8 @@ export const GUIDES: Guide[] = [
         h: "What is translated",
         list: [
           "Objects and their parts (PrusaSlicer volumes), with names and extruders.",
-          "Painted colours, painted supports and painted seams.",
-          "Layer colour changes, which become pauses on the new printer.",
+          "Painted colors, painted supports and painted seams.",
+          "Layer color changes, which become pauses on the new printer.",
           "Layer height, perimeters, infill, top and bottom layers, supports, brim, seam, ironing, the wipe tower and temperatures.",
         ],
       },
@@ -239,7 +239,7 @@ export const GUIDES: Guide[] = [
     steps: [
       "Save the project as a 3MF in OrcaSlicer, Orca-Flashforge, Creality Print, ElegooSlicer, Anycubic Slicer Next or Snapmaker Orca.",
       "Drop it into FilaShift and pick your Bambu Lab printer.",
-      "Match each colour to an AMS slot.",
+      "Match each color to an AMS slot.",
       "Convert, download and read the report.",
       OPEN.replace("your slicer", "Bambu Studio"),
     ],
@@ -248,9 +248,9 @@ export const GUIDES: Guide[] = [
       {
         h: "What Bambu Studio needs",
         list: [
-          "Line widths in millimetres rather than percentages: FilaShift converts them.",
+          "Line widths in millimeters rather than percentages: FilaShift converts them.",
           "Values within Bambu Studio's allowed ranges: out-of-range values are clamped and listed in the report.",
-          "Bambu printer and filament presets by name, so the AMS and build plate are recognised.",
+          "Bambu printer and filament presets by name, so the AMS and build plate are recognized.",
         ],
       },
     ],
@@ -259,52 +259,52 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "multicolor-3mf",
-    title: "Keep colours, plates and painting when converting multi-colour 3MF files",
-    meta: "Convert multi-colour 3MF files without losing colours | FilaShift",
-    desc: "How FilaShift keeps painted colours, plates and colour changes when moving multi-colour 3MF projects between printers, including printers with fewer slots.",
+    title: "Keep colors, plates and painting when converting multi-color 3MF files",
+    meta: "Convert multi-color 3MF files without losing colors | FilaShift",
+    desc: "How FilaShift keeps painted colors, plates and color changes when moving multi-color 3MF projects between printers, including printers with fewer slots.",
     intro:
-      "Most conversion problems are colour problems: painted detail disappears, colours land in the wrong slot, or a 4-colour model meets a 1-colour printer. Here is how each case is handled.",
+      "Most conversion problems are color problems: painted detail disappears, colors land in the wrong slot, or a 4-color model meets a 1-color printer. Here is how each case is handled.",
     steps: [
-      "Download the project 3MF, not the STL: only the 3MF has the colours.",
+      "Download the project 3MF, not the STL: only the 3MF has the colors.",
       "Drop it into FilaShift and pick your printer.",
-      "Review the colour → slot list; similar colours are grouped when you have fewer slots.",
-      "If your printer has fewer slots than the project has colours, switch on filament-change pauses when offered.",
+      "Review the color → slot list; similar colors are grouped when you have fewer slots.",
+      "If your printer has fewer slots than the project has colors, switch on filament-change pauses when offered.",
       "Convert and " + OPEN.charAt(0).toLowerCase() + OPEN.slice(1),
     ],
     cta: "Open the converter",
     sections: [
       {
-        h: "Painted colours",
-        p: ["Painted triangles store a filament number. FilaShift rewrites those numbers to your slots, so the painting keeps its colours."],
+        h: "Painted colors",
+        p: ["Painted triangles store a filament number. FilaShift rewrites those numbers to your slots, so the painting keeps its colors."],
       },
       {
-        h: "Fewer slots than colours",
+        h: "Fewer slots than colors",
         list: [
-          "Similar colours can share a slot: the report lists which ones.",
-          "Colours at different heights can print with pauses: the printer stops, you swap filament, then resume.",
-          "When colours are mixed on the same layers, pauses can't help; FilaShift explains why and keeps the closest-colour mapping.",
+          "Similar colors can share a slot: the report lists which ones.",
+          "Colors at different heights can print with pauses: the printer stops, you swap filament, then resume.",
+          "When colors are mixed on the same layers, pauses can't help; FilaShift explains why and keeps the closest-color mapping.",
         ],
       },
       {
         h: "Plates",
-        p: ["Every plate is kept and re-centred on your bed. If a plate is bigger than your bed, the report says how much to scale it."],
+        p: ["Every plate is kept and re-centered on your bed. If a plate is bigger than your bed, the report says how much to scale it."],
       },
     ],
-    faq: [{ q: "Why do I only see one colour after opening?", a: "The file was imported instead of opened as a project. Use File → Open Project." }],
+    faq: [{ q: "Why do I only see one color after opening?", a: "The file was imported instead of opened as a project. Use File → Open Project." }],
     updated: "2026-11-23",
   },
   {
     slug: "creality-print-to-bambu",
     title: "Convert a Creality Print project to Bambu Lab",
     meta: "Convert Creality Print, ElegooSlicer and Anycubic Slicer Next 3MF to Bambu Studio | FilaShift",
-    desc: "Move a Creality Print 3MF project (and ElegooSlicer or Anycubic Slicer Next projects) to a Bambu Lab printer: colours mapped to AMS slots, Bambu presets swapped in and fork-only settings removed. Includes the limits of Creality Print mixed filaments and special plates.",
+    desc: "Move a Creality Print 3MF project (and ElegooSlicer or Anycubic Slicer Next projects) to a Bambu Lab printer: colors mapped to AMS slots, Bambu presets swapped in and fork-only settings removed. Includes the limits of Creality Print mixed filaments and special plates.",
     intro:
-      "Creality Print, ElegooSlicer and Anycubic Slicer Next are all based on the same code as OrcaSlicer and Bambu Studio, so their 3MF projects can move to a Bambu Lab printer. FilaShift recognises which of these slicers saved the file, keeps the model, painting and the designer's settings, and swaps in Bambu Lab's own printer, process and filament presets.",
+      "Creality Print, ElegooSlicer and Anycubic Slicer Next are all based on the same code as OrcaSlicer and Bambu Studio, so their 3MF projects can move to a Bambu Lab printer. FilaShift recognizes which of these slicers saved the file, keeps the model, painting and the designer's settings, and swaps in Bambu Lab's own printer, process and filament presets.",
     printer: "bambu-lab-x1-carbon",
     steps: [
       "In Creality Print, ElegooSlicer or Anycubic Slicer Next, save the project with File → Save Project As (a .3mf project, not an exported STL or G-code).",
       "Drop the 3MF into FilaShift and pick your Bambu Lab printer. The file card shows which slicer saved the project.",
-      "Match each colour to an AMS slot. Similar colours share a slot if you have fewer slots than the project has colours.",
+      "Match each color to an AMS slot. Similar colors share a slot if you have fewer slots than the project has colors.",
       "Convert, download and read the report, especially the lines about build plates and mixed filaments.",
       OPEN.replace("your slicer", "Bambu Studio"),
     ],
@@ -313,15 +313,15 @@ export const GUIDES: Guide[] = [
       {
         h: "What is kept",
         list: [
-          "Every plate, object and part, with painted colours, painted supports and seams.",
-          "The designer's layer height, walls, infill, supports, brim, seam and ironing, translated to Bambu Studio's names and units (for example, percentage line widths become millimetres).",
-          "Filament types and colours, matched to Bambu Lab's own filament presets so the AMS recognises them.",
+          "Every plate, object and part, with painted colors, painted supports and seams.",
+          "The designer's layer height, walls, infill, supports, brim, seam and ironing, translated to Bambu Studio's names and units (for example, percentage line widths become millimeters).",
+          "Filament types and colors, matched to Bambu Lab's own filament presets so the AMS recognizes them.",
         ],
       },
       {
         h: "What is removed or changed",
         list: [
-          "Settings only the source slicer understands are not copied: Creality CFS flush and multicolour-method keys, Elegoo's support_mms and Anycubic ACE slot settings and hardened-steel variants. The normal settings already hold the values you chose.",
+          "Settings only the source slicer understands are not copied: Creality CFS flush and multicolor-method keys, Elegoo's support_mms and Anycubic ACE slot settings and hardened-steel variants. The normal settings already hold the values you chose.",
           "The file stops claiming to be from Creality Print, ElegooSlicer or Anycubic Slicer Next: it gets a clean Bambu Studio header and Creality's creality.config is dropped.",
           "The prime tower uses the Bambu printer's default width (some CFS profiles use much wider towers), and values outside Bambu Studio's allowed ranges are capped and listed in the report.",
           "Converted files open in Bambu Studio 2.9.1 or newer.",
@@ -330,7 +330,7 @@ export const GUIDES: Guide[] = [
       {
         h: "Limits to check",
         list: [
-          "Creality Print 7 mixed filaments (colour blends) exist only in Creality Print. No other slicer can print them, so parts or painting that use a blend print with slot 1. The report warns you; reassign those parts in Bambu Studio.",
+          "Creality Print 7 mixed filaments (color blends) exist only in Creality Print. No other slicer can print them, so parts or painting that use a blend print with slot 1. The report warns you; reassign those parts in Bambu Studio.",
           "Creality-only build plates such as Epoxy Resin or Customized have no Bambu equivalent. The Bambu printer's plate is used and the report says so; check the bed temperature before printing.",
         ],
       },
@@ -338,7 +338,7 @@ export const GUIDES: Guide[] = [
     faq: [
       {
         q: "Does this also work for ElegooSlicer and Anycubic Slicer Next?",
-        a: "Yes. FilaShift recognises projects from ElegooSlicer and Anycubic Slicer Next, even when Anycubic Slicer Next labels the file as Bambu Studio, and converts them the same way.",
+        a: "Yes. FilaShift recognizes projects from ElegooSlicer and Anycubic Slicer Next, even when Anycubic Slicer Next labels the file as Bambu Studio, and converts them the same way.",
       },
       {
         q: "How was this tested?",
@@ -355,15 +355,15 @@ export const GUIDES: Guide[] = [
     slug: "bambu-to-prusaslicer-mmu3-xl",
     title: "Bambu Studio to PrusaSlicer for MMU3 and XL (native PrusaSlicer projects)",
     meta: "Convert Bambu Studio and MakerWorld 3MF to PrusaSlicer for MMU3 and Prusa XL | FilaShift",
-    desc: "Turn a Bambu Studio or MakerWorld 3MF into a native PrusaSlicer 2.9 project for the Prusa MK4S MMU3, CORE One MMU3 or XL: PrusaSlicer system presets, painted colours, colour changes and plates as PrusaSlicer beds. Explains what PrusaSlicer's presets change.",
+    desc: "Turn a Bambu Studio or MakerWorld 3MF into a native PrusaSlicer 2.9 project for the Prusa MK4S MMU3, CORE One MMU3 or XL: PrusaSlicer system presets, painted colors, color changes and plates as PrusaSlicer beds. Explains what PrusaSlicer's presets change.",
     intro:
-      "For Prusa printers FilaShift can write a real PrusaSlicer project instead of an OrcaSlicer file. It uses PrusaSlicer's own system presets for your printer, so PrusaSlicer shows them as system presets, and it carries over the parts, painting and colour changes in PrusaSlicer's own format.",
+      "For Prusa printers FilaShift can write a real PrusaSlicer project instead of an OrcaSlicer file. It uses PrusaSlicer's own system presets for your printer, so PrusaSlicer shows them as system presets, and it carries over the parts, painting and color changes in PrusaSlicer's own format.",
     printer: "prusa-mk4s-mmu3",
     steps: [
       "Download the 3MF from MakerWorld or save your project in Bambu Studio.",
       "Drop it into FilaShift and pick your Prusa printer, for example the MK4S MMU3, CORE One MMU3, XL 2T or XL 5T.",
       "In the settings panel, keep Output for: PrusaSlicer (the default for Prusa printers). Printers that exist only in PrusaSlicer, such as the MK4S MMU3 and XL 2T, always get a PrusaSlicer project.",
-      "Match each colour to an MMU3 slot or XL tool, then convert and read the report.",
+      "Match each color to an MMU3 slot or XL tool, then convert and read the report.",
       OPEN.replace("your slicer", "PrusaSlicer 2.9 or newer"),
     ],
     cta: "Convert for the Prusa MK4S MMU3",
@@ -373,8 +373,8 @@ export const GUIDES: Guide[] = [
         list: [
           "PrusaSlicer's system printer, print and filament presets for your printer; the print preset is the one closest to the project's layer height.",
           "Objects with their parts, names, extruders, modifiers and per-object settings.",
-          "Painted colours, painted supports and painted seams in PrusaSlicer's own format.",
-          "Colour changes and pauses as PrusaSlicer layer changes (M600), and each plate as a PrusaSlicer bed.",
+          "Painted colors, painted supports and painted seams in PrusaSlicer's own format.",
+          "Color changes and pauses as PrusaSlicer layer changes (M600), and each plate as a PrusaSlicer bed.",
         ],
       },
       {
@@ -388,8 +388,8 @@ export const GUIDES: Guide[] = [
         h: "MMU3 and XL differences",
         list: [
           "MMU3 printers have one nozzle and need a wipe tower. FilaShift checks the space for PrusaSlicer's wider tower and moves it to a free spot; if there is none, the report tells you to scale or rearrange the model.",
-          "On the MMU3, a colour change for a filament that is not printing at that height becomes a pause (M601). This is how PrusaSlicer handles it.",
-          "The XL changes toolheads instead of loading filament, so each colour goes to a tool. When there are more colours than tools, the closest colours share a tool.",
+          "On the MMU3, a color change for a filament that is not printing at that height becomes a pause (M601). This is how PrusaSlicer handles it.",
+          "The XL changes toolheads instead of loading filament, so each color goes to a tool. When there are more colors than tools, the closest colors share a tool.",
           "If a model is larger than the bed, the converter warns and suggests a scale. Scale or split it in PrusaSlicer before slicing.",
         ],
       },
@@ -412,16 +412,16 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "bambu-h3c-p3c-multicolour",
-    title: "Multi-colour on Bambu Lab H3C and P3C tool changers (PrintTools, TPU tool)",
-    meta: "Convert multi-colour 3MF for Bambu Lab H3C and P3C PrintTools | FilaShift",
-    desc: "How FilaShift assigns each colour of a 3MF project to a PrintTool on the Bambu Lab H3C and P3C tool changers, keeps rigid filament off the H3C's 2.85 mm TPU tool, and shares the AMS when you have more colours than tools.",
+    title: "Multi-color on Bambu Lab H3C and P3C tool changers (PrintTools, TPU tool)",
+    meta: "Convert multi-color 3MF for Bambu Lab H3C and P3C PrintTools | FilaShift",
+    desc: "How FilaShift assigns each color of a 3MF project to a PrintTool on the Bambu Lab H3C and P3C tool changers, keeps rigid filament off the H3C's 2.85 mm TPU tool, and shares the AMS when you have more colors than tools.",
     intro:
-      "The Bambu Lab H3C and P3C swap whole PrintTools instead of pushing every colour through one nozzle. When you convert a project for them, FilaShift writes a tool for each filament into the file, so Bambu Studio keeps that assignment instead of guessing.",
+      "The Bambu Lab H3C and P3C swap whole PrintTools instead of pushing every color through one nozzle. When you convert a project for them, FilaShift writes a tool for each filament into the file, so Bambu Studio keeps that assignment instead of guessing.",
     printer: "bambu-lab-h3c",
     steps: [
       "Download the project 3MF from MakerWorld or save it in Bambu Studio, OrcaSlicer, or another supported slicer.",
       "Drop it into FilaShift and pick the Bambu Lab H3C or P3C.",
-      "Match each colour to a slot, then convert.",
+      "Match each color to a slot, then convert.",
       "Read the report: it lists which filament goes to which PrintTool and any tool you need to fit.",
       OPEN.replace("your slicer", "Bambu Studio 2.9.1 or newer"),
     ],
@@ -430,10 +430,10 @@ export const GUIDES: Guide[] = [
       {
         h: "How filaments are assigned to PrintTools",
         list: [
-          "Each colour that the model uses gets its own PrintTool, and the file is set to Nozzle Manual, so Bambu Studio keeps the assignment. The report lists it, for example filament 1 → PrintTool 1.",
+          "Each color that the model uses gets its own PrintTool, and the file is set to Nozzle Manual, so Bambu Studio keeps the assignment. The report lists it, for example filament 1 → PrintTool 1.",
           "The stock H3C has 9 PrintTools: eight for 1.75 mm filament and one, PrintTool 8, for 2.85 mm TPU. The stock P3C has 5 PrintTools in 7 docks.",
           "When a project comes from the same printer model, each filament keeps the tool it used there where possible.",
-          "When every fitted tool is in use, FilaShift asks you to fit another tool in a free dock (P3C) with a warning; after that, extra colours share PrintTool 1 through the AMS. The report says which ones.",
+          "When every fitted tool is in use, FilaShift asks you to fit another tool in a free dock (P3C) with a warning; after that, extra colors share PrintTool 1 through the AMS. The report says which ones.",
         ],
       },
       {
@@ -448,9 +448,9 @@ export const GUIDES: Guide[] = [
         h: "Limits to check",
         list: [
           "Projects that used different nozzle sizes per tool get a single nozzle size on the H3C and P3C, with a warning, because converted files with mixed sizes could not be sliced reliably in testing. Set each tool's nozzle in Bambu Studio if you need different sizes.",
-          "If more tools are needed than the stock printer has, the report names the tools to install. You can also merge colours before converting.",
+          "If more tools are needed than the stock printer has, the report names the tools to install. You can also merge colors before converting.",
           "The H2C works differently: its hotend rack is assigned automatically by Bambu Studio to reduce purging.",
-          "Converting from the H3C or P3C to a single-nozzle printer keeps the colours as AMS slots.",
+          "Converting from the H3C or P3C to a single-nozzle printer keeps the colors as AMS slots.",
         ],
       },
     ],
@@ -461,7 +461,7 @@ export const GUIDES: Guide[] = [
       },
       {
         q: "Was this tested?",
-        a: "Yes, in software. The standard sample projects converted for the H3C and P3C slice without errors in Bambu Studio's command-line tool (see the test results page). Test projects with a 2.85 mm TPU filament, 10 colours and mixed nozzle sizes are also converted and sliced, and the tool assignment is read back from the G-code.",
+        a: "Yes, in software. The standard sample projects converted for the H3C and P3C slice without errors in Bambu Studio's command-line tool (see the test results page). Test projects with a 2.85 mm TPU filament, 10 colors and mixed nozzle sizes are also converted and sliced, and the tool assignment is read back from the G-code.",
       },
     ],
     updated: "2026-11-25",

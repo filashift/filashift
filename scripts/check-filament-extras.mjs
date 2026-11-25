@@ -17,7 +17,7 @@ const spool = (o) => ({ b: "Fixture", r: "Fixture", v: "", x: [], f: "PLA", m: "
 const fixture = () => {
   const items = [
     spool({ r: "Store A", t: "Silk PLA Silver", c: ["Silver"], x: ["#c4c4c4"], m: "PLA Silk", p: 21.99, u: "https://a.example.invalid/p/silk-silver?variant=1" }),
-    spool({ r: "Store B", t: "Silk PLA Grey", c: ["Grey"], x: ["#9a9a9a"], m: "PLA Silk", p: 18.99, u: "https://b.example.invalid/p/silk-grey?variant=2" }),
+    spool({ r: "Store B", t: "Silk PLA Gray", c: ["Gray"], x: ["#9a9a9a"], m: "PLA Silk", p: 18.99, u: "https://b.example.invalid/p/silk-grey?variant=2" }),
     spool({ r: "Store C", t: "Silk PLA Gold", c: ["Gold"], x: ["#c9a227"], m: "PLA Silk", p: 15.99, u: "https://c.example.invalid/p/silk-gold?variant=3" }),
     spool({ r: "Store A", t: "PLA Blue", c: ["Blue"], x: ["#1e7fd8"], p: 16.99, u: "https://a.example.invalid/p/pla-blue?variant=4" }),
     spool({ r: "Store B", t: "PLA Sky Blue", c: ["Sky Blue"], p: 14.99, u: "https://b.example.invalid/p/pla-sky?variant=5" }),
@@ -86,7 +86,7 @@ try {
     if (lang === "es") await page.addInitScript(() => localStorage.setItem("filashift-lang", "es"));
     await convert(page, "bambu-lab-x1-carbon", "X1 Carbon");
     const rows = page.locator('[data-testid^="shop-"][data-testid*="-row-"][data-testid$="-find"]');
-    assert.equal(await rows.count(), 2, "one find link per colour");
+    assert.equal(await rows.count(), 2, "one find link per color");
     const params = await Promise.all((await rows.all()).map(async (a) => new URL(await a.getAttribute("href"), base).searchParams));
     assert.deepEqual(Object.fromEntries(params[0]), { f: "PLA", d: "1.75", color: "c0c0c0", t: "PLA Silk", feeder: "ams", pack: "single", sort: "colour" });
     assert.deepEqual(Object.fromEntries(params[1]), { f: "PLA", d: "1.75", color: "1e7fd8", feeder: "ams", pack: "single", sort: "colour" });
@@ -102,14 +102,14 @@ try {
     await page.locator('[data-testid$="-row-0-find"]').click();
     const finder = await popup;
     await finder.getByTestId("offer-1").waitFor();
-    assert.equal(await finder.getByTestId("select-sort").innerText(), lang === "es" ? "Color más parecido" : "Closest colour");
+    assert.equal(await finder.getByTestId("select-sort").innerText(), lang === "es" ? "Color más parecido" : "Closest color");
     assert.equal(await finder.getByTestId("select-type").innerText(), "PLA Silk");
     assert.equal(await finder.getByTestId("feeder").inputValue(), "ams");
     const des = await finder.locator('[data-testid^="colour-"]').evaluateAll((els) => els.map((e) => Number(e.dataset.de)));
-    assert(des.length > 0 && des.every((d, i) => !i || Math.round(d * 2) >= Math.round(des[i - 1] * 2)), `colour order ${des}`);
+    assert(des.length > 0 && des.every((d, i) => !i || Math.round(d * 2) >= Math.round(des[i - 1] * 2)), `color order ${des}`);
     assert(des.every((d) => d <= 25), "offers past ΔE 25 must be hidden");
     assertPrivate(state, `converter ${width}`);
-    console.log(`PASS ${width}px ${lang}: 2/2 colours carry f/t/d/color/feeder; finder sorted by ΔE (${des.slice(0, 4).map((d) => d.toFixed(1)).join(", ")}…)`);
+    console.log(`PASS ${width}px ${lang}: 2/2 colors carry f/t/d/color/feeder; finder sorted by ΔE (${des.slice(0, 4).map((d) => d.toFixed(1)).join(", ")}…)`);
     await ctx.close();
   }
   // Snapmaker U1 target carries the U1 reel label; a non-AMS target carries none.
@@ -143,8 +143,8 @@ try {
     await page.getByTestId("offer-1").waitFor();
     assert.equal(await page.getByTestId("no-close-colour").count(), 0);
     assert.match(await page.getByTestId("colour-1").innerText(), /^Very close\s*ΔE 0\.\d/);
-    assertPrivate(state, "colour states");
-    console.log("PASS colour states: no match (empty), only distant matches, very close match");
+    assertPrivate(state, "color states");
+    console.log("PASS color states: no match (empty), only distant matches, very close match");
     await ctx.close();
   }
 
@@ -164,7 +164,7 @@ try {
       de: Number(e.querySelector('[data-testid^="colour-"]')?.dataset.de ?? 99), ppk: Number(e.querySelector(".font-mono.text-sm").textContent.replace(/[^\d.]/g, "")) })));
     const firstClose = rows.find((r) => r.de <= 12);
     assert(firstClose, "a close match exists");
-    assert.equal(saved[0].ppk, firstClose.ppk, "saved price is the lowest price per kg among close colour matches");
+    assert.equal(saved[0].ppk, firstClose.ppk, "saved price is the lowest price per kg among close color matches");
     assert.deepEqual(saved[0].s, { f: "PLA", t: "all", b: "all", d: "1.75", pack: "single", color: "#e63a2e", q: "", stock: true });
     assert(Math.abs(Date.parse(saved[0].at) - Date.now()) < 60000);
     assert.equal(await page.getByTestId("watch-status-current").getAttribute("data-state"), "same");

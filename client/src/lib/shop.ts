@@ -126,7 +126,8 @@ export function nearestName(hex: string): string {
     const d = dist(hex, v);
     if (d < bd) [bd, best] = [d, k];
   }
-  return best.replace("gray", "grey");
+  // Accept either spelling in store listings; use US English in our own labels.
+  return best.replace("grey", "gray");
 }
 function rgb(h: string) {
   const n = parseInt(h.slice(1), 16);

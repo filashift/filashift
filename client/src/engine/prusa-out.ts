@@ -712,7 +712,7 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
     rels += ` <Relationship Target="/Metadata/thumbnail.png" Id="rel-2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail"/>\n`;
   }
   out["_rels/.rels"] = strToU8(rels + "</Relationships>");
-  if (nCodes) ctx.info(`${nCodes} layer change${nCodes > 1 ? "s" : ""} (colour change, pause or custom G-code) written for PrusaSlicer; filament swaps use PrusaSlicer's colour change (M600).`);
+  if (nCodes) ctx.info(`${nCodes} layer change${nCodes > 1 ? "s" : ""} (color change, pause or custom G-code) written for PrusaSlicer; filament swaps use PrusaSlicer's color change (M600).`);
   void triTotal;
   return { files: out, print: print.name, filaments: fils.slice(0, Math.max(1, ctx.nOut)).map((f) => f.name), printer: target.printer.name, changed };
 }

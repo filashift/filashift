@@ -435,7 +435,7 @@ export default function Home() {
           steps={[
             { label: "Add a project", short: "Add file", detail: jobs.length ? `${jobs.length} file${jobs.length > 1 ? "s" : ""} added` : "Choose a 3MF or STL", done: jobs.length > 0, target: "add" },
             { label: "Pick your printer", short: "Printer", detail: target ? target.model : "Choose a target", done: jobs.length > 0 && !!profile, target: "settings" },
-            { label: "Convert and download", short: "Convert", detail: done ? `${done} ready to download` : "Map colours, then convert", done: done > 0, target: "files" },
+            { label: "Convert and download", short: "Convert", detail: done ? `${done} ready to download` : "Map colors, then convert", done: done > 0, target: "files" },
           ]}
         />
 
@@ -695,7 +695,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-start justify-between gap-3">
                   <Label htmlFor="recenter" className="text-sm font-normal leading-snug">
-                    Centre models on the new bed
+                    Center models on the new bed
                     <span className="block text-xs text-muted-foreground">Moves each plate's objects together, keeping their layout.</span>
                   </Label>
                   <Switch id="recenter" checked={recenter} onCheckedChange={setRecenter} data-testid="switch-recenter" />
@@ -856,7 +856,7 @@ function Hero({ printers, brands, onChoose }: { printers: number; brands: number
         </h1>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
           Drop a project from Bambu Studio, OrcaSlicer, PrusaSlicer, MakerWorld or Printables, choose the printer you own, and FilaShift swaps in its profiles
-          while keeping the model, painted colours and print settings. Need a plain mesh? Export 3MF to STL or OBJ. Nothing is uploaded.
+          while keeping the model, painted colors and print settings. Need a plain mesh? Export 3MF to STL or OBJ. Nothing is uploaded.
         </p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Button size="lg" onClick={onChoose} data-testid="button-hero-choose">
@@ -944,14 +944,14 @@ function HowItWorks() {
     tool: [{ "@type": "HowToTool", name: L("FilaShift (free, in the browser)") }],
     step: [
       { "@type": "HowToStep", name: L("Drop the project"), text: L("Add a 3MF project from Bambu Studio, OrcaSlicer, PrusaSlicer, MakerWorld or Printables to FilaShift.") },
-      { "@type": "HowToStep", name: L("Pick your printer"), text: L("Choose the printer you own and check how each colour maps to your filament slots.") },
+      { "@type": "HowToStep", name: L("Pick your printer"), text: L("Choose the printer you own and check how each color maps to your filament slots.") },
       { "@type": "HowToStep", name: L("Convert and download"), text: L("Convert, download the new 3MF and read the conversion report.") },
       { "@type": "HowToStep", name: L("Open, check and slice"), text: L("Open it in your slicer with File → Open Project (not Import), check the preview and slice.") },
     ],
   });
   const steps = [
-    { icon: FolderOpen, title: "Drop the project", text: "3MF projects from Bambu Studio, OrcaSlicer and its forks, and PrusaSlicer, including MakerWorld and Printables downloads with several plates and painted colours." },
-    { icon: Cpu, title: "Pick your printer", text: "Any of the supported printers, in either direction. Colours are matched to your slots, and extra colours share the closest slot." },
+    { icon: FolderOpen, title: "Drop the project", text: "3MF projects from Bambu Studio, OrcaSlicer and its forks, and PrusaSlicer, including MakerWorld and Printables downloads with several plates and painted colors." },
+    { icon: Cpu, title: "Pick your printer", text: "Any of the supported printers, in either direction. Colors are matched to your slots, and extra colors share the closest slot." },
     { icon: ShieldCheck, title: "Review and print", text: "Open the new file with File → Open Project, check the warnings in the report, then slice." },
   ];
   return (

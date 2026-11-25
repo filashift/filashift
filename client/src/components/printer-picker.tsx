@@ -63,10 +63,10 @@ export function TestedBadge({ id, slicer, className }: { id: string; slicer?: st
 
 // tested.json sample descriptions are English; other languages get a short translated label
 const SAMPLES: [string, string][] = [
-  ["4-colour painted", "Painted Bambu Studio project, four colours (X1 Carbon, PLA)"],
-  ["4-colour Orca", "Four-colour OrcaSlicer project (Flashforge AD5X, PLA)"],
-  ["2-object", "PrusaSlicer project with two objects and a colour change (MK4S MMU3, PLA)"],
-  ["PrusaSlicer output also", "For PrusaSlicer output: two multicolour MakerWorld projects (P1S, PLA)"],
+  ["4-color painted", "Painted Bambu Studio project, four colors (X1 Carbon, PLA)"],
+  ["4-color Orca", "Four-color OrcaSlicer project (Flashforge AD5X, PLA)"],
+  ["2-object", "PrusaSlicer project with two objects and a color change (MK4S MMU3, PLA)"],
+  ["PrusaSlicer output also", "For PrusaSlicer output: two multicolor MakerWorld projects (P1S, PLA)"],
 ];
 const sampleLabel = (T: ReturnType<typeof useT>, s: string) => {
   const k = T.lang === "en" ? undefined : SAMPLES.find(([p]) => s.startsWith(p))?.[1];

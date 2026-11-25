@@ -53,13 +53,13 @@ addPatterns("es", [
   [/^Ready for (.+)$/, "Listo para $1"],
   [/^(\d+) plates? · (\d+) objects?$/, (_m, p, o) => `${p} ${s(p, "placa", "placas")} · ${o} ${s(o, "objeto", "objetos")}`],
   [/^(\d+) of (\d+) used( \(assumed\))?$/, (_m, a, b, x) => `${a} de ${b} en uso${x ? " (supuesto)" : ""}`],
-  [/^This project uses (\d+) colours on (\d+) slots?\. Some colours print on the same layers( or are painted)?, so pauses cannot replace the missing slots; the closest colours share a slot instead\.$/, (_m, c, n, p) =>
+  [/^This project uses (\d+) colors on (\d+) slots?\. Some colors print on the same layers( or are painted)?, so pauses cannot replace the missing slots; the closest colors share a slot instead\.$/, (_m, c, n, p) =>
     `Este proyecto usa ${c} colores con ${n} ${s(n, "ranura", "ranuras")}. Algunos colores se imprimen en las mismas capas${p ? " o están pintados" : ""}, así que las pausas no pueden sustituir las ranuras que faltan; los colores más parecidos comparten ranura.`],
-  [/^Print all (\d+) colours with filament-change pauses$/, "Imprimir los $1 colores con pausas de cambio de filamento"],
-  [/^The colours never share a layer, so the printer can pause (\d+) times? for you to swap filament instead of merging colours(.*)$/, (_m, n, rest) =>
+  [/^Print all (\d+) colors with filament-change pauses$/, "Imprimir los $1 colores con pausas de cambio de filamento"],
+  [/^The colors never share a layer, so the printer can pause (\d+) times? for you to swap filament instead of merging colors(.*)$/, (_m, n, rest) =>
     `Los colores nunca comparten capa, así que la impresora puede pausar ${n} ${s(n, "vez", "veces")} para que cambies el filamento en lugar de unir colores${rest.replace(/slot (\d+) → (.+?) from ([\d.]+) mm/g, "ranura $1 → $2 desde $3 mm")}`],
   [/^· (\d+) kept · (\d+) adapted · (\d+) speed changes$/, "· $1 conservados · $2 adaptados · $3 cambios de velocidad"],
-  [/^· (\d+) colours?$/, (_m, n) => `· ${n} ${s(n, "color", "colores")}`],
+  [/^· (\d+) colors?$/, (_m, n) => `· ${n} ${s(n, "color", "colores")}`],
   [/^· close to (.+)$/, (_m, w) => `· parecido a ${colourEs(w)}`],
   [/^close to (.+)$/, (_m, w) => `parecido a ${colourEs(w)}`],
   [/^Cheaper than when you saved it \(was \$([\d.]+)\/kg, now \$([\d.]+)\/kg\)$/, (_m, a, b) => `Más barato que cuando la guardaste (antes $${a}/kg, ahora $${b}/kg)`],

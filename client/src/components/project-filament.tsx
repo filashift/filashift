@@ -54,7 +54,7 @@ export function ProjectFilament({ needs, testId, feeder = "none" }: { needs: Nee
             <ShoppingBag className="h-4 w-4 text-primary" />
             Filament for this print
             <span className="font-normal text-muted-foreground">
-              {`· ${rows.length} colour${rows.length === 1 ? "" : "s"}`}
+              {`· ${rows.length} color${rows.length === 1 ? "" : "s"}`}
             </span>
           </span>
           <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} />
@@ -67,7 +67,7 @@ export function ProjectFilament({ needs, testId, feeder = "none" }: { needs: Nee
           ))}
         </ul>
         <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-          Matches use the same material family and an approximate colour. Within each colour-match band, lower prices per kg come first.
+          Matches use the same material family and an approximate color. Within each color-match band, lower prices per kg come first.
           {sponsored && " Some links are affiliate links; FilaShift may earn a commission at no extra cost to you."}
         </p>
       </CollapsibleContent>

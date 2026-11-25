@@ -259,7 +259,7 @@ export default function ModelViewer({
       )}
       {noGl ? (
         <p className="rounded-lg border border-card-border bg-muted/60 p-3 text-sm" data-testid="preview-no-webgl">
-          The 3D preview needs WebGL, which is turned off or unavailable in this browser. The colour list below shows the same before and after colours.
+          The 3D preview needs WebGL, which is turned off or unavailable in this browser. The color list below shows the same before and after colors.
         </p>
       ) : (
         <div className="relative h-[min(60vh,480px)] min-h-[260px] w-full touch-none overflow-hidden rounded-lg border border-card-border bg-muted/40">
@@ -300,7 +300,7 @@ export default function ModelViewer({
           </li>
         ))}
       </ul>
-      {!changed && <p className="text-xs text-muted-foreground">Every colour keeps its own slot, so before and after look the same.</p>}
+      {!changed && <p className="text-xs text-muted-foreground">Every color keeps its own slot, so before and after look the same.</p>}
     </div>
   );
 }

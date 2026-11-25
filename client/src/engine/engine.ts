@@ -606,7 +606,7 @@ function analyzeUse(e: Entries, S: Dict, nfil: number, objects: MSObject[], msXm
     const re = /<layer\b[^>]*\bextruder="(\d+)"/g;
     while ((m = re.exec(xml))) if (+m[1] > 0) used.add(+m[1]);
   }
-  if (bad) return { used: null, why: "some painted-colour data could not be read", usage, hasPaint, paintStates };
+  if (bad) return { used: null, why: "some painted-color data could not be read", usage, hasPaint, paintStates };
   if (!objects.length) return { used: null, why: "the project has no object list", usage, hasPaint, paintStates };
   if ([...used].some((u) => u > nfil))
     return { used: null, why: "objects reference filaments that the project does not define", usage, hasPaint, paintStates };
@@ -709,7 +709,7 @@ export function analyze(bytes: Uint8Array, fileName: string, onStage?: (stage: s
       return { entries: e, S: null, analysis: base };
     }
   }
-  onStage?.("Checking models and painted colours");
+  onStage?.("Checking models and painted colors");
   a.triangles = countTriangles(e);
   a.app = detectApp(e);
   const orcaTag = metaValue(e, "OrcaSlicer");
@@ -793,7 +793,7 @@ export function analyze(bytes: Uint8Array, fileName: string, onStage?: (stage: s
   if (!nfil) {
     const maxExt = Math.max(1, ...objects.flatMap((o) => [o.ext || 1, ...o.parts.map((p) => p.ext || 1)]));
     nfil = maxExt;
-    a.notes.push("The project does not list its filaments; colours were assigned automatically.");
+    a.notes.push("The project does not list its filaments; colors were assigned automatically.");
   }
   const selfIndex = si.length ? si : Array.from({ length: nfil }, (_, i) => String(i + 1));
   const variants = fv.length ? fv : Array(selfIndex.length).fill("Direct Drive Standard");
@@ -823,7 +823,7 @@ export function analyze(bytes: Uint8Array, fileName: string, onStage?: (stage: s
   // Creality Print 7 "mixed filaments" are virtual colour blends numbered after the real
   // filaments; no other slicer can reproduce them.
   if (String(SS.mixed_filament_definitions || "").trim())
-    a.notes.push("This project uses Creality Print mixed filaments (colour blends). Other slicers cannot print them; parts or painting that use a blend print with slot 1.");
+    a.notes.push("This project uses Creality Print mixed filaments (color blends). Other slicers cannot print them; parts or painting that use a blend print with slot 1.");
   if (a.hasSlicedGcode)
     a.notes.push("The file contains pre-sliced G-code for the original printer. It will be removed so it can never be sent to the wrong machine.");
   return { entries: e, S, analysis: a };
@@ -912,7 +912,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   const owarn = (t: string) => { if (!po) warn(t); };
   if (a.translatedFrom) {
     const tf = a.translatedFrom;
-    info(`Translated from ${a.sourceSlicer || tf.slicer}: ${tf.translated.length} settings and features mapped to their Orca/Bambu names (layers, walls, infill, supports, brim, seam, ironing, prime tower, colours, temperatures).`);
+    info(`Translated from ${a.sourceSlicer || tf.slicer}: ${tf.translated.length} settings and features mapped to their Orca/Bambu names (layers, walls, infill, supports, brim, seam, ironing, prime tower, colors, temperatures).`);
     if (tf.dropped.length) info(`Not carried over from ${tf.slicer} (different units or no equivalent; the destination printer's defaults are used): ${tf.dropped.slice(0, 12).join(", ")}${tf.dropped.length > 12 ? ` and ${tf.dropped.length - 12} more` : ""}.`);
   }
 
@@ -937,7 +937,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   const newIdx = (old: number) => (old > 0 && old <= nfil ? map[old - 1] || 1 : old > nfil ? 1 : 0);
   const identity = map.every((s, i) => s === i + 1) && nOut === nfil;
   if (nOut > profile.slots)
-    warn(`${nOut} filament slots are in use but ${profile.model} is set up for ${profile.slots} (${profile.slotUnit}). Merge colours before slicing, or confirm you have more units connected.`);
+    warn(`${nOut} filament slots are in use but ${profile.model} is set up for ${profile.slots} (${profile.slotUnit}). Merge colors before slicing, or confirm you have more units connected.`);
 
   const si: string[] = S.filament_self_index || Array.from({ length: nfil }, (_, i) => String(i + 1));
   const fv: string[] = S.filament_extruder_variant || Array(si.length).fill("Direct Drive Standard");
@@ -1220,7 +1220,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (note) (perTool ? info : warn)(note);
     const nUsed = usedSlot.filter(Boolean).length;
     if (srcTools.multiTool && !tt && profile.extruders === 1 && nUsed > 1)
-      info(`The source printer gave each filament its own tool. The ${profile.model} has one nozzle, so the ${nUsed} filaments keep their colours as ${profile.slotUnit} slots and swap with purging.`);
+      info(`The source printer gave each filament its own tool. The ${profile.model} has one nozzle, so the ${nUsed} filaments keep their colors as ${profile.slotUnit} slots and swap with purging.`);
   }
 
   // ---- keep only keys the destination slicer understands ----
@@ -1370,7 +1370,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (srcArea) oldOrg.set(pid, plateOrigin(i, pids.length, srcArea.w, srcArea.h));
     newOrg.set(pid, plateOrigin(i, pids.length, dstArea.w, dstArea.h));
   });
-  if (multi) info(`${pids.length} plates: each plate was re-centred on the ${profile.model} bed and laid out on its plate grid.`);
+  if (multi) info(`${pids.length} plates: each plate was re-centered on the ${profile.model} bed and laid out on its plate grid.`);
 
   // prime tower: its width is tuned per printer (toolchangers use small towers, single-nozzle
   // MMU printers wide ones), so the destination printer's width is used
@@ -1618,7 +1618,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     }
     outFiles[CG] = strToU8(xml);
     const n = opts.pauses.length;
-    info(`Added ${n} filament-change pause${n > 1 ? "s" : ""} so ${a.filaments.filter((f) => f.used).length} colours print with ${profile.slots} slot${profile.slots > 1 ? "s" : ""}: ${opts.pauses
+    info(`Added ${n} filament-change pause${n > 1 ? "s" : ""} so ${a.filaments.filter((f) => f.used).length} colors print with ${profile.slots} slot${profile.slots > 1 ? "s" : ""}: ${opts.pauses
       .slice(0, 6)
       .map((c) => `slot ${c.slot} → ${normalizeColor(c.color)} at ${topZ(c.z)} mm${a.plates.length > 1 ? ` (plate ${c.plate})` : ""}`)
       .join("; ")}${n > 6 ? "; …" : ""}. The printer pauses at each one (${pauseG ? `its pause G-code: ${pauseG.split("\n")[0].slice(0, 30)}` : "M600"}); swap the filament from the printer's screen, then resume.`);
@@ -1627,7 +1627,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   R.version = fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client;
   outFiles[SETTINGS] = strToU8(JSON.stringify(R, null, 4));
   if (removed.some((r) => r.endsWith(".gcode"))) info("Removed the pre-sliced G-code for the original printer. Slice again before printing.");
-  if (paintRemapped) info(`Re-mapped painted colours on ${paintRemapped.toLocaleString()} triangles to the new slot numbers.`);
+  if (paintRemapped) info(`Re-mapped painted colors on ${paintRemapped.toLocaleString()} triangles to the new slot numbers.`);
   if (!identity && !paintRemapped && a.hasPaint && paintNeedsRemap) info("Painted areas already used the kept filament numbers.");
   const merged = groups.filter((g) => g.length > 1);
   merged.forEach((g) =>
@@ -1639,7 +1639,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   });
   const dropped = a.filaments.filter((f) => !map[f.index - 1]);
   if (dropped.length) info(`Removed ${dropped.length} unused filament(s): ${dropped.map((f) => f.index).join(", ")}.`);
-  if (a.colorChangeLayers) info("This project has layer colour changes; they were kept and re-numbered. Check them in the slicer's preview.");
+  if (a.colorChangeLayers) info("This project has layer color changes; they were kept and re-numbered. Check them in the slicer's preview.");
   if (S.printer_settings_id === profile.machine) info("The project was already set up for this printer; settings were refreshed anyway.");
   let outZip: Zippable | OutFiles = outFiles;
   let procName = proc.name;

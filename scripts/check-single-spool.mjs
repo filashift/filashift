@@ -35,6 +35,6 @@ try {
     assert.equal(new URL(bulk.url()).searchParams.get("color"),params.get("color"));assert((await offers(bulk)).every(i=>i.kg>=2));
     await finder.goto(`${base}/filament?pack=single&d=2.85&f=PLA&t=absent-test-subtype&color=0000ff`);await finder.getByTestId("text-updated").waitFor();
     assert.match(await finder.getByTestId("text-count").innerText(),/^0 results/);assert.equal(await finder.getByTestId("select-diameter").innerText(),"2.85 mm");
-    console.log(`${width}px: conversion, separate shopping tabs, exact variants, total-price order, bulk and empty states passed (${rows.length} colour matches checked)`);await ctx.close();
+    console.log(`${width}px: conversion, separate shopping tabs, exact variants, total-price order, bulk and empty states passed (${rows.length} color matches checked)`);await ctx.close();
   }
 }finally{await b.close();}

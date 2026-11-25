@@ -5,7 +5,7 @@ import { getLang, isLocalizedRoute, LANGS, localePath, PATH_LANG, stripLocale, t
 export const SITE = "https://filashift.com";
 const DEFAULT_TITLE = "FilaShift — Free 3MF converter for Bambu Lab, Flashforge, Creality, Prusa and more";
 const DEFAULT_DESC =
-  "Convert 3MF projects between Bambu Studio, OrcaSlicer and PrusaSlicer printers, or export 3MF to STL and OBJ, right in your browser. Colours, plates and settings kept; files never leave your device.";
+  "Convert 3MF projects between Bambu Studio, OrcaSlicer and PrusaSlicer printers, or export 3MF to STL and OBJ, right in your browser. Colors, plates and settings kept; files never leave your device.";
 
 /** Open Graph locale per language. */
 export const OG_LOCALE: Record<Lang, string> = { en: "en_US", es: "es_ES", de: "de_DE", fr: "fr_FR" };

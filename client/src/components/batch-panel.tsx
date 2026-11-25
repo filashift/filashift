@@ -60,7 +60,7 @@ export function BatchPanel({
       </header>
       <div className="space-y-3 p-4">
         <p className="text-xs text-muted-foreground">
-          The first printer uses your nozzle, slot and colour choices. Each extra printer uses its 0.4 mm profile, its default slot count and automatic colour matching.
+          The first printer uses your nozzle, slot and color choices. Each extra printer uses its 0.4 mm profile, its default slot count and automatic color matching.
         </p>
         <div className="flex flex-wrap items-center gap-2">
           {running ? (

@@ -174,7 +174,7 @@ try {
     const img = png(await vp.screenshot());
     const left = hues(img, 0, img.w >> 1, 0, img.h), right = hues(img, img.w >> 1, img.w, 0, img.h);
     assert(left.length >= 4, `before view should show red, yellow, green and blue paint, got hues ${left}`);
-    assert(right.length <= 2, `after view (1 slot) should show one colour, got hues ${right}`);
+    assert(right.length <= 2, `after view (1 slot) should show one color, got hues ${right}`);
     await shot(dlg, "en-1280-preview-x1c-paint-coreone-both");
     await page.getByTestId("preview-mode-after").click();
     await page.waitForTimeout(200);
@@ -187,7 +187,7 @@ try {
     void cards;
     let d2 = await openPreview(page, page.locator('[data-testid^="button-preview-"]').nth(1));
     const mwImg = png(await page.getByTestId("preview-viewport").screenshot());
-    assert(hues(mwImg, 0, mwImg.w >> 1, 0, mwImg.h, 0.002).length >= 2, "MakerWorld model shows its colours (yellow body, orange beak)");
+    assert(hues(mwImg, 0, mwImg.w >> 1, 0, mwImg.h, 0.002).length >= 2, "MakerWorld model shows its colors (yellow body, orange beak)");
     await shot(d2, "en-1280-preview-mw1471152-both");
     await page.keyboard.press("Escape");
     d2 = await openPreview(page, page.locator('[data-testid^="button-preview-"]').nth(2));
@@ -234,7 +234,7 @@ try {
     assert.equal(await page.getByTestId("preview-legend").locator("li").count(), 4);
     await shot(dlg, "en-1280-preview-no-webgl");
     assert.deepEqual(bad, []);
-    results.push("PASS no-WebGL fallback: message and before/after colour list");
+    results.push("PASS no-WebGL fallback: message and before/after color list");
     await ctx.close();
   }
 
@@ -262,7 +262,7 @@ try {
     const box = await dlg.boundingBox();
     assert(box.x >= 0 && box.x + box.width <= 391, `${lang} 390px: preview dialog outside the viewport`);
     const vt = await dlg.innerText();
-    if (lang === "es") for (const en of ["Before and after colours", "Reset view", "Drag to rotate"]) assert(!vt.includes(en), `untranslated "${en}" in the Spanish preview`);
+    if (lang === "es") for (const en of ["Before and after colors", "Reset view", "Drag to rotate"]) assert(!vt.includes(en), `untranslated "${en}" in the Spanish preview`);
     await shot(dlg, `${lang}-390-preview-both`);
     await page.getByTestId("preview-mode-after").click();
     await page.waitForTimeout(200);

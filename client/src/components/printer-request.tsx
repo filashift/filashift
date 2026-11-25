@@ -106,7 +106,7 @@ export function PrinterRequestDialog() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="pr-note">Note (optional)</Label>
-              <Textarea id="pr-note" rows={3} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nozzle size, multi-colour unit or anything else we should know" data-testid="input-request-note" />
+              <Textarea id="pr-note" rows={3} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nozzle size, multi-color unit or anything else we should know" data-testid="input-request-note" />
             </div>
             <input type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 opacity-0" value={hp} onChange={(e) => setHp(e.target.value)} name="website" />
             {err && <p className="text-sm text-destructive" data-testid="text-printer-request-error">{err}</p>}

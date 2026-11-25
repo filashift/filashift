@@ -16,7 +16,7 @@ export class ProjectWorker {
     this.worker ??= new Worker(new URL("../engine/converter.worker.ts",import.meta.url),{type:"module"});
     const w=this.worker;
     return new Promise((resolve,reject)=>{
-      this.abort=()=>{this.abort=undefined;reject(new DOMException("Cancelled","AbortError"))};
+      this.abort=()=>{this.abort=undefined;reject(new DOMException("Canceled","AbortError"))};
       const finish=()=>{this.abort=undefined;w.onmessage=null;w.onerror=null};
       w.onmessage=({data})=>{
         if(data.stage){stage(data.stage);return}

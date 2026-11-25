@@ -40,7 +40,7 @@ export function GuidesIndex() {
   ].map(t => ({ ...t, guides: GUIDES.filter(g => t.id === (g.shopping ? "shop" : g.slug === "3mf-to-stl" ? "mesh" : "project")).map(loc) }));
   usePageMeta(
     L("3MF conversion guides: STL, OBJ, MakerWorld to Flashforge, Creality, Prusa | FilaShift"),
-    L("Step-by-step guides for converting 3MF files: 3MF to STL and OBJ, MakerWorld and Bambu Studio projects to Flashforge, Creality and Snapmaker, PrusaSlicer to Bambu, and keeping multi-colour prints intact."),
+    L("Step-by-step guides for converting 3MF files: 3MF to STL and OBJ, MakerWorld and Bambu Studio projects to Flashforge, Creality and Snapmaker, PrusaSlicer to Bambu, and keeping multi-color prints intact."),
   );
   return (
     <Shell>
