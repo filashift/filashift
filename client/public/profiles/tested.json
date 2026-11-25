@@ -1617,6 +1617,20 @@
 "passed": 3,
 "tests": 3,
 "slicer": "OrcaSlicer"
+},
+"wondermaker-zr": {
+"date": "2026-11-25",
+"ok": false,
+"passed": 2,
+"tests": 3,
+"slicer": "OrcaSlicer"
+},
+"wondermaker-zr-ultra-s": {
+"date": "2026-11-25",
+"ok": true,
+"passed": 3,
+"tests": 3,
+"slicer": "OrcaSlicer"
 }
 }
 }

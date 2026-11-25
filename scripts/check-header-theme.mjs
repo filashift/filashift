@@ -45,6 +45,13 @@ try {
       await preflight.waitFor();
       assert.match(await preflight.innerText(), /OrcaSlicer 2\.5\.2/);
       assert.match(await preflight.innerText(), /not the Ultra S/);
+      for (const id of ["wondermaker-zr","wondermaker-zr-ultra-s"]) {
+        await p.goto(`${base}/?printer=${id}&lang=en`);
+        const limits = p.getByTestId("wondermaker-limits");
+        await limits.waitFor();
+        assert.match(await limits.innerText(), /Wonderprint-Orca 2\.3\.2: unverified/);
+        assert.match(await p.getByTestId("text-tested-note").locator("summary").innerText(), id.endsWith("-s") ? /Slicer-tested/ : /Test incomplete/);
+      }
       await jumps();
       await p.getByTestId("button-theme").click();
       await check("en",!osDark);

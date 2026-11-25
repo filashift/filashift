@@ -11,6 +11,7 @@ VENDORS.append("WonderMaker")
 VENDOR_LABEL = {"BBL": "Bambu Lab"}
 # curated: simultaneous filament slots in a typical setup (multi-material unit or toolheads), slicer, notes
 SLOTS = {
+ "WonderMaker ZR": (4, "multi-color"),
  "Bambu Lab A1": (4, "AMS lite"), "Bambu Lab A1 mini": (4, "AMS lite"), "Bambu Lab P1P": (4, "AMS"), "Bambu Lab P1S": (4, "AMS"),
  "Bambu Lab P2S": (4, "AMS"), "Bambu Lab X1": (4, "AMS"), "Bambu Lab X1 Carbon": (4, "AMS"), "Bambu Lab X1E": (4, "AMS"),
  "Bambu Lab H2D": (4, "AMS"), "Bambu Lab H2D Pro": (4, "AMS"), "Bambu Lab H2S": (4, "AMS"), "Bambu Lab H2C": (4, "AMS"), "Bambu Lab X2D": (4, "AMS"), "Bambu Lab A2L": (4, "AMS"), "Bambu Lab H3C": (8, "PrintTools + AMS 3H"), "Bambu Lab P3C": (5, "PrintTools + AMS 3P"),
@@ -29,6 +30,7 @@ POPULAR = {"Bambu Lab X1 Carbon", "Bambu Lab P1S", "Bambu Lab A1", "Bambu Lab A1
            "Creality K1C", "Creality K2 Plus", "Creality Ender-3 V3 SE", "Creality Hi", "Elegoo Centauri Carbon", "Elegoo Neptune 4 Pro", "Anycubic Kobra S1", "Anycubic Kobra 3",
            "Prusa MK4S", "Prusa CORE One", "Prusa MINI", "Qidi Q1 Pro", "Qidi X-Plus 4", "Sovol SV08"}
 MIN_FIL = {"Snapmaker U1": 4}
+POPULAR.add("WonderMaker ZR Ultra")
 
 
 def frame_to_strips(area):
@@ -143,7 +145,7 @@ for vendor in VENDORS:
     models = [m["name"] for m in vj.get("machine_model_list", [])]
     machines = {n: j for n, j in pool.get("machine", {}).items() if str(j.get("instantiation")) == "true"}
     for model in models:
-        if vendor == "WonderMaker" and model != "WonderMaker ZR Ultra": continue
+        if vendor == "WonderMaker" and model not in ("WonderMaker ZR", "WonderMaker ZR Ultra", "WonderMaker ZR Ultra S"): continue
         if "COPY MODE" in model or "MIRROR MODE" in model: continue
         cands = [n for n, j in machines.items() if j.get("printer_model") == model or res(n, "machine").get("printer_model") == model]
         def nz(n):

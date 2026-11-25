@@ -202,7 +202,7 @@ export default function TestedPage() {
                         {t?.ok ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"><BadgeCheck className="h-3.5 w-3.5" />Slicer-tested</span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleDashed className="h-3.5 w-3.5" />Not yet passed</span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleDashed className="h-3.5 w-3.5" />{!t?.tests ? "Unverified" : "Not yet passed"}</span>
                         )}
                         {t && <div className="mt-1 text-xs text-muted-foreground">{`${t.passed} of ${t.tests} slice tests passed`}</div>}
                       </td>
@@ -225,12 +225,13 @@ export default function TestedPage() {
                       </td>
                       <td className="col-span-2 text-xs text-muted-foreground md:py-2.5 md:pr-3 md:align-top">
                         <span className="mr-1 md:hidden">Tested:</span>
-                        <span className="font-mono" translate="no">{t && tested ? t.date || tested.date : "—"}</span>
+                        <span className="font-mono" translate="no">{t?.tests && tested ? t.date || tested.date : "—"}</span>
                       </td>
                       <td className="col-span-2 text-xs text-muted-foreground md:py-2.5 md:align-top">
                         {p.prusaOnly && <div>PrusaSlicer only: always converted to a PrusaSlicer project.</div>}
                         {p.prusa && !p.prusaOnly && <div>PrusaSlicer or OrcaSlicer output.</div>}
                         {notes.map((n) => <div key={n}>{n === "large models must be scaled to fit this bed" ? "Large models must be scaled to fit this bed." : n}</div>)}
+                        {p.vendor === "WonderMaker" && <a href="./samples/wondermaker-results.json" className="text-primary underline">WonderMaker test results</a>}
                       </td>
                     </tr>
                   );

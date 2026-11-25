@@ -12,7 +12,7 @@ All conversion happens in the browser tab. Project files are never uploaded; the
 
 ## Supported printers
 
-235 printers from 16 brands. Bambu Lab presets come from Bambu Studio, the native Prusa presets from PrusaSlicer, the WonderMaker ZR Ultra presets from [Wonderprint-Orca 2.3.2](https://github.com/Wondermaker/Wonderprint-Orca/releases/tag/V2.3.2-Pre), and the remaining presets from OrcaSlicer. Bambu projects target Bambu Studio 2.9.1 or newer; Prusa projects default to PrusaSlicer 2.9 or newer. Use OrcaSlicer 2.5.2 for the ZR Ultra with four 0.4 mm nozzles. A vendor-supplied preset is not evidence that the vendor's slicer or physical printer has passed.
+237 printers from 16 brands. Bambu Lab presets come from Bambu Studio, the native Prusa presets from PrusaSlicer, the WonderMaker ZR Ultra presets from [Wonderprint-Orca 2.3.2](https://github.com/Wondermaker/Wonderprint-Orca/releases/tag/V2.3.2-Pre), and the remaining presets from OrcaSlicer. Bambu projects target Bambu Studio 2.9.1 or newer; Prusa projects default to PrusaSlicer 2.9 or newer. Use OrcaSlicer 2.5.2 for the ZR Ultra with four 0.4 mm nozzles. A vendor-supplied preset is not evidence that the vendor's slicer or physical printer has passed.
 
 ## How it was tested
 

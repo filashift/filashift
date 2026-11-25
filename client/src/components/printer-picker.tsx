@@ -76,6 +76,7 @@ const sampleLabel = (T: ReturnType<typeof useT>, s: string) => {
 export function TestedNote({ id, model, slicer, output }: { id: string; model:string; slicer?: string; output?: string }) {
   const d = useTested();
   const T=useT(), p=d?.printers[id], sl=output||p?.slicer||slicer||"OrcaSlicer";
+  if (id.startsWith("wondermaker-") && (!p || !p.tests)) return <p data-testid="unverified-printer" className="mt-2 rounded-lg border p-3 text-sm">{T("Unverified")}: {T("Manufacturer profile only. No destination-slicer test or physical print has been verified for this model.")}</p>;
   const row=p?.outputs?p.outputs[sl]:p && (p.slicer||slicer)===sl?p:undefined;
   const exact=demo.results.find(r=>r.id===id&&r.slicer===sl);
   if(!row || !d) return <p className="mt-2 text-xs text-muted-foreground">{T("No recorded result for this output.")}</p>;
@@ -146,6 +147,7 @@ export function PrinterPicker({
       <Check className={cn("h-4 w-4 shrink-0", value === p.id || exclude?.includes(p.id) ? "opacity-100" : "opacity-0")} />
       <span className="flex-1 truncate">{p.model}</span>
       {tested?.printers[p.id]?.ok && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-primary" aria-label="Slicer-tested" />}
+      {p.vendor === "WonderMaker" && !tested?.printers[p.id]?.ok && <span className="text-xs text-muted-foreground">Unverified</span>}
       <span className="font-mono text-xs text-muted-foreground">
         {p.bed[0]}×{p.bed[1]} · {p.slots}
       </span>

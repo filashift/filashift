@@ -1,0 +1,388 @@
+{
+  "testedOn": "2026-11-25",
+  "destination": "OrcaSlicer 2.5.2",
+  "nozzleMm": 0.4,
+  "physicallyPrinted": false,
+  "manufacturerSlicer": {
+    "name": "Wonderprint-Orca 2.3.2 (Windows CLI under Wine)",
+    "control": "Original Bookmark.3mf produced G-code with two filaments.",
+    "convertedBookmark": "ZR and ZR Ultra S rejected the project version before slicing. Do not use this workflow with Wonderprint-Orca."
+  },
+  "publicFiles": [
+    {
+      "tag": "bookmark",
+      "name": "Bookmark.3mf",
+      "page": "https://wondermaker3d.gitbook.io/wondermaker3d/printer-series/zr/documentation-package/model-file-download",
+      "sha256": "f708840f1adebe06c555b687395c0277e5699b65a1f962b4c75119f03f3995ea"
+    },
+    {
+      "tag": "trim",
+      "name": "Trim_Test_80x80.3mf",
+      "page": "https://github.com/ducati1198/WM_Ultra_Vanilla_Klipper/blob/e98e6534c6ed9f4d686c30215d28dc9c78aeba94/first-layer-stl/Trim_Test_80x80.3mf",
+      "sha256": "20b2559a4eabab45f21c7ec7b4c25f903a8aa7f5c8410312e8bde49222f31cac"
+    }
+  ],
+  "cases": [
+    {
+      "project": "bookmark",
+      "printer": "WonderMaker ZR",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1
+      ],
+      "filamentGrams": [
+        2.01,
+        0.22
+      ],
+      "colors": [
+        "#FFFFFF",
+        "#FF0000"
+      ]
+    },
+    {
+      "project": "bookmark",
+      "printer": "WonderMaker ZR Ultra",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1
+      ],
+      "filamentGrams": [
+        2.15,
+        0.23
+      ],
+      "colors": [
+        "#FFFFFF",
+        "#FF0000"
+      ]
+    },
+    {
+      "project": "bookmark",
+      "printer": "WonderMaker ZR Ultra S",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1
+      ],
+      "filamentGrams": [
+        2.15,
+        0.23
+      ],
+      "colors": [
+        "#FFFFFF",
+        "#FF0000"
+      ]
+    },
+    {
+      "project": "trim",
+      "printer": "WonderMaker ZR",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        1.45,
+        1.53,
+        1.44,
+        1.45
+      ],
+      "colors": [
+        "#707070",
+        "#FF8002",
+        "#FF0202",
+        "#2928B0"
+      ]
+    },
+    {
+      "project": "trim",
+      "printer": "WonderMaker ZR Ultra",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        1.55,
+        1.63,
+        1.54,
+        1.55
+      ],
+      "colors": [
+        "#707070",
+        "#FF8002",
+        "#FF0202",
+        "#2928B0"
+      ]
+    },
+    {
+      "project": "trim",
+      "printer": "WonderMaker ZR Ultra S",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        1.55,
+        1.63,
+        1.54,
+        1.55
+      ],
+      "colors": [
+        "#707070",
+        "#FF8002",
+        "#FF0202",
+        "#2928B0"
+      ]
+    },
+    {
+      "project": "mw147",
+      "printer": "WonderMaker ZR",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        0.06,
+        2.34,
+        0.12,
+        0.19
+      ],
+      "colors": [
+        "#FFFFFF",
+        "#FFF144",
+        "#161616",
+        "#FF8000"
+      ]
+    },
+    {
+      "project": "mw147",
+      "printer": "WonderMaker ZR Ultra",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        0.04,
+        1.84,
+        0.07,
+        0.11
+      ],
+      "colors": [
+        "#FFFFFF",
+        "#FFF144",
+        "#161616",
+        "#FF8000"
+      ]
+    },
+    {
+      "project": "mw147",
+      "printer": "WonderMaker ZR Ultra S",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        0.04,
+        1.84,
+        0.07,
+        0.11
+      ],
+      "colors": [
+        "#FFFFFF",
+        "#FFF144",
+        "#161616",
+        "#FF8000"
+      ]
+    },
+    {
+      "project": "ad5x",
+      "printer": "WonderMaker ZR",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        5.55,
+        7.91,
+        7.23,
+        8.14
+      ],
+      "colors": [
+        "#E63A2E",
+        "#1E7FD8",
+        "#F2C230",
+        "#2BAA4A"
+      ]
+    },
+    {
+      "project": "ad5x",
+      "printer": "WonderMaker ZR Ultra",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        6.09,
+        8.53,
+        7.76,
+        8.72
+      ],
+      "colors": [
+        "#E63A2E",
+        "#1E7FD8",
+        "#F2C230",
+        "#2BAA4A"
+      ]
+    },
+    {
+      "project": "ad5x",
+      "printer": "WonderMaker ZR Ultra S",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        6.09,
+        8.53,
+        7.76,
+        8.72
+      ],
+      "colors": [
+        "#E63A2E",
+        "#1E7FD8",
+        "#F2C230",
+        "#2BAA4A"
+      ]
+    },
+    {
+      "project": "prusa",
+      "printer": "WonderMaker ZR",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1
+      ],
+      "filamentGrams": [
+        6.35,
+        6.43
+      ],
+      "colors": [
+        "#FF8000",
+        "#1E7FD8"
+      ]
+    },
+    {
+      "project": "prusa",
+      "printer": "WonderMaker ZR Ultra",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1
+      ],
+      "filamentGrams": [
+        5.24,
+        5.29
+      ],
+      "colors": [
+        "#FF8000",
+        "#1E7FD8"
+      ]
+    },
+    {
+      "project": "prusa",
+      "printer": "WonderMaker ZR Ultra S",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1
+      ],
+      "filamentGrams": [
+        5.24,
+        5.29
+      ],
+      "colors": [
+        "#FF8000",
+        "#1E7FD8"
+      ]
+    },
+    {
+      "project": "x1c",
+      "printer": "WonderMaker ZR",
+      "returnCode": -62,
+      "error": "The temperature difference of the filaments used is too large. Please verify the slicing of all plates in Orca Slicer before uploading."
+    },
+    {
+      "project": "x1c",
+      "printer": "WonderMaker ZR Ultra",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        5.01,
+        6.13,
+        7.94,
+        8.82
+      ],
+      "colors": [
+        "#E63A2E",
+        "#1E7FD8",
+        "#F2C230",
+        "#2BAA4A"
+      ]
+    },
+    {
+      "project": "x1c",
+      "printer": "WonderMaker ZR Ultra S",
+      "returnCode": 0,
+      "filamentChannels": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "filamentGrams": [
+        5.01,
+        6.13,
+        7.94,
+        8.82
+      ],
+      "colors": [
+        "#E63A2E",
+        "#1E7FD8",
+        "#F2C230",
+        "#2BAA4A"
+      ]
+    }
+  ]
+}

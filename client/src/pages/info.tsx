@@ -106,7 +106,7 @@ export function About() {
       <S h="What makes it different">
         <ul>
           <li>Files never leave your device. No upload or account is needed.</li>
-          <li>Works in both directions across 235 printers from 16 brands.</li>
+          <li>Works in both directions across 237 printers from 16 brands.</li>
           <li>A plain conversion report for every file, so nothing changes silently.</li>
           <li>Filament price comparison by the kilogram across brand stores.</li>
         </ul>
