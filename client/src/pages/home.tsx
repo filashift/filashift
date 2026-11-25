@@ -425,8 +425,8 @@ export default function Home() {
       <SiteHeader />
 
       <Hero
-        printers={printers.length || 234}
-        brands={new Set(printers.map((p) => p.vendor)).size || 15}
+        printers={printers.length || 235}
+        brands={new Set(printers.map((p) => p.vendor)).size || 16}
         onChoose={() => inputRef.current?.click()}
       />
 
@@ -599,6 +599,11 @@ export default function Home() {
                   ))}
                 </div>
                 {target && <TestedNote id={target.id} model={target.model} slicer={target.slicer} output={usePrusa ? "PrusaSlicer" : target.slicer} />}
+                {target?.id === "wondermaker-zr-ultra" && <aside className="mt-3 rounded-lg border p-3 text-sm" data-testid="wondermaker-check">
+                  <strong>Before slicing on the ZR Ultra</strong>
+                  <p>Use OrcaSlicer 2.5.2 for this workflow. Wonderprint-Orca and physical printing have not been verified.</p>
+                  <p>Open the 3MF as a project. Select the plate fitted to your printer, check the first-layer bed temperature for your filament, and match each preview color to the loaded toolhead. This profile is for the ZR Ultra with four 0.4 mm nozzles, not the Ultra S.</p>
+                </aside>}
                 <BatchPrinters printers={printers} main={targetId} extras={extras} onChange={setExtraIds} disabled={batchRunning} />
               </div>
 

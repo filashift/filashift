@@ -24,7 +24,7 @@ export interface TestedDoc {
   date: string;
   slicers: Record<string, string>;
   samples: string[];
-  printers: Record<string, { ok: boolean; passed: number; tests: number; note?: string; slicer?: string; outputs?: Record<string, { ok: boolean; passed: number; tests: number; note?: string }> }>;
+  printers: Record<string, { date?: string; ok: boolean; passed: number; tests: number; note?: string; slicer?: string; outputs?: Record<string, { ok: boolean; passed: number; tests: number; note?: string }> }>;
 }
 let testedP: Promise<TestedDoc | null> | null = null;
 /** Results of the last full slicer run (scripts/tested.py): converted sample projects sliced in the real destination slicer CLI. */
@@ -45,7 +45,7 @@ export function testedLabel(d: TestedDoc | null, p: Pick<PrinterIndexEntry, "id"
   const sl = output || t.slicer || p.slicer || "OrcaSlicer";
   if (t.outputs && !t.outputs[sl]?.ok) return null;
   const v = d.slicers[sl] || "";
-  const when = new Date(d.date + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", year: "numeric" });
+  const when = new Date((t.date || d.date) + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", year: "numeric" });
   return `Slicer-tested: sample projects converted for this printer sliced without errors in ${sl} ${v.replace(/^0/, "")} (${when}).`;
 }
 
@@ -84,7 +84,7 @@ export function TestedNote({ id, model, slicer, output }: { id: string; model:st
       {row.ok?(T("Slicer-tested")):(T("Test incomplete"))} · {T("View result")}
     </summary>
     <div className="mt-2 space-y-1.5">
-      <p><b>{model}</b> · {sl} {d.slicers[sl]||""} · {d.date}</p>
+      <p><b>{model}</b> · {sl} {d.slicers[sl]||""} · {p?.date || d.date}</p>
       <p>{T("{passed} of {tests} slice tests passed for this output.",{passed:row.passed,tests:row.tests})}</p>
       {row.note&&<p>{row.note==="large models must be scaled to fit this bed"?T("Large models must be scaled to fit this bed."):row.note}</p>}
       <p>{T("Source projects in the test suite:")}</p>

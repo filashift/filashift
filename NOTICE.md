@@ -6,6 +6,7 @@ It includes or derives from the following works:
 
 | Project | Used for | License |
 |---|---|---|
+| [Wonderprint-Orca](https://github.com/Wondermaker/Wonderprint-Orca/releases/tag/V2.3.2-Pre) | ZR Ultra machine, process and filament presets from the manufacturer's 2.3.2 distribution, profile version 02.03.02.60 | AGPL-3.0 |
 | [OrcaSlicer](https://github.com/SoftFever/OrcaSlicer) (v2.5.2) | Machine, process and filament profiles for non-Bambu printers; project file format behaviour | AGPL-3.0 |
 | [Bambu Studio](https://github.com/bambulab/BambuStudio) (v2.9.1) | Machine, process and filament profiles for Bambu Lab printers; project file format behaviour | AGPL-3.0 |
 | [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) (2.9 series) | Prusa Research printer, print and filament presets and PrusaSlicer option tables used for native Prusa output | [AGPL-3.0](https://raw.githubusercontent.com/prusa3d/PrusaSlicer/version_2.9.4/LICENSE) |

@@ -9730,5 +9730,41 @@
 "0.6",
 "0.8"
 ]
+},
+{
+"id": "wondermaker-zr-ultra",
+"vendor": "WonderMaker",
+"model": "WonderMaker ZR Ultra",
+"short": "ZR Ultra",
+"machine": "WonderMaker ZR Ultra 0.4 nozzle",
+"bed": [
+300.0,
+270.0
+],
+"height": 290.0,
+"extruders": 4,
+"slots": 4,
+"slotUnit": "4 extruders",
+"slicer": "OrcaSlicer",
+"popular": false,
+"processes": 7,
+"filamentTypes": [
+"ABS",
+"ASA",
+"BVOH",
+"HIPS",
+"PA",
+"PA-CF",
+"PC",
+"PCTG",
+"PET-CF",
+"PETG",
+"PETG-CF",
+"PLA",
+"PLA-CF",
+"PP",
+"PVA",
+"TPU"
+]
 }
 ]

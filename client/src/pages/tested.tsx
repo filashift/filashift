@@ -225,7 +225,7 @@ export default function TestedPage() {
                       </td>
                       <td className="col-span-2 text-xs text-muted-foreground md:py-2.5 md:pr-3 md:align-top">
                         <span className="mr-1 md:hidden">Tested:</span>
-                        <span className="font-mono" translate="no">{t && tested ? tested.date : "—"}</span>
+                        <span className="font-mono" translate="no">{t && tested ? t.date || tested.date : "—"}</span>
                       </td>
                       <td className="col-span-2 text-xs text-muted-foreground md:py-2.5 md:align-top">
                         {p.prusaOnly && <div>PrusaSlicer only: always converted to a PrusaSlicer project.</div>}

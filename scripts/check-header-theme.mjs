@@ -40,6 +40,11 @@ try {
       } };
       await p.goto(`${base}/?lang=en`);
       await check("en",osDark);
+      await p.getByTestId("brand-wondermaker").click();
+      const preflight = p.getByTestId("wondermaker-check");
+      await preflight.waitFor();
+      assert.match(await preflight.innerText(), /OrcaSlicer 2\.5\.2/);
+      assert.match(await preflight.innerText(), /not the Ultra S/);
       await jumps();
       await p.getByTestId("button-theme").click();
       await check("en",!osDark);

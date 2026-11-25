@@ -12,13 +12,15 @@ All conversion happens in the browser tab. Project files are never uploaded; the
 
 ## Supported printers
 
-234 printers from 15 brands. Bambu Lab presets come from Bambu Studio's system profiles, Prusa presets for PrusaSlicer output from PrusaSlicer's own PrusaResearch profiles, and all other brands from OrcaSlicer's system profiles. Converted files target Bambu Studio 2.9.1 or newer for Bambu printers, PrusaSlicer 2.9 or newer for Prusa printers (default; an OrcaSlicer file is still available, and 8 Prusa models such as the MK4S MMU3 and XL 2T exist only in PrusaSlicer), and OrcaSlicer 2.3.1 or newer for everything else.
+235 printers from 16 brands. Bambu Lab presets come from Bambu Studio, the native Prusa presets from PrusaSlicer, the WonderMaker ZR Ultra presets from [Wonderprint-Orca 2.3.2](https://github.com/Wondermaker/Wonderprint-Orca/releases/tag/V2.3.2-Pre), and the remaining presets from OrcaSlicer. Bambu projects target Bambu Studio 2.9.1 or newer; Prusa projects default to PrusaSlicer 2.9 or newer. Use OrcaSlicer 2.5.2 for the ZR Ultra with four 0.4 mm nozzles. A vendor-supplied preset is not evidence that the vendor's slicer or physical printer has passed.
 
 ## How it was tested
 
 `scripts/matrix.ts` converts source projects to a list of target printers, and `scripts/slice-matrix.sh` slices every result with the destination slicer's command-line interface (OrcaSlicer 2.5.2, Bambu Studio 2.9.2, PrusaSlicer 2.9.4) and reads the settings back from the G-code. `scripts/roundtrip.ts` converts a project through a chain of printers and checks the painted colours come back unchanged. The latest run (2026-11-24) sliced 678 of 678 OrcaSlicer and Bambu Studio conversions (three sample projects from Bambu Studio, OrcaSlicer and PrusaSlicer to all 226 of those printers) and 313 of 315 PrusaSlicer conversions (the three samples plus two painted MakerWorld projects to all 63 Prusa printer and nozzle variants; the other two are a MakerWorld model larger than the CORE One MMU3 bed, which the converter flags with a scale suggestion). All 234 printers are slicer-tested.
 
 ## Known limits
+
+The separate 2026-11-25 ZR Ultra check sliced five converted projects in OrcaSlicer 2.5.2. The painted MakerWorld project, painted X1 Carbon project and AD5X project each extruded on four tools. The PrusaSlicer fixture and FS nameplate each extruded on two. No physical print was performed. Direct Wonderprint-Orca compatibility is not claimed. See `scripts/check-wondermaker.py` and the WonderMaker section of `OPERATIONS.md`.
 
 - Always open the converted file in the destination slicer, check the preview and slice it yourself before printing.
 - OrcaSlicer blocks mixing filaments with incompatible temperatures (for example PLA and PETG) on single-nozzle printers; FilaShift warns about this.

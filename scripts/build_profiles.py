@@ -7,6 +7,7 @@ BAMBU_ROOT = sys.argv[3] if len(sys.argv) > 3 else None  # Bambu Studio .../reso
 os.makedirs(OUT, exist_ok=True)
 
 VENDORS = ["BBL", "Snapmaker", "Flashforge", "Creality", "Elegoo", "Anycubic", "Prusa", "Qidi", "Sovol", "Voron", "Anker", "Artillery", "Kingroon", "Ratrig", "UltiMaker"]
+VENDORS.append("WonderMaker")
 VENDOR_LABEL = {"BBL": "Bambu Lab"}
 # curated: simultaneous filament slots in a typical setup (multi-material unit or toolheads), slicer, notes
 SLOTS = {
@@ -129,14 +130,20 @@ NOZZLES = ("0.2", "0.4", "0.6", "0.8")
 index = []
 for vendor in VENDORS:
     vroot = BAMBU_ROOT if (vendor == "BBL" and BAMBU_ROOT) else ROOT
+    if vendor == "WonderMaker":
+        vroot = os.environ.get("WONDER_ROOT", ROOT)
+        manifest = os.path.join(vroot, "WonderMaker.json")
+        if not os.path.exists(manifest) or json.load(open(manifest)).get("version") != "02.03.02.60":
+            sys.exit("Set WONDER_ROOT to the resources/profiles folder from Wonderprint-Orca V2.3.2-Pre (profile 02.03.02.60).")
     vdir = os.path.join(vroot, vendor)
     if not os.path.isdir(vdir): continue
     pool = load_dir(vdir)
-    res = resolver(pool, lib) if vroot == ROOT else resolver(pool)
+    res = resolver(pool, load_dir(os.path.join(vroot, "OrcaFilamentLibrary"))) if vendor == "WonderMaker" else resolver(pool, lib) if vroot == ROOT else resolver(pool)
     vj = json.load(open(os.path.join(vroot, vendor + ".json")))
     models = [m["name"] for m in vj.get("machine_model_list", [])]
     machines = {n: j for n, j in pool.get("machine", {}).items() if str(j.get("instantiation")) == "true"}
     for model in models:
+        if vendor == "WonderMaker" and model != "WonderMaker ZR Ultra": continue
         if "COPY MODE" in model or "MIRROR MODE" in model: continue
         cands = [n for n, j in machines.items() if j.get("printer_model") == model or res(n, "machine").get("printer_model") == model]
         def nz(n):
@@ -149,6 +156,7 @@ for vendor in VENDORS:
         if "0.4" not in picks: continue
         built = []
         for nozzle in sorted(picks, key=lambda d: (d != "0.4", float(d))):
+          if vendor == "WonderMaker" and nozzle != "0.4": continue
           pick = picks[nozzle]
           M = res(pick, "machine")
           # processes compatible
