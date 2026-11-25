@@ -6,7 +6,9 @@ const server = process.env.BASE ? null : await preview({configFile:false,build:{
 const base = process.env.BASE || `http://127.0.0.1:${server.httpServer.address().port}`;
 const labels = {
   en:["Converter","How it works","Printers","Filament prices","Guides","FAQ"],
-  es:["Convertidor","Cómo funciona","Impresoras","Precios de filamento","Guías","Preguntas"]
+  es:["Convertidor","Cómo funciona","Impresoras","Precios de filamento","Guías","Preguntas"],
+  de:["Konverter","So funktioniert's","Drucker","Filamentpreise","Anleitungen","FAQ"],
+  fr:["Convertisseur","Fonctionnement","Imprimantes","Prix du filament","Guides","FAQ"]
 };
 let browser;
 try {
@@ -28,7 +30,9 @@ try {
       await check("en",osDark);
       await p.getByTestId("button-theme").click();
       await check("en",!osDark);
-      for (const lang of ["es","en"]) {
+      for (const lang of ["es","de","fr","en"]) {
+        // The language selector is a compact menu: open it, then pick the language.
+        await p.getByTestId("button-lang").click();
         await Promise.all([p.waitForNavigation(),p.getByTestId(`button-lang-${lang}`).click()]);
         await check(lang,!osDark);
       }
@@ -38,7 +42,7 @@ try {
       await p.reload();
       await check("en",!osDark);
       assert.equal(await p.evaluate(()=>localStorage.getItem("filashift-theme")),osDark?"light":"dark");
-      console.log(`PASS ${profile}: ${osDark?"light":"dark"} override, both languages, header order, navigation and reload`);
+      console.log(`PASS ${profile}: ${osDark?"light":"dark"} override, all four languages, header order, navigation and reload`);
       await ctx.close();
     }
     await browser.close(); browser=null;

@@ -12,7 +12,9 @@ const chrome=[process.env.CHROME,`${process.env.HOME}/.cache/ms-playwright/chrom
 const b=await chromium.launch({executablePath:chrome});
 const targets=["flashforge-creator-5-pro","bambu-lab-x1-carbon","snapmaker-u1"];
 try {
- for(const [lang,width] of [["en",1280],["es",320]]) {
+ const notPrinted={en:/not physically printed/i,es:/sin prueba de impresión física/i,de:/kein physischer Drucktest/i,fr:/pas de test d'impression physique/i};
+const physical={en:/physical print/,es:/impresión física/,de:/physischer Drucktest/,fr:/impression physique/};
+for(const [lang,width] of [["en",1280],["es",320],["de",390],["fr",320]]) {
   const ctx=await b.newContext({viewport:{width,height:900},serviceWorkers:"block"});
   try {
    if(server) await ctx.addInitScript(()=>{window.__PRERENDER=true;});
@@ -30,7 +32,7 @@ try {
     const d=p.getByTestId("sample-download");await d.waitFor();
     const result=await p.getByTestId("sample-result").innerText();
     assert.match(result,/#ff8000/i);assert.match(result,/#1e7fd8/i);
-    assert.match(result,lang==="es"?/sin prueba de impresión física/i:/not physically printed/i);
+    assert.match(result,notPrinted[lang]);
     const [file]=await Promise.all([p.waitForEvent("download"),d.click()]);
     assert.match(file.suggestedFilename(),/\.3mf$/);assert.equal(await file.failure(),null);
     if(process.env.SAMPLE_OUTPUT&&lang==="en"){
@@ -42,7 +44,7 @@ try {
    assert.deepEqual(posts.filter(s=>!new URL(s).pathname.includes("pageview")),[]);
    const evidence=p.getByTestId("text-tested-note");await evidence.locator("summary").click();
    assert.match(await evidence.innerText(),/OrcaSlicer 2\.5\.2/);
-   assert.match(await evidence.innerText(),lang==="es"?/impresión física/:/physical print/);
+   assert.match(await evidence.innerText(),physical[lang]);
    assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth),width);
    const item={b:"Atomic Filament",r:"Atomic Filament",t:"Test PLA AMS Compatible",v:"1.75mm - 1KG AMS Compatible",kg:1,n:1,d:1.75,m:"PLA",f:"PLA",p:20,ppk:20,ok:true,c:[],form:"unknown",u:"https://atomicfilament.com/products/test?variant=1"};
    const items=[item,{...item,t:"Other",v:"1 kg"},{...item,t:"Refill",form:"refill"},{...item,t:"3.5KG Black PLA",v:"1.75mm - 3.5KG",kg:3.5}];

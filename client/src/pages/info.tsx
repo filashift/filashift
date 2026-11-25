@@ -4,7 +4,7 @@ import { Mail, MessageSquareWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { COMPANY, JtsEmblem, SiteFooter, SiteHeader, SOURCE_URL } from "@/components/site-chrome";
 import { openReport } from "@/components/report-dialog";
-import { useLang } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { usePageMeta } from "@/lib/seo";
 import { LEGAL_UPDATED, privacySections, termsSections } from "./legal";
 
@@ -43,32 +43,29 @@ function S({ h, children }: { h: string; children: ReactNode }) {
 
 
 export function Source() {
-  const es = useLang() === "es";
+  const T = useT();
   const sha: string = (import.meta as any).env.VITE_RELEASE_SHA || "";
   const pinned = /^[a-f0-9]{40}$/.test(sha);
-  return <Page title={es ? "Código fuente" : "Source code"} intro={es
-    ? "La conversión se realiza en tu navegador. Tus archivos 3MF y STL no se suben a FilaShift."
-    : "Conversion happens in your browser. Your 3MF and STL files are not uploaded to FilaShift."}>
+  return <Page title={T("Source code")} intro={T("Conversion happens in your browser. Your 3MF and STL files are not uploaded to FilaShift.")}>
     <div translate="no" className="space-y-8">
-      <S h={es ? "Código de esta versión" : "Source for this version"}>
-        {pinned && <p><a download href={`/downloads/filashift-${sha}.tar.gz`}>{es ? "Descargar el código fuente (.tar.gz)" : "Download release source (.tar.gz)"}</a><br/>
-          <span>{es ? "Versión" : "Revision"}: <code>{sha.slice(0,12)}</code></span></p>}
-        <p><a href={pinned ? `${SOURCE_URL}/tree/${sha}` : SOURCE_URL}>{es ? "Ver el código en GitHub" : "Browse the source on GitHub"}</a></p>
+      <S h={T("Source for this version")}>
+        {pinned && <p><a download href={`/downloads/filashift-${sha}.tar.gz`}>{T("Download release source (.tar.gz)")}</a><br/>
+          <span>{T("Revision")}: <code>{sha.slice(0,12)}</code></span></p>}
+        <p><a href={pinned ? `${SOURCE_URL}/tree/${sha}` : SOURCE_URL}>{T("Browse the source on GitHub")}</a></p>
       </S>
-      <S h={es ? "Licencia y atribuciones" : "License and credits"}>
-        <p>{es ? "El software se publica bajo la GNU AGPL, versión 3 o posterior." : "The software is released under the GNU AGPL, version 3 or later."}{" "}
-          <a href={`${SOURCE_URL}/blob/${pinned ? sha : "master"}/LICENSE`}>{es ? "Leer la licencia" : "Read the license"}</a>{" · "}
-          <a href={`${SOURCE_URL}/blob/${pinned ? sha : "master"}/NOTICE.md`}>{es ? "Avisos de terceros y marcas" : "Third-party and trademark notices"}</a></p>
+      <S h={T("License and credits")}>
+        <p>{T("The software is released under the GNU AGPL, version 3 or later.")}{" "}
+          <a href={`${SOURCE_URL}/blob/${pinned ? sha : "master"}/LICENSE`}>{T("Read the license")}</a>{" · "}
+          <a href={`${SOURCE_URL}/blob/${pinned ? sha : "master"}/NOTICE.md`}>{T("Third-party and trademark notices")}</a></p>
       </S>
     </div>
   </Page>;
 }
 
 export function Privacy() {
-  const lang = useLang();
-  const es = lang === "es";
+  const lang = useLang(), T = useT();
   return (
-    <Page title={es ? "Privacidad" : "Privacy"} intro={es ? `Cómo trata FilaShift tus archivos y datos. Última actualización: ${LEGAL_UPDATED.es}.` : `How FilaShift handles your files and data. Last updated ${LEGAL_UPDATED.en}.`}>
+    <Page title={T("Privacy")} intro={T("How FilaShift handles your files and data. Last updated {date}.", { date: LEGAL_UPDATED[lang] })}>
       <div translate="no" className="contents">
         {privacySections(lang).map((x) => (
           <S key={x.h} h={x.h}>
@@ -81,10 +78,9 @@ export function Privacy() {
 }
 
 export function Terms() {
-  const lang = useLang();
-  const es = lang === "es";
+  const lang = useLang(), T = useT();
   return (
-    <Page title={es ? "Condiciones de uso" : "Terms of use"} intro={es ? `Última actualización: ${LEGAL_UPDATED.es}.` : `Last updated ${LEGAL_UPDATED.en}.`}>
+    <Page title={T("Terms of use")} intro={T("Last updated {date}.", { date: LEGAL_UPDATED[lang] })}>
       <div translate="no" className="contents">
         {termsSections(lang).map((x) => (
           <S key={x.h} h={x.h}>

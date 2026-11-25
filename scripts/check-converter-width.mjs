@@ -10,7 +10,7 @@ let browser;
 try {
   for(const [engine,device,widths] of [[chromium,"Pixel 7",[320,360,375,390,430]],[webkit,"iPhone 13",[320]]]){
   browser=await engine.launch(engine===chromium ? {executablePath} : {});
-  for(const lang of ["en","es"]){
+  for(const lang of ["en","es","de","fr"]){
     const ctx=await browser.newContext({...devices[device],serviceWorkers:"block"});
     if(server) await ctx.addInitScript(()=>{window.__PRERENDER=true;});
     const page=await ctx.newPage();

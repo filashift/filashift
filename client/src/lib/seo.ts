@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { PATH_ROUTING } from "@/routing";
+import { getLang, tr } from "@/lib/i18n";
 
 export const SITE = "https://filashift.com";
 const DEFAULT_TITLE = "FilaShift — Free 3MF converter for Bambu Lab, Flashforge, Creality, Prusa and more";
@@ -20,7 +21,9 @@ function meta(sel: string, attr: string, key: string, val: string) {
 }
 
 /** Per-page <title>, description, canonical and Open Graph tags (also captured by the prerender step). */
-export function usePageMeta(title: string, description: string = DEFAULT_DESC) {
+export function usePageMeta(title: string, desc: string = DEFAULT_DESC) {
+  // descriptions are not visible text, so the DOM translator never sees them; translate them here
+  const description = tr(getLang(), desc);
   useEffect(() => {
     document.title = title;
     meta('meta[name="description"]', "name", "description", description);

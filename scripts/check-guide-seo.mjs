@@ -17,8 +17,15 @@ try {
   const results = await (await ctx.request.get(`${base}/profiles/tested.json`)).json();
   const count = Object.values(results.printers).filter(r => r.ok).length;
   const sitemap = await (await ctx.request.get(`${base}/sitemap.xml`)).text();
-  for (const lang of ["en", "es"]) {
-    await page.setViewportSize({width:lang==="es"?375:1280,height:850});
+  const X = {
+    en: {width:1280, h1:/buying guide/, note:/import 3MF projects/, group:/between slicers and printers/, limit:"size limit", expand:/expand beyond/},
+    es: {width:375, h1:/filamento/, note:/importar proyectos 3MF/, group:/entre laminadores e impresoras/, limit:"límite de tamaño", expand:/descomprimirse/},
+    de: {width:320, h1:/Kaufberatung/, note:/3MF-Projekte importieren/, group:/zwischen Slicern und Druckern/, limit:"Größenbegrenzung", expand:/entpackt/},
+    fr: {width:390, h1:/Guide d'achat/, note:/importer des projets 3MF/, group:/entre trancheurs et imprimantes/, limit:"limite de taille", expand:/décompressés/},
+  };
+  for (const lang of ["en", "es", "de", "fr"]) {
+    const x = X[lang], q = lang==="en" ? "" : `lang=${lang}`;
+    await page.setViewportSize({width:x.width,height:850});
     await page.goto(`${base}/guides?lang=${lang}`);
     const groups = page.locator('[data-testid="list-guides"] section');
     await groups.first().waitFor();
@@ -42,12 +49,12 @@ try {
     assert.equal(await jumps.count(),5);
     await jumps.last().click();
     assert.equal(await page.evaluate(()=>document.activeElement.id),"snapmaker-u1");
-    assert.match(await page.locator("article h1").innerText(),lang==="es"?/filamento/:/buying guide/);
+    assert.match(await page.locator("article h1").innerText(),x.h1);
     assert(sitemap.includes("/guides/filament-buying-guide-five-printers</loc>"));
     const note = page.getByTestId("guide-editorial-note");
     assert.match(await note.innerText(),/ElegooSlicer.*Anycubic Slicer Next/);
-    assert.match(await note.innerText(),lang==="es"?/importar proyectos 3MF/:/import 3MF projects/);
-    assert.equal(await note.locator("a").getAttribute("href"),`/guides/flashforge-creality-to-bambu${lang==="es"?"?lang=es":""}`);
+    assert.match(await note.innerText(),x.note);
+    assert.equal(await note.locator("a").getAttribute("href"),`/guides/flashforge-creality-to-bambu${q?"?"+q:""}`);
     const buyingDate = await page.locator("article time").getAttribute("datetime");
     assert.equal(JSON.parse(await page.locator("#ld-guide").textContent())["@graph"][0].dateModified,buyingDate);
     assert(sitemap.includes(`/guides/filament-buying-guide-five-printers</loc><lastmod>${buyingDate}</lastmod>`));
@@ -55,7 +62,7 @@ try {
     for(const [i, material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
       const card=cards.nth(i);
       assert.match(await card.locator('a[href^="https:"]').first().getAttribute("href"),/^https:/);
-      assert.equal(await card.locator('a[href^="/filament"]').getAttribute("href"),`/filament?pack=single&d=1.75&f=${material}&t=${material}${i===2?"&feeder=ams":i===4?"&feeder=u1":""}${lang==="es"?"&lang=es":""}`);
+      assert.equal(await card.locator('a[href^="/filament"]').getAttribute("href"),`/filament?pack=single&d=1.75&f=${material}&t=${material}${i===2?"&feeder=ams":i===4?"&feeder=u1":""}${q?"&"+q:""}`);
     }
     for(const [i,material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
       await cards.nth(i).locator('a[href^="/filament"]').click();
@@ -67,16 +74,16 @@ try {
       assert.equal(await page.locator("html").getAttribute("lang"),lang);
       assert.equal(await page.getByTestId("select-diameter").innerText(),"1.75 mm");
       assert.equal(await page.getByTestId("select-type").innerText(),material);
-      assert.match(await page.getByTestId("select-pack").innerText(),/Single spool|Una bobina/);
-      assert.match(await page.getByTestId("select-sort").innerText(),/Lowest total price|Menor precio total/);
+      assert.match(await page.getByTestId("select-pack").innerText(),/Single spool|Una bobina|Einzelspule|Bobine unique/);
+      assert.match(await page.getByTestId("select-sort").innerText(),/Lowest total price|Menor precio total|Niedrigster Gesamtpreis|Prix total le plus bas/);
       await page.goBack();
     }
     await page.goto(`${base}/guides?lang=${lang}`);
-    assert.match(await groups.nth(1).locator("h2").innerText(),lang==="es"?/entre laminadores e impresoras/:/between slicers and printers/);
+    assert.match(await groups.nth(1).locator("h2").innerText(),x.group);
     await page.goto(`${base}/guides/3mf-to-stl?lang=${lang}`, {waitUntil:"networkidle"});
-    const answer = await page.locator("dt").filter({hasText:lang==="es"?"límite de tamaño":"size limit"}).locator("+ dd").innerText();
+    const answer = await page.locator("dt").filter({hasText:x.limit}).locator("+ dd").innerText();
     assert.match(answer,/2 GB/);
-    assert.match(answer,lang==="es"?/descomprimirse/:/expand beyond/);
+    assert.match(answer,x.expand);
     const date = await page.locator("article time").getAttribute("datetime");
     assert(sitemap.includes(`/guides/3mf-to-stl</loc><lastmod>${date}</lastmod>`));
     await page.goto(`${base}/?lang=${lang}`, {waitUntil:"networkidle"});

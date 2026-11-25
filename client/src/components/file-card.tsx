@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { planPauses } from "@/engine/mapping";
-import { useLang } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -116,7 +116,7 @@ export function FileCard({
   onReset: () => void;
 }) {
   const a = job.analysis;
-  const es=useLang()==="es";
+  const T=useT();
   const working=job.status==="reading"||job.status==="converting"||!!job.stage;
   const convertible = !!a && !a.error && (a.kind === "bambu" || a.kind === "orca");
   const sc = a ? slotColors(a, job.map, slots) : [];
@@ -171,7 +171,7 @@ export function FileCard({
       </header>
       {working && <div className="flex items-center justify-between gap-2 border-b px-4 py-2 text-sm">
         <span role="status" data-testid="operation-stage">{job.stage || "Reading project"}</span>
-        <Button variant="outline" size="sm" onClick={onCancel} data-testid="cancel-operation">{es?"Cancelar":"Cancel"}</Button>
+        <Button variant="outline" size="sm" onClick={onCancel} data-testid="cancel-operation">{T("Cancel")}</Button>
       </div>}
 
       {(job.error || a?.error) && (
@@ -191,16 +191,16 @@ export function FileCard({
       {a && convertible && !job.result && (
         <div className="p-4">
           <details open className="mb-4 rounded-lg border border-card-border p-3 text-sm" translate="no" data-testid="preflight">
-            <summary className="cursor-pointer font-semibold">{es?"Vista previa de la conversión":"Conversion preview"}</summary>
-            <p className="mt-2"><b>{es?"Se conserva: ":"Kept: "}</b>{es?"geometría y placas del proyecto 3MF.":"3MF project geometry and plate layout."}</p>
-            <p><b>{es?"Cambia: ":"Changed: "}</b>{targetName || "…"} · {usedCount} {es?"colores usados":"used colors"} → {new Set(a.filaments.filter(f=>f.used).map(f=>job.map[f.index-1]).filter(Boolean)).size} {es?"ranuras asignadas":"mapped slots"}{job.pauses?(es?" + pausas":"+ pauses"):""}.</p>
-            <p className="mt-2 font-semibold">{es?"Revisa antes de imprimir":"Needs your attention"}</p>
+            <summary className="cursor-pointer font-semibold">{T("Conversion preview")}</summary>
+            <p className="mt-2"><b>{T("Kept: ")}</b>{T("3MF project geometry and plate layout.")}</p>
+            <p><b>{T("Changed: ")}</b>{targetName || "…"} · {usedCount} {T("used colors")} → {new Set(a.filaments.filter(f=>f.used).map(f=>job.map[f.index-1]).filter(Boolean)).size} {T("mapped slots")}{job.pauses?(T("+ pauses")):""}.</p>
+            <p className="mt-2 font-semibold">{T("Needs your attention")}</p>
             <ul className="list-disc pl-5">{a.plates.map((plate,i)=>{
               const size=plate.footprint,over=size&&bed&&(size[0]>bed[0]||size[1]>bed[1]);
-              return <li key={`${plate.id}-${i}`}>{es?"Placa":"Plate"} {plate.id}{plate.name?` · ${plate.name}`:""}: {size&&bed?`${es?"Huella estimada":"Estimated footprint"} ${size[0].toFixed(1)} × ${size[1].toFixed(1)} mm / ${bed.join(" × ")} mm. ${over?(es?"Supera la cama en la orientación actual.":"Exceeds the bed in this orientation."):(es?"Dentro del rectángulo de la cama; comprueba altura y márgenes.":"Within the bed rectangle; verify height and clearances.")}`:(es?"Sin medidas fiables; comprueba el tamaño en el laminador.":"Footprint not verified; check fit in your slicer.")}</li>;
+              return <li key={`${plate.id}-${i}`}>{T("Plate")} {plate.id}{plate.name?` · ${plate.name}`:""}: {size&&bed?`${T("Estimated footprint")} ${size[0].toFixed(1)} × ${size[1].toFixed(1)} mm / ${bed.join(" × ")} mm. ${over?(T("Exceeds the bed in this orientation.")):(T("Within the bed rectangle; verify height and clearances."))}`:(T("Footprint not verified; check fit in your slicer."))}</li>;
             })}</ul>
-            {overSlots&&!job.pauses&&<p>{es?"Algunos colores compartirán ranura.":"Some colors will share a slot."}</p>}
-            {!!a.translatedFrom?.dropped.length&&<p>{es?"Ajustes sin equivalente: ":"Settings without an equivalent: "}{a.translatedFrom.dropped.join(", ")}.</p>}
+            {overSlots&&!job.pauses&&<p>{T("Some colors will share a slot.")}</p>}
+            {!!a.translatedFrom?.dropped.length&&<p>{T("Settings without an equivalent: ")}{a.translatedFrom.dropped.join(", ")}.</p>}
           </details>
           <div className="mb-3 flex items-baseline justify-between gap-2">
             <h4 className="text-sm font-medium">Filament → slot</h4>
@@ -357,7 +357,7 @@ export function FileCard({
 }
 
 function MeshExport({ job, onExport }: { job: Job; onExport: (fmt: "stl" | "obj") => Promise<ExportResult> }) {
-  const es=useLang()==="es";
+  const T=useT();
   const [busy, setBusy] = useState<"" | "stl" | "obj">("");
   const [res, setRes] = useState<{ lines: ExportResult["lines"]; err?: string } | null>(null);
   const run = async (fmt: "stl" | "obj") => {
@@ -380,7 +380,7 @@ function MeshExport({ job, onExport }: { job: Job; onExport: (fmt: "stl" | "obj"
   };
   return (
     <div className="border-t border-card-border px-4 py-3" data-testid={`panel-export-${job.id}`}>
-      <p className="mb-2 text-xs text-muted-foreground" translate="no">{es?"STL solo conserva la forma. OBJ conserva un color base por pieza. Ninguno conserva los colores pintados ni los ajustes de impresión.":"STL keeps shape only. OBJ keeps one base color per part. Neither keeps painted detail or print settings."}</p>
+      <p className="mb-2 text-xs text-muted-foreground" translate="no">{T("STL keeps shape only. OBJ keeps one base color per part. Neither keeps painted detail or print settings.")}</p>
       <div className="flex flex-wrap items-center gap-2">
         <span className="mr-auto text-xs text-muted-foreground">Just need the model?</span>
         {(["stl", "obj"] as const).map((f) => (

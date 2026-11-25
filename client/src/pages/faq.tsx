@@ -55,10 +55,9 @@ const FAQ = [
 ];
 
 export default function FaqPage() {
-  const lang = useLang(), tested = useTested();
-  const es = lang === "es";
-  const title = es ? "Preguntas frecuentes" : "Frequently asked questions";
-  const intro = es ? "Respuestas sobre archivos, privacidad, colores y perfiles de impresora." : "Answers about project files, privacy, colour mapping and printer profiles.";
+  const lang = useLang(), tested = useTested(), T = (s: string, v?: Record<string, string | number>) => tr(lang, s, v);
+  const title = T("Frequently asked questions");
+  const intro = T("Answers about project files, privacy, colour mapping and printer profiles.");
   usePageMeta(`${title} | FilaShift`, intro);
   useEffect(() => { window.scrollTo(0,0); }, []);
   const questions = FAQ.map(f => {
@@ -67,9 +66,7 @@ export default function FaqPage() {
       const results = Object.values(tested.printers);
       const passed = results.filter(r => r.ok).length;
       const versions = Object.entries(tested.slicers).map(([name,v]) => `${name} ${v}`).join("; ");
-      a += lang === "es"
-        ? ` Última prueba registrada (${tested.date}): ${passed} de ${results.length} perfiles pasaron. Laminadores: ${versions}.`
-        : ` Last recorded test (${tested.date}): ${passed} of ${results.length} profiles passed. Slicers: ${versions}.`;
+      a += " " + T("Last recorded test ({date}): {passed} of {total} profiles passed. Slicers: {versions}.", { date: tested.date, passed, total: results.length, versions });
     }
     return {q: tr(lang,f.q), a};
   });
@@ -96,7 +93,7 @@ export default function FaqPage() {
             </AccordionItem>
           ))}
         </Accordion>
-        <Link href="/" className="mt-6 inline-block text-sm text-primary underline">{es ? "Volver al convertidor" : "Back to the converter"}</Link>
+        <Link href="/" className="mt-6 inline-block text-sm text-primary underline">{T("Back to the converter")}</Link>
       </main>
       <SiteFooter />
     </div>

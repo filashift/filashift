@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import type { PrinterIndexEntry } from "@/engine/types";
 import { cn } from "@/lib/utils";
-import { useLang } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import demo from "../../public/samples/test-results.json";
 import { RequestPrinterButton } from "@/components/printer-request";
 
@@ -61,25 +61,37 @@ export function TestedBadge({ id, slicer, className }: { id: string; slicer?: st
   );
 }
 
+// tested.json sample descriptions are English; other languages get a short translated label
+const SAMPLES: [string, string][] = [
+  ["4-colour painted", "Painted Bambu Studio project, four colours (X1 Carbon, PLA)"],
+  ["4-colour Orca", "Four-colour OrcaSlicer project (Flashforge AD5X, PLA)"],
+  ["2-object", "PrusaSlicer project with two objects and a colour change (MK4S MMU3, PLA)"],
+  ["PrusaSlicer output also", "For PrusaSlicer output: two multicolour MakerWorld projects (P1S, PLA)"],
+];
+const sampleLabel = (T: ReturnType<typeof useT>, s: string) => {
+  const k = T.lang === "en" ? undefined : SAMPLES.find(([p]) => s.startsWith(p))?.[1];
+  return k ? T(k) : s;
+};
+
 export function TestedNote({ id, model, slicer, output }: { id: string; model:string; slicer?: string; output?: string }) {
   const d = useTested();
-  const es=useLang()==="es", p=d?.printers[id], sl=output||p?.slicer||slicer||"OrcaSlicer";
+  const T=useT(), p=d?.printers[id], sl=output||p?.slicer||slicer||"OrcaSlicer";
   const row=p?.outputs?p.outputs[sl]:p && (p.slicer||slicer)===sl?p:undefined;
   const exact=demo.results.find(r=>r.id===id&&r.slicer===sl);
-  if(!row || !d) return <p className="mt-2 text-xs text-muted-foreground">{es?"Sin resultado registrado para esta salida.":"No recorded result for this output."}</p>;
+  if(!row || !d) return <p className="mt-2 text-xs text-muted-foreground">{T("No recorded result for this output.")}</p>;
   return <details key={id+sl} translate="no" className="mt-2 rounded-lg border p-2 text-xs" data-testid="text-tested-note">
     <summary className="cursor-pointer font-semibold text-primary" data-testid={`badge-tested-${id}`}>
-      {row.ok?(es?"Probado en laminador":"Slicer-tested"):(es?"Prueba incompleta":"Test incomplete")} · {es?"Ver resultado":"View result"}
+      {row.ok?(T("Slicer-tested")):(T("Test incomplete"))} · {T("View result")}
     </summary>
     <div className="mt-2 space-y-1.5">
       <p><b>{model}</b> · {sl} {d.slicers[sl]||""} · {d.date}</p>
-      <p>{es?`${row.passed} de ${row.tests} pruebas de laminado correctas para esta salida.`:`${row.passed} of ${row.tests} slice tests passed for this output.`}</p>
-      {row.note&&<p>{es&&row.note==="large models must be scaled to fit this bed"?"Los modelos grandes deben reducirse para caber en la cama.":row.note}</p>}
-      <p>{es?"Tipos de proyecto del conjunto de pruebas:":"Source projects in the test suite:"}</p>
-      <ul className="list-disc pl-4">{d.samples.filter(s=>sl==="PrusaSlicer"||!s.startsWith("PrusaSlicer output only")&&!s.startsWith("PrusaSlicer output also")).map(s=><li key={s}>{es?(s.startsWith("4-colour painted")?"Proyecto Bambu Studio pintado, cuatro colores (X1 Carbon, PLA)":s.startsWith("4-colour Orca")?"Proyecto OrcaSlicer de cuatro colores (Flashforge AD5X, PLA)":s.startsWith("2-object")?"Proyecto PrusaSlicer con dos objetos y cambio de color (MK4S MMU3, PLA)":s.startsWith("PrusaSlicer output also")?"Para salida PrusaSlicer: dos proyectos MakerWorld multicolor (P1S, PLA)":s):s}</li>)}</ul>
-      <p>{es?"El total incluye las variantes de boquilla probadas. Son pruebas de software, no una impresión física ni una garantía para tu archivo.":"The total includes tested nozzle variants. These are software results, not a physical print test or a guarantee for your file."}</p>
-      <a className="text-primary underline" href="./profiles/tested.json">{es?"Datos de la prueba (JSON)":"Test data (JSON)"}</a>
-      {exact&&<p className="border-t pt-2"><b>{es?"Prueba aparte: placa FS de dos colores.":"Separate test: two-color FS nameplate."}</b>{" "}{es?"El proyecto de origen PrusaSlicer se convirtió y produjo G-code con ambos colores en":"The PrusaSlicer source was converted and produced G-code with both colors in"} {exact.slicer} {exact.version} · {demo.date}. <a className="text-primary underline" href="./samples/test-results.json">{es?"Resultado del ejemplo":"Sample result"}</a></p>}
+      <p>{T("{passed} of {tests} slice tests passed for this output.",{passed:row.passed,tests:row.tests})}</p>
+      {row.note&&<p>{row.note==="large models must be scaled to fit this bed"?T("Large models must be scaled to fit this bed."):row.note}</p>}
+      <p>{T("Source projects in the test suite:")}</p>
+      <ul className="list-disc pl-4">{d.samples.filter(s=>sl==="PrusaSlicer"||!s.startsWith("PrusaSlicer output only")&&!s.startsWith("PrusaSlicer output also")).map(s=><li key={s}>{sampleLabel(T,s)}</li>)}</ul>
+      <p>{T("The total includes tested nozzle variants. These are software results, not a physical print test or a guarantee for your file.")}</p>
+      <a className="text-primary underline" href="./profiles/tested.json">{T("Test data (JSON)")}</a>
+      {exact&&<p className="border-t pt-2"><b>{T("Separate test: two-color FS nameplate.")}</b>{" "}{T("The PrusaSlicer source was converted and produced G-code with both colors in")} {exact.slicer} {exact.version} · {demo.date}. <a className="text-primary underline" href="./samples/test-results.json">{T("Sample result")}</a></p>}
     </div></details>;
 }
 

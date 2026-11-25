@@ -1,36 +1,19 @@
-// Privacy policy and Terms of use, in English (controlling) and Spanish.
+// Privacy policy and Terms of use, in English (controlling), Spanish, German (legal-de.tsx) and French (legal-fr.tsx).
 // Reviewed November 2026; see legal_review.md for the open attorney items.
 import type { ReactNode } from "react";
 import { Link } from "wouter";
-import { SOURCE_URL } from "@/components/site-chrome";
+import { AFFILIATES, ENTITY, Mailto, PLACE, Source } from "./legal-common";
+import { PRIVACY_DE, TERMS_DE } from "./legal-de";
+import { PRIVACY_FR, TERMS_FR } from "./legal-fr";
 import type { Lang } from "@/lib/i18n";
 
-export const LEGAL_UPDATED: Record<Lang, string> = { en: "November 2026", es: "noviembre de 2026" };
-const EMAIL = "support@jacksoncgc.com";
-const ENTITY = "Jackson Technology Solutions LLC";
-const PLACE = "Waukesha, Wisconsin, USA";
-
+export const LEGAL_UPDATED: Record<Lang, string> = { en: "November 2026", es: "noviembre de 2026", de: "November 2026", fr: "novembre 2026" };
 export type Sec = { h: string; body: ReactNode };
-const Mailto = () => <a href={`mailto:${EMAIL}`}>{EMAIL}</a>;
-const Source = ({ es }: { es?: boolean }) =>
-  SOURCE_URL ? (
-    <a href={SOURCE_URL} target="_blank" rel="noreferrer">
-      {SOURCE_URL.replace(/^https?:\/\//, "")}
-    </a>
-  ) : es ? (
-    <>
-      escribiéndonos a <Mailto /> (te enviamos una copia completa del código fuente)
-    </>
-  ) : (
-    <>
-      by emailing <Mailto /> (we will send you a complete copy of the source code)
-    </>
-  );
-
-const AFFILIATES = "Amazon Associates, Overture, Sunlu (UpPromote), Flashforge (Impact, when active)";
 
 export function privacySections(lang: Lang): Sec[] {
   if (lang === "es") return PRIVACY_ES();
+  if (lang === "de") return PRIVACY_DE();
+  if (lang === "fr") return PRIVACY_FR();
   return [
     {
       h: "Ask FilaShift: private visitor help",
@@ -228,6 +211,8 @@ export function privacySections(lang: Lang): Sec[] {
 
 export function termsSections(lang: Lang): Sec[] {
   if (lang === "es") return TERMS_ES();
+  if (lang === "de") return TERMS_DE();
+  if (lang === "fr") return TERMS_FR();
   return [
     {
       h: "About these terms",
@@ -685,7 +670,7 @@ function TERMS_ES(): Sec[] {
       body: (
         <p>
           El software de FilaShift es software libre con licencia GNU Affero General Public License versión 3 (AGPL-3.0). Puedes obtener el código
-          fuente completo <Source es />. Los perfiles de impresoras y filamentos derivan de OrcaSlicer y Bambu Studio, también con licencia AGPL-3.0.
+          fuente completo <Source lang="es" />. Los perfiles de impresoras y filamentos derivan de OrcaSlicer y Bambu Studio, también con licencia AGPL-3.0.
           Nada en estas condiciones limita los derechos que la AGPL te da para usar, estudiar, modificar y compartir el software. Estas condiciones
           solo regulan el sitio web que gestionamos.
         </p>

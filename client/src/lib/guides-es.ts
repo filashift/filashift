@@ -11,7 +11,7 @@ const OPEN =
 const open = (slicer: string) => OPEN.replace("tu laminador", slicer);
 
 export const GUIDES_ES: Record<string, GuideText> = {
-  [buyingSlug]: buyingGuide(true),
+  [buyingSlug]: buyingGuide("es"),
   "3mf-to-stl": {
     title: "Cómo convertir 3MF a STL u OBJ",
     meta: "Convierte 3MF a STL u OBJ gratis, en tu navegador | FilaShift",

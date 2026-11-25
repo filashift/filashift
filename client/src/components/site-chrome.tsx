@@ -1,10 +1,11 @@
 import { openReport } from "@/components/report-dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Download, Lock, Moon, Sun } from "lucide-react";
+import { ChevronDown, Download, Globe, Lock, Moon, Sun } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { setLang, useLang } from "@/lib/i18n";
+import { LANG_NAMES, LANGS, setLang, useLang, useT } from "@/lib/i18n";
 import { Assistant } from "./assistant-launcher";
 import { MAJOR_RELEASE } from "@/lib/release";
 import { chooseDark } from "@/lib/theme";
@@ -124,12 +125,12 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
 }
 
 export function SiteFooter({ children }: { children?: ReactNode }) {
-  const es=useLang()==="es";
+  const T=useT();
   return (
     <footer className="border-t border-border bg-card/60">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <details className="mb-4 text-sm" translate="no"><summary className="w-fit cursor-pointer font-medium text-primary" data-testid="major-release">FilaShift {MAJOR_RELEASE} · {es?"Novedades":"Release notes"}</summary>
-          <p className="mt-2 max-w-prose text-muted-foreground">{es?"Convierte una placa FS de dos colores, consulta las pruebas del laminador de destino y compara las dimensiones de las bobinas para el AMS original o la Snapmaker U1. Tus proyectos siguen en tu dispositivo.":"Try the two-color FS nameplate, inspect the test results for your destination slicer, and compare reel dimensions for the original AMS or Snapmaker U1. Your projects stay on your device."}</p></details>
+        <details className="mb-4 text-sm" translate="no"><summary className="w-fit cursor-pointer font-medium text-primary" data-testid="major-release">FilaShift {MAJOR_RELEASE} · {T("Release notes")}</summary>
+          <p className="mt-2 max-w-prose text-muted-foreground">{T("Try the two-color FS nameplate, inspect the test results for your destination slicer, and compare reel dimensions for the original AMS or Snapmaker U1. Your projects stay on your device.")}</p></details>
         <div className="mb-5 flex flex-wrap items-center gap-4">
           <JtsEmblem className="h-9" />
           <div className="text-sm">
@@ -188,20 +189,37 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
 function LangToggle() {
   const lang = useLang();
   return (
-    <div className="mr-1 flex h-8 items-center rounded-md border border-border p-0.5 text-[11px] font-medium" translate="no" role="group" aria-label="Language / Idioma">
-      {(["en", "es"] as const).map((l) => (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
         <button
-          key={l}
           type="button"
-          onClick={() => l !== lang && setLang(l)}
-          aria-pressed={lang === l}
-          className={cn("rounded px-1.5 py-1 uppercase", lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
-          data-testid={`button-lang-${l}`}
+          translate="no"
+          className="mr-1 flex h-8 items-center gap-0.5 rounded-md border border-border px-1.5 text-[11px] font-medium uppercase text-foreground hover:bg-secondary"
+          aria-label={`Language: ${LANG_NAMES[lang]}`}
+          title="Language / Idioma / Sprache / Langue"
+          data-testid="button-lang"
         >
-          {l}
+          <Globe className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+          {lang}
+          <ChevronDown className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
         </button>
-      ))}
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[9rem]" translate="no">
+        {LANGS.map((l) => (
+          <DropdownMenuItem
+            key={l}
+            lang={l}
+            onSelect={() => l !== lang && setLang(l)}
+            aria-current={lang === l ? "true" : undefined}
+            className={cn("justify-between", lang === l && "font-semibold text-primary")}
+            data-testid={`button-lang-${l}`}
+          >
+            {LANG_NAMES[l]}
+            <span className="font-mono text-[11px] uppercase text-muted-foreground">{l}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

@@ -21,7 +21,7 @@ export function colourEs(w: string): string {
 }
 const s = (n: string, one: string, many: string) => (n === "1" ? one : many);
 
-addPatterns([
+addPatterns("es", [
   [/^(\d[\d,]*) printers$/, "$1 impresoras"],
   [/^(\d+) brands$/, "$1 marcas"],
   [/^(\d[\d,]*) printers from (\d+) brands$/, "$1 impresoras de $2 marcas"],

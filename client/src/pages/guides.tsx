@@ -5,28 +5,27 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { GUIDES, guideBySlug, type Guide } from "@/lib/guides";
-import { GUIDES_ES } from "@/lib/guides-es";
-import { useLang } from "@/lib/i18n";
+import { localGuide } from "@/lib/guides-local";
+import { LOCALES, tr, useLang } from "@/lib/i18n";
 
-/** The guide in the current language (Spanish text when available, English otherwise). */
+/** The guide in the current language (translated text when available, English otherwise). */
 function useLocal() {
   const lang = useLang();
-  const es = lang === "es";
-  const loc = (g: Guide): Guide => (es && GUIDES_ES[g.slug] ? { ...g, ...GUIDES_ES[g.slug] } : g);
-  const L = (en: string, sp: string) => (es ? sp : en);
-  return { es, loc, L };
+  const loc = (g: Guide): Guide => localGuide(lang, g);
+  const L = (en: string) => tr(lang, en);
+  return { lang, loc, L };
 }
 import { SITE, useJsonLd, usePageMeta } from "@/lib/seo";
 import NotFound from "./not-found";
 
 function Shell({ children }: { children: React.ReactNode }) {
-  const { es } = useLocal();
+  const { lang } = useLocal();
   // Some browsers return a Promise from scrollTo. It is not an effect cleanup.
   useEffect(() => { window.scrollTo(0, 0); }, []);
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6" lang={es ? "es" : "en"} translate="no">{children}</main>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6" lang={lang} translate="no">{children}</main>
       <SiteFooter />
     </div>
   );
@@ -35,50 +34,41 @@ function Shell({ children }: { children: React.ReactNode }) {
 export function GuidesIndex() {
   const { loc, L } = useLocal();
   const topics = [
-    { id: "mesh", label: L("Mesh export", "Exportar mallas"), example: "STL / OBJ" },
-    { id: "project", label: L("Printer conversion", "Cambiar de impresora"), example: L("Slicers and colors", "Laminadores y colores") },
-    { id: "shop", label: L("Filament buying", "Comprar filamento"), example: L("Single spools", "Bobinas individuales") },
+    { id: "mesh", label: L("Mesh export"), example: "STL / OBJ" },
+    { id: "project", label: L("Printer conversion"), example: L("Slicers and colors") },
+    { id: "shop", label: L("Filament buying"), example: L("Single spools") },
   ].map(t => ({ ...t, guides: GUIDES.filter(g => t.id === (g.shopping ? "shop" : g.slug === "3mf-to-stl" ? "mesh" : "project")).map(loc) }));
   usePageMeta(
-    L(
-      "3MF conversion guides: STL, OBJ, MakerWorld to Flashforge, Creality, Prusa | FilaShift",
-      "Guías de conversión 3MF: STL, OBJ, MakerWorld a Flashforge, Creality, Prusa | FilaShift",
-    ),
-    L(
-      "Step-by-step guides for converting 3MF files: 3MF to STL and OBJ, MakerWorld and Bambu Studio projects to Flashforge, Creality and Snapmaker, PrusaSlicer to Bambu, and keeping multi-colour prints intact.",
-      "Guías paso a paso para convertir archivos 3MF: 3MF a STL y OBJ, proyectos de MakerWorld y Bambu Studio a Flashforge, Creality y Snapmaker, PrusaSlicer a Bambu y cómo conservar las impresiones multicolor.",
-    ),
+    L("3MF conversion guides: STL, OBJ, MakerWorld to Flashforge, Creality, Prusa | FilaShift"),
+    L("Step-by-step guides for converting 3MF files: 3MF to STL and OBJ, MakerWorld and Bambu Studio projects to Flashforge, Creality and Snapmaker, PrusaSlicer to Bambu, and keeping multi-colour prints intact."),
   );
   return (
     <Shell>
       <h1 className="text-2xl font-bold tracking-tight" data-testid="text-page-title">
-        {L("3D printing guides", "Guías de impresión 3D")}
+        {L("3D printing guides")}
       </h1>
       <p className="mt-3 text-muted-foreground">
-        {L(
-          "Short, tested workflows for moving 3D printing projects between slicers and printers, and for turning 3MF files into STL or OBJ.",
-          "Flujos de trabajo breves y probados para pasar proyectos de impresión 3D entre laminadores e impresoras, y para convertir archivos 3MF a STL u OBJ.",
-        )}
+        {L("Short, tested workflows for moving 3D printing projects between slicers and printers, and for turning 3MF files into STL or OBJ.")}
       </p>
-      <nav aria-label={L("Browse guides by topic", "Explorar guías por tema")} className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <nav aria-label={L("Browse guides by topic")} className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {topics.map(t => <button key={t.id} type="button" data-testid={`topic-${t.id}`} aria-controls={`guides-${t.id}`}
           onClick={() => { const target = document.getElementById(`guides-${t.id}`); target?.focus({ preventScroll: true }); target?.scrollIntoView({ block: "start" }); }}
           className="group rounded-xl border border-card-border bg-card px-3 py-2.5 text-left transition-colors hover:border-primary/50 hover:bg-primary/[0.04] focus-visible:ring-2 focus-visible:ring-primary">
           <span className="flex items-baseline justify-between gap-2">
             <span className="text-sm font-medium">{t.label}</span>
-            <span className="font-mono text-xs text-muted-foreground">{t.guides.length}<span className="sr-only"> {L(t.guides.length === 1 ? "guide" : "guides", t.guides.length === 1 ? "guía" : "guías")}</span></span>
+            <span className="font-mono text-xs text-muted-foreground">{t.guides.length}<span className="sr-only"> {L(t.guides.length === 1 ? "guide" : "guides")}</span></span>
           </span>
           <span className="mt-0.5 block text-xs text-muted-foreground group-hover:text-primary">{t.example}</span>
         </button>)}
       </nav>
       <div data-testid="list-guides">
       {topics.map(({ id: group, guides }) => <section key={group} id={`guides-${group}`} aria-labelledby={`heading-${group}`} tabIndex={-1} className="mt-8 scroll-mt-32 rounded-lg">
-      <h2 id={`heading-${group}`} className="mb-2 text-xl font-semibold">{group === "shop" ? L("Filament buying guides","Guías de compra de filamento") : group === "mesh"
-        ? L("Convert 3MF to STL or OBJ", "Convertir 3MF a STL u OBJ")
-        : L("Convert 3MF between slicers and printers", "Convertir 3MF entre laminadores e impresoras")}</h2>
-      <p className="mb-4 text-sm text-muted-foreground">{group === "shop" ? L("Choose a first spool for your printer and project.","Elige una primera bobina para tu impresora y tu proyecto.") : group === "mesh"
-        ? L("Choose this if you need the model’s shape for another program.", "Elige esta opción si necesitas la geometría del modelo para otro programa.")
-        : L("Keep a project in 3MF when you need its plates, colors, and print settings on another printer.", "Mantén el proyecto en formato 3MF si necesitas sus placas, colores y ajustes de impresión en otra impresora.")}</p>
+      <h2 id={`heading-${group}`} className="mb-2 text-xl font-semibold">{group === "shop" ? L("Filament buying guides") : group === "mesh"
+        ? L("Convert 3MF to STL or OBJ")
+        : L("Convert 3MF between slicers and printers")}</h2>
+      <p className="mb-4 text-sm text-muted-foreground">{group === "shop" ? L("Choose a first spool for your printer and project.") : group === "mesh"
+        ? L("Choose this if you need the model’s shape for another program.")
+        : L("Keep a project in 3MF when you need its plates, colors, and print settings on another printer.")}</p>
       <ul className="grid gap-2 sm:grid-cols-2">
         {guides.map((g) => (
           <li key={g.slug}>
@@ -104,17 +94,17 @@ export function GuidesIndex() {
 
 export function GuidePage() {
   const [, params] = useRoute("/guides/:slug");
-  const { es, loc, L } = useLocal();
+  const { lang, loc, L } = useLocal();
   const g0 = guideBySlug(params?.slug || "");
   const g = g0 && loc(g0);
-  usePageMeta(g?.meta || L("Guide not found — FilaShift", "Guía no encontrada — FilaShift"), g?.desc);
+  usePageMeta(g?.meta || L("Guide not found — FilaShift"), g?.desc);
   useJsonLd(
     "ld-guide",
     g
       ? {
           "@context": "https://schema.org",
           "@graph": [
-            g.shopping ? { "@type":"Article", headline:g.title, description:g.desc, dateModified:g.updated, inLanguage:es?"es":"en" } : {
+            g.shopping ? { "@type":"Article", headline:g.title, description:g.desc, dateModified:g.updated, inLanguage:lang } : {
               "@type": "HowTo",
               name: g.title,
               description: g.desc,
@@ -129,7 +119,7 @@ export function GuidePage() {
               "@type": "BreadcrumbList",
               itemListElement: [
                 { "@type": "ListItem", position: 1, name: "FilaShift", item: `${SITE}/` },
-                { "@type": "ListItem", position: 2, name: L("Guides", "Guías"), item: `${SITE}/guides` },
+                { "@type": "ListItem", position: 2, name: L("Guides"), item: `${SITE}/guides` },
                 { "@type": "ListItem", position: 3, name: g.title, item: `${SITE}/guides/${g.slug}` },
               ],
             },
@@ -138,7 +128,7 @@ export function GuidePage() {
       : null,
   );
   if (!g) return <NotFound />;
-  const spoolLink = (material?:string, model?:string) => `/filament?pack=single&d=1.75${material ? `&f=${material}&t=${material}` : ""}${model==="bambu-lab-x1-carbon"?"&feeder=ams":model==="snapmaker-u1"?"&feeder=u1":""}${es ? "&lang=es" : ""}`;
+  const spoolLink = (material?:string, model?:string) => `/filament?pack=single&d=1.75${material ? `&f=${material}&t=${material}` : ""}${model==="bambu-lab-x1-carbon"?"&feeder=ams":model==="snapmaker-u1"?"&feeder=u1":""}${lang !== "en" ? `&lang=${lang}` : ""}`;
   const href = g.shopping ? spoolLink() : g.printer ? `/?printer=${g.printer}` : "/";
   const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 4).map(loc);
   return (
@@ -149,7 +139,7 @@ export function GuidePage() {
         </Link>
         <ChevronRight className="h-3 w-3" />
         <Link href="/guides" className="hover:text-foreground">
-          {L("Guides", "Guías")}
+          {L("Guides")}
         </Link>
       </nav>
       <article>
@@ -157,11 +147,11 @@ export function GuidePage() {
           {g.title}
         </h1>
         <p className="mt-3 text-muted-foreground">{g.intro}</p>
-        {g.shopping && <nav aria-label={L("Jump to your printer","Ir a tu impresora")} className="mt-5 flex flex-wrap gap-2">{g.sections.map(s=><button type="button" className="rounded-lg border px-3 py-2 text-sm text-primary hover:underline" onClick={()=>{const target=document.getElementById(s.model!);target?.focus({preventScroll:true});target?.scrollIntoView({block:"start"});}} key={s.model}>{s.h}</button>)}</nav>}
+        {g.shopping && <nav aria-label={L("Jump to your printer")} className="mt-5 flex flex-wrap gap-2">{g.sections.map(s=><button type="button" className="rounded-lg border px-3 py-2 text-sm text-primary hover:underline" onClick={()=>{const target=document.getElementById(s.model!);target?.focus({preventScroll:true});target?.scrollIntoView({block:"start"});}} key={s.model}>{s.h}</button>)}</nav>}
 
         <section className="mt-6 rounded-xl border border-primary/25 bg-primary/[0.04] p-5" aria-labelledby="steps">
           <h2 id="steps" className="text-base font-semibold">
-            {g.shopping ? L("Before you buy","Antes de comprar") : L("Steps", "Pasos")}
+            {g.shopping ? L("Before you buy") : L("Steps")}
           </h2>
           <ol className="mt-3 space-y-2.5">
             {g.steps.map((s, i) => (
@@ -175,17 +165,17 @@ export function GuidePage() {
           </ol>
           <Button asChild className="mt-5 h-auto min-h-9 max-w-full gap-2 whitespace-normal py-2 text-left">
             <Link href={href} data-testid="link-guide-cta">
-              {g.cta || L("Open the converter", "Abrir el convertidor")}
+              {g.cta || L("Open the converter")}
               <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
           </Button>
-          <p className="mt-2 text-xs text-muted-foreground">{g.shopping ? L("FilaShift may earn a commission from partner store links at no extra cost to you. Prices and stock can change before checkout.","FilaShift puede recibir una comisión de las tiendas asociadas sin coste adicional para ti. El precio y el inventario pueden cambiar antes del pago.") : L("Free · no account · your file never leaves your device", "Gratis · sin cuenta · tu archivo nunca sale de tu dispositivo")}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{g.shopping ? L("FilaShift may earn a commission from partner store links at no extra cost to you. Prices and stock can change before checkout.") : L("Free · no account · your file never leaves your device")}</p>
         </section>
 
         <div className="mt-8 space-y-8 text-[15px] leading-relaxed">
           {g.sections.map((s) => (
             <section key={s.h} id={s.model} tabIndex={s.model ? -1 : undefined} aria-label={s.model ? s.h : undefined} className={s.model ? "scroll-mt-20 border-t border-border pt-5" : undefined}>
-              {s.material && <p className="mb-1 text-xs font-semibold text-primary">{L("First spool","Primera bobina")} · {s.material} · 1.75 mm</p>}
+              {s.material && <p className="mb-1 text-xs font-semibold text-primary">{L("First spool")} · {s.material} · 1.75 mm</p>}
               <h2 className="mb-2 text-lg font-semibold">{s.h}</h2>
               {s.p?.map((t, i) => (
                 <p key={i} className="mb-3 text-muted-foreground">
@@ -197,15 +187,15 @@ export function GuidePage() {
                 <ul className="mt-2 list-disc space-y-2 pl-5">{s.warning.items.map(item=><li key={item}>{item}</li>)}</ul>
               </aside>}
               {(s.model==="bambu-lab-x1-carbon"||s.model==="snapmaker-u1")&&<div translate="no" className="my-4 rounded-lg border p-4 text-sm" data-testid="atomic-reel-guide">
-                <h3 className="mb-2 font-semibold">{L("Atomic Filament: check the reel","Atomic Filament: comprueba el carrete")}</h3>
-                <p><strong>{s.model==="snapmaker-u1"?L("1 kg: Outside size limits.","1 kg: Fuera de los límites."):L("1 kg: Within size limits.","1 kg: Dentro de los límites.")}</strong>{" "}
-                  {s.model==="snapmaker-u1"?L("Atomic’s AMS-compatible reel is 67 mm wide, but its 51 mm center hole is smaller than the U1 holder’s 52 mm minimum.","El carrete de Atomic compatible con AMS mide 67 mm de ancho, pero su orificio de 51 mm es menor que el mínimo de 52 mm del soporte U1."):L("Atomic’s AMS-compatible reel is 67 mm wide and 200 mm across. Both measurements are within the original AMS limits (50–68 mm wide, 197–202 mm across).","El carrete de Atomic compatible con AMS mide 67 mm de ancho y 200 mm de diámetro exterior. Ambas medidas están dentro de los límites del AMS original (50–68 mm de ancho y 197–202 mm de diámetro exterior).")}</p>
-                <p className="mt-2"><strong>{L("3.5 kg jumbo: Outside size limits.","Jumbo de 3,5 kg: Fuera de los límites.")}</strong>{" "}{s.model==="snapmaker-u1"?L("At 95 mm wide it exceeds the U1’s 70 mm limit, as well as its 1 kg capacity.","Sus 95 mm de ancho superan el máximo de 70 mm de la U1; también supera la capacidad de 1 kg."):L("At 95 mm wide and 305 mm across, it exceeds both AMS limits.","Con 95 mm de ancho y 305 mm de diámetro exterior, supera ambos límites del AMS.")}</p>
-                <p className="mt-2 text-muted-foreground">{L("These labels compare published measurements, not how the material feeds. If the exact reel is unverified, ask the seller before ordering.","Estas etiquetas comparan medidas publicadas, no garantizan que el material avance bien. Si el carrete exacto no está verificado, pregunta en la tienda antes de comprar.")}</p>
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-primary underline"><a href={reelSpecs}>{L("Atomic reel dimensions","Medidas de los carretes Atomic")}</a><a href={s.model==="snapmaker-u1"?limits.u1:limits.ams}>{s.model==="snapmaker-u1"?L("Snapmaker U1 limits","Límites de la Snapmaker U1"):L("Original AMS limits","Límites del AMS original")}</a></div>
+                <h3 className="mb-2 font-semibold">{L("Atomic Filament: check the reel")}</h3>
+                <p><strong>{s.model==="snapmaker-u1"?L("1 kg: Outside size limits."):L("1 kg: Within size limits.")}</strong>{" "}
+                  {s.model==="snapmaker-u1"?L("Atomic’s AMS-compatible reel is 67 mm wide, but its 51 mm center hole is smaller than the U1 holder’s 52 mm minimum."):L("Atomic’s AMS-compatible reel is 67 mm wide and 200 mm across. Both measurements are within the original AMS limits (50–68 mm wide, 197–202 mm across).")}</p>
+                <p className="mt-2"><strong>{L("3.5 kg jumbo: Outside size limits.")}</strong>{" "}{s.model==="snapmaker-u1"?L("At 95 mm wide it exceeds the U1’s 70 mm limit, as well as its 1 kg capacity."):L("At 95 mm wide and 305 mm across, it exceeds both AMS limits.")}</p>
+                <p className="mt-2 text-muted-foreground">{L("These labels compare published measurements, not how the material feeds. If the exact reel is unverified, ask the seller before ordering.")}</p>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-primary underline"><a href={reelSpecs}>{L("Atomic reel dimensions")}</a><a href={s.model==="snapmaker-u1"?limits.u1:limits.ams}>{s.model==="snapmaker-u1"?L("Snapmaker U1 limits"):L("Original AMS limits")}</a></div>
               </div>}
-              {s.material && <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Button asChild variant="outline"><Link href={spoolLink(s.material,s.model)}>{L(`Compare ${s.material} spools`,`Comparar bobinas de ${s.material}`)}</Link></Button><a className="text-sm text-primary underline" href={s.source}>{L("Manufacturer’s guide","Guía del fabricante")}<span className="sr-only">: {s.h}</span></a></div>}
-              {s.model === "snapmaker-u1" && <a className="mt-2 inline-block text-sm text-primary underline" href="https://wiki.snapmaker.com/en/FAQ/u1">{L("Snapmaker spool dimensions FAQ","Preguntas frecuentes sobre las dimensiones de bobina")}</a>}
+              {s.material && <div className="flex flex-wrap items-center gap-x-5 gap-y-2"><Button asChild variant="outline"><Link href={spoolLink(s.material,s.model)}>{tr(lang, "Compare {material} spools", { material: s.material })}</Link></Button><a className="text-sm text-primary underline" href={s.source}>{L("Manufacturer’s guide")}<span className="sr-only">: {s.h}</span></a></div>}
+              {s.model === "snapmaker-u1" && <a className="mt-2 inline-block text-sm text-primary underline" href="https://wiki.snapmaker.com/en/FAQ/u1">{L("Snapmaker spool dimensions FAQ")}</a>}
               {s.list && (
                 <ul className="space-y-1.5">
                   {s.list.map((t, i) => (
@@ -219,7 +209,7 @@ export function GuidePage() {
             </section>
           ))}
           <section>
-            <h2 className="mb-2 text-lg font-semibold">{L("Questions", "Preguntas")}</h2>
+            <h2 className="mb-2 text-lg font-semibold">{L("Questions")}</h2>
             <dl className="space-y-4">
               {g.faq.map((f) => (
                 <div key={f.q}>
@@ -231,19 +221,19 @@ export function GuidePage() {
           </section>
         </div>
         <p className="mt-8 text-xs text-muted-foreground">
-          {es ? "Actualizado el " : "Updated "}
-          <time dateTime={g.updated}>{new Date(g.updated + "T12:00:00Z").toLocaleDateString(es ? "es-ES" : "en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}</time>.
+          {L("Updated ")}
+          <time dateTime={g.updated}>{new Date(g.updated + "T12:00:00Z").toLocaleDateString(LOCALES[lang], { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}</time>.
           {g.editorialNote && <span className="mt-1 block" data-testid="guide-editorial-note">
             {g.editorialNote}{" "}
-            <Link href={`/guides/flashforge-creality-to-bambu${es ? "?lang=es" : ""}`} className="text-primary underline">
-              {L("How to convert these projects for Bambu Studio", "Cómo convertir estos proyectos para Bambu Studio")}
+            <Link href={`/guides/flashforge-creality-to-bambu${lang !== "en" ? `?lang=${lang}` : ""}`} className="text-primary underline">
+              {L("How to convert these projects for Bambu Studio")}
             </Link>
           </span>}
         </p>
       </article>
 
       <aside className="mt-10 border-t border-border pt-6">
-        <h2 className="text-sm font-semibold">{L("More guides", "Más guías")}</h2>
+        <h2 className="text-sm font-semibold">{L("More guides")}</h2>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {others.map((o) => (
             <li key={o.slug}>

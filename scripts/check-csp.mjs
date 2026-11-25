@@ -17,7 +17,7 @@ if(!process.env.BASE){
     assert(csp.includes(h),`inline script in index.html changed: put ${h} in the Caddyfile CSP script-src`);
   }
 }
-const pages=["/","/faq","/guides","/guides/3mf-to-stl","/guides/multicolor-3mf","/filament","/creators","/about","/privacy","/terms","/contact","/missing-page","/?lang=es"];
+const pages=["/","/faq","/guides","/guides/3mf-to-stl","/guides/multicolor-3mf","/filament","/creators","/about","/privacy","/terms","/contact","/missing-page","/?lang=es","/?lang=de","/?lang=fr","/privacy?lang=de","/terms?lang=fr"];
 const b=await chromium.launch({executablePath:process.env.CHROME||`${process.env.HOME}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`});
 const v=[];
 try{

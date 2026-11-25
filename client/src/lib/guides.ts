@@ -23,7 +23,7 @@ export interface Guide {
 const OPEN = "Open the downloaded file in your slicer with File → Open Project (not Import, which keeps only the shapes), check the preview and slice.";
 
 export const GUIDES: Guide[] = [
-  {slug: "filament-buying-guide-five-printers", ...buyingGuide(false)},
+  {slug: "filament-buying-guide-five-printers", ...buyingGuide("en")},
   {
     slug: "3mf-to-stl",
     title: "How to convert 3MF to STL or OBJ",
