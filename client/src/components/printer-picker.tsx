@@ -87,10 +87,17 @@ export function PrinterPicker({
   printers,
   value,
   onChange,
+  testId = "button-printer-picker",
+  placeholder = "Choose a printer",
+  exclude,
 }: {
   printers: PrinterIndexEntry[];
   value: string;
   onChange: (id: string) => void;
+  testId?: string;
+  placeholder?: string;
+  /** printers already chosen elsewhere (shown checked and not selectable) */
+  exclude?: string[];
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -116,6 +123,7 @@ export function PrinterPicker({
     <CommandItem
       key={key}
       value={`${key} ${p.model} ${p.vendor}`}
+      disabled={exclude?.includes(p.id)}
       onSelect={() => {
         onChange(p.id);
         setOpen(false);
@@ -123,7 +131,7 @@ export function PrinterPicker({
       data-testid={`option-printer-${p.id}`}
       className="flex items-center gap-2"
     >
-      <Check className={cn("h-4 w-4 shrink-0", value === p.id ? "opacity-100" : "opacity-0")} />
+      <Check className={cn("h-4 w-4 shrink-0", value === p.id || exclude?.includes(p.id) ? "opacity-100" : "opacity-0")} />
       <span className="flex-1 truncate">{p.model}</span>
       {tested?.printers[p.id]?.ok && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-primary" aria-label="Slicer-tested" />}
       <span className="font-mono text-xs text-muted-foreground">
@@ -140,7 +148,7 @@ export function PrinterPicker({
           role="combobox"
           aria-expanded={open}
           className="h-auto w-full justify-between py-2.5 text-left"
-          data-testid="button-printer-picker"
+          data-testid={testId}
         >
           {current ? (
             <span className="flex min-w-0 flex-col">
@@ -152,7 +160,7 @@ export function PrinterPicker({
               </span>
             </span>
           ) : (
-            <span className="text-muted-foreground">{printers.length ? "Choose a printer" : "Loading printers…"}</span>
+            <span className="text-muted-foreground">{printers.length ? placeholder : "Loading printers…"}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>

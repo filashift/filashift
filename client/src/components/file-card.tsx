@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Download,
+  Eye,
   FileBox,
   FolderOpen,
   Info,
@@ -39,7 +40,7 @@ export interface Job {
   /** print extra colours by pausing for filament swaps (see planPauses) */
   pauses?: boolean;
   error?: string;
-  result?: { url: string; name: string; size: number; report: ConvertReport };
+  result?: { url: string; blob?: Blob; name: string; size: number; report: ConvertReport };
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -97,8 +98,11 @@ export function FileCard({
   onRemove,
   onReset,
   onExport,
+  onPreview,
 }: {
   job: Job;
+  /** open the before/after 3D colour preview */
+  onPreview?: () => void;
   bed?:[number,number];
   onCancel:()=>void;
   slots: number;
@@ -264,6 +268,8 @@ export function FileCard({
             </div>
           </div>
 
+          {onPreview && <PreviewButton id={job.id} disabled={working} onClick={onPreview} />}
+
           {overSlots && (
             <div className="mt-3 rounded-lg border border-card-border p-3 text-sm" data-testid={`panel-pauses-${job.id}`}>
               {plan ? (
@@ -315,7 +321,7 @@ export function FileCard({
         </div>
       )}
 
-      {job.result && <ResultPanel job={job} onReset={onReset} />}
+      {job.result && <ResultPanel job={job} onReset={onReset} onPreview={onPreview} working={working} />}
 
       {a && !a.error && job.status !== "reading" && <MeshExport job={job} onExport={onExport} />}
 
@@ -399,7 +405,16 @@ function MeshExport({ job, onExport }: { job: Job; onExport: (fmt: "stl" | "obj"
   );
 }
 
-function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
+function PreviewButton({ id, disabled, onClick }: { id: string; disabled: boolean; onClick: () => void }) {
+  return (
+    <Button variant="outline" size="sm" className="mt-3 h-8 gap-1.5 text-xs" disabled={disabled} onClick={onClick} data-testid={`button-preview-${id}`}>
+      <Eye className="h-3.5 w-3.5" />
+      Preview colours in 3D
+    </Button>
+  );
+}
+
+function ResultPanel({ job, onReset, onPreview, working }: { job: Job; onReset: () => void; onPreview?: () => void; working: boolean }) {
   const r = job.result!;
   const rep = r.report;
   const [open, setOpen] = useState(false);
@@ -445,6 +460,8 @@ function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
           </div>
         ))}
       </div>
+
+      {onPreview && <PreviewButton id={job.id} disabled={working} onClick={onPreview} />}
 
       <ProjectFilament
         needs={rep.filaments.map((f) => {

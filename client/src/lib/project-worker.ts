@@ -1,6 +1,7 @@
 import type { Analysis, ConvertOptions, ConvertResult, PrinterProfile } from "@/engine/types";
 import type { ExportResult } from "@/engine/export";
-type Payload = {kind:"inspect"|"convert"|"stl"|"obj";profile?:PrinterProfile;options?:ConvertOptions};
+import type { PreviewMesh } from "@/engine/preview-mesh";
+type Payload = {kind:"inspect"|"convert"|"stl"|"obj"|"preview";profile?:PrinterProfile;options?:ConvertOptions;budget?:number};
 export class ProjectWorker {
   private worker?:Worker;
   private abort?:()=>void;
@@ -9,6 +10,7 @@ export class ProjectWorker {
   run(p:{kind:"inspect"},stage:(s:string)=>void):Promise<{analysis:Analysis;thumbnail?:Blob}>;
   run(p:{kind:"convert";profile:PrinterProfile;options:ConvertOptions},stage:(s:string)=>void):Promise<ConvertResult>;
   run(p:{kind:"stl"|"obj"},stage:(s:string)=>void):Promise<ExportResult>;
+  run(p:{kind:"preview";budget:number},stage:(s:string)=>void):Promise<PreviewMesh>;
   async run(p:Payload,stage:(s:string)=>void):Promise<any>{
     if(this.busy) throw Error("Another operation is still running.");
     this.worker ??= new Worker(new URL("../engine/converter.worker.ts",import.meta.url),{type:"module"});

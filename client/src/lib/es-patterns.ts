@@ -67,6 +67,21 @@ addPatterns([
   [/^(\d+) of (\d+) slice tests passed$/, "$1 de $2 pruebas de laminado superadas"],
   [/^Nozzles: (.+) mm$/, "Boquillas: $1 mm"],
   [/^(\d+) extruders$/, "$1 extrusores"],
+  // batch conversion and 3D colour preview
+  [/^(\d+) files? × (\d+) printers = (\d+) conversions$/, (_m, f, p, n) => `${f} ${s(f, "archivo", "archivos")} × ${p} impresoras = ${n} conversiones`],
+  [/^Convert all (\d+)$/, "Convertir las $1"],
+  [/^(\d+) of (\d+) done(?: · (\d+) failed)?$/, (_m, a, b, f) => `${a} de ${b} listas${f ? ` · ${f} con error` : ""}`],
+  [/^Ready · (.+?)(?: · (\d+) warnings?)?$/, (_m, size, w) => `Listo · ${size}${w ? ` · ${w} ${s(w, "aviso", "avisos")}` : ""}`],
+  [/^Add up to (\d+) more printers\. Every file is converted for each one, and you can download them all as one ZIP\.$/, "Añade hasta $1 impresoras más. Cada archivo se convierte para cada una y puedes descargarlos todos en un solo ZIP."],
+  [/^That is the limit of (\d+) printers per batch\. Remove one to add another\.$/, "Ese es el límite de $1 impresoras por lote. Quita una para añadir otra."],
+  [/^Up to (\d+) files at a time: (\d+) files? (?:were|was) not added\. Remove a file to add another\.$/, (_m, max, n) => `Hasta ${max} archivos a la vez: ${n} ${s(n, "archivo no se añadió", "archivos no se añadieron")}. Quita un archivo para añadir otro.`],
+  [/^Converted · (.+)$/, "Convertido · $1"],
+  [/^Plate (\d+)$/, "Placa $1"],
+  [/^Slot (\d+)$/, "Ranura $1"],
+  [/^Large model: showing ([\d,]+) of its triangles( in a simplified mesh)?( with the finest painted detail merged)?\. The converted file keeps every triangle\.$/, (_m, n, simp, paint) =>
+    `Modelo grande: se muestran ${n.replace(/,/g, ".")} de sus triángulos${simp ? " en una malla simplificada" : ""}${paint ? " con el detalle pintado más fino fusionado" : ""}. El archivo convertido conserva todos los triángulos.`],
+  [/^The preview could not be prepared: (.+)$/, "No se pudo preparar la vista previa: $1"],
+  [/^The ZIP could not be built: (.+)$/, "No se pudo crear el ZIP: $1"],
 ]);
 
 function agoEs(t: string): string {

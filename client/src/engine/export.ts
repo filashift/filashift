@@ -41,12 +41,14 @@ interface Obj {
   name: string;
   verts?: Float64Array;
   tris?: Uint32Array;
+  /** per-triangle paint strings (only when parsed with paint and any triangle is painted) */
+  paint?: string[];
   comps: { id: string; path: string | null; t: Mat }[];
   type: string;
 }
 type ModelFile = { scale: number; objs: Map<string, Obj>; text: string };
 
-function parseModel(text: string): ModelFile {
+function parseModel(text: string, withPaint = false): ModelFile {
   const unit = /<model\b[^>]*\bunit="([^"]+)"/.exec(text)?.[1] || "millimeter";
   const objs = new Map<string, Obj>();
   let pos = 0;
@@ -69,7 +71,18 @@ function parseModel(text: string): ModelFile {
       while ((m = vre.exec(body))) vs.push(+(attr(m[1], "x") || 0), +(attr(m[1], "y") || 0), +(attr(m[1], "z") || 0));
       const ts: number[] = [];
       const tre = /<triangle\b([^>]*)\/?>/g;
-      while ((m = tre.exec(body))) ts.push(+(attr(m[1], "v1") || 0), +(attr(m[1], "v2") || 0), +(attr(m[1], "v3") || 0));
+      const paint: string[] = [];
+      let anyPaint = false;
+      const scanPaint = withPaint && /paint_color=|mmu_segmentation=/.test(body);
+      while ((m = tre.exec(body))) {
+        ts.push(+(attr(m[1], "v1") || 0), +(attr(m[1], "v2") || 0), +(attr(m[1], "v3") || 0));
+        if (scanPaint) {
+          const pc = attr(m[1], "paint_color") || attr(m[1], "slic3rpe:mmu_segmentation") || "";
+          if (pc) anyPaint = true;
+          paint.push(pc);
+        }
+      }
+      if (anyPaint) o.paint = paint;
       o.verts = Float64Array.from(vs);
       o.tris = Uint32Array.from(ts);
     }
@@ -88,6 +101,8 @@ export interface MeshPart {
   name: string; // "Object / part"
   filament: number; // 1-based, 0 = unknown
   tris: Float32Array; // 9 floats per triangle, mm, world coordinates
+  /** per-triangle paint strings, only with extractMeshes(…, { paint: true }) */
+  paint?: string[];
 }
 export interface MeshPlate {
   id: number;
@@ -103,7 +118,7 @@ export interface MeshResult {
 }
 
 /** Read every printable mesh of a 3MF, grouped by plate. */
-export function extractMeshes(input: Uint8Array | Entries): MeshResult {
+export function extractMeshes(input: Uint8Array | Entries, opts: { paint?: boolean } = {}): MeshResult {
   let e: Entries = input instanceof Uint8Array ? readZip(input) : input;
   if (input instanceof Uint8Array && isPrusaProject(e)) {
     try {
@@ -119,7 +134,7 @@ export function extractMeshes(input: Uint8Array | Entries): MeshResult {
   const getFile = (p: string): ModelFile | null => {
     const k = find(p);
     if (!k) return null;
-    if (!files.has(k)) files.set(k, parseModel(dec.decode(e[k])));
+    if (!files.has(k)) files.set(k, parseModel(dec.decode(e[k]), !!opts.paint));
     return files.get(k)!;
   };
   const root = getFile(rootName)!;
@@ -199,7 +214,7 @@ export function extractMeshes(input: Uint8Array | Entries): MeshResult {
         }
         triangles += n;
         const ext = (partKey && partExt.get(partKey)) || objExt.get(oid) || 0;
-        plate.parts.push({ name: label, filament: ext, tris: out });
+        plate.parts.push({ name: label, filament: ext, tris: out, ...(o.paint ? { paint: o.paint } : {}) });
         if (!painted && file.text.includes("paint_color=")) painted = true;
       }
       for (const c of o.comps) {

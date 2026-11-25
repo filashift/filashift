@@ -1,7 +1,7 @@
 import { useJsonLd, usePageMeta } from "@/lib/seo";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeftRight, Check, Cpu, Download, FolderOpen, Lock, Printer, ShieldCheck, Sparkles, Tag, Upload } from "lucide-react";
+import { ArrowLeftRight, Check, Cpu, Download, FolderOpen, Layers, Loader2, Lock, Printer, ShieldCheck, Sparkles, Tag, Upload, X } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -11,6 +11,9 @@ import { PrinterPicker, slotLabel, TestedNote } from "@/components/printer-picke
 import { FileCard, type Job } from "@/components/file-card";
 import { SampleProject } from "@/components/sample-project";
 import { openPrinterRequest } from "@/components/printer-request";
+import type { BatchItem } from "@/components/batch-panel";
+import { ColourPreviewDialog, previewRows, type PreviewRequest } from "@/components/colour-preview";
+import type { PreviewMesh } from "@/engine/preview-mesh";
 import { ProjectWorker } from "@/lib/project-worker";
 import { defaultMapping, planPauses } from "@/engine/mapping";
 import type { ConvertOptions, PrinterIndexEntry, PrinterProfile } from "@/engine/types";
@@ -18,6 +21,9 @@ import type { PrusaData } from "@/engine/prusa-out";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PRINTER = "flashforge-creator-5-pro";
+/** batch limits: files in the list and printers per batch (the main target counts as one) */
+export const MAX_FILES = 10;
+export const MAX_PRINTERS = 10;
 const QUICK = [DEFAULT_PRINTER, "snapmaker-u1", "flashforge-ad5x", "flashforge-creator-5", "bambu-lab-x1-carbon", "bambu-lab-a1", "bambu-lab-p1s", "creality-k2-plus"];
 
 const profileCache = new Map<string, Promise<PrinterProfile>>();
@@ -52,7 +58,47 @@ async function getPrusaData(id: string): Promise<PrusaData> {
   return { common, target };
 }
 
+// only needed once a visitor adds extra printers
+const BatchPanel = lazy(() => import("@/components/batch-panel").then((m) => ({ default: m.BatchPanel })));
+
 let seq = 0;
+
+function saveBlob(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+/** One ZIP of converted files, built in the browser (3MF is already compressed, so entries are stored). */
+async function zipFiles(files: { name: string; blob: Blob; folder?: string }[]): Promise<Blob> {
+  const { zipSync } = await import("fflate");
+  const used = new Set<string>();
+  const z: Record<string, [Uint8Array, { level: 0 }]> = {};
+  for (const f of files) {
+    const base = (f.folder ? `${f.folder.replace(/[\\/:*?"<>|]+/g, "_")}/` : "") + f.name.replace(/[\\/:*?"<>|]+/g, "_");
+    let name = base;
+    for (let i = 2; used.has(name.toLowerCase()); i++) name = base.replace(/(\.3mf)?$/i, ` (${i})$1`);
+    used.add(name.toLowerCase());
+    z[name] = [new Uint8Array(await f.blob.arrayBuffer()), { level: 0 }];
+  }
+  return new Blob([zipSync(z)], { type: "application/zip" });
+}
+
+/** Mobile and low-memory devices draw fewer triangles in the 3D preview. */
+function previewBudget() {
+  try {
+    const small = window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 700;
+    const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
+    return small || mem <= 4 ? 150_000 : 300_000;
+  } catch {
+    return 150_000;
+  }
+}
 
 export default function Home() {
   usePageMeta("FilaShift — Free 3MF converter for Bambu Lab, Flashforge, Creality, Prusa and more");
@@ -76,6 +122,15 @@ export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [drag, setDrag] = useState(false);
   const [loadErr, setLoadErr] = useState("");
+  const [extraIds, setExtraIds] = useState<string[]>([]);
+  const [batch, setBatch] = useState<BatchItem[]>([]);
+  const [batchRunning, setBatchRunning] = useState(false);
+  const [zipping, setZipping] = useState(false);
+  const batchRef = useRef(batch);
+  batchRef.current = batch;
+  const batchStop = useRef(false);
+  const [preview, setPreview] = useState<PreviewRequest | null>(null);
+  const meshCache = useRef<{ id: string; mesh: PreviewMesh } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const jobsRef = useRef(jobs);
   const pool = useRef(new Map<string,ProjectWorker>()).current;
@@ -85,7 +140,7 @@ export default function Home() {
     return ()=>{mounted.current=false;pool.forEach(p=>p.stop());pool.clear();for(const j of jobsRef.current){
       if(j.thumbUrl) URL.revokeObjectURL(j.thumbUrl);
       if(j.result) URL.revokeObjectURL(j.result.url);
-    }};
+    }batchStop.current=true;for(const b of batchRef.current)if(b.result)URL.revokeObjectURL(b.result.url);};
   },[pool]);
   jobsRef.current = jobs;
   const slotsRef = useRef(slots);
@@ -145,15 +200,20 @@ export default function Home() {
 
   const addFiles = useCallback(
     async (list: FileList | File[]) => {
-      const files = Array.from(list).filter((f) => /\.(3mf|stl)$/i.test(f.name));
-      const rejected = Array.from(list).length - files.length;
-      if (rejected) setLoadErr(`${rejected} file${rejected > 1 ? "s were" : " was"} skipped: choose an editable .3mf or .stl, not G-code or a link.`);
+      const all = Array.from(list).filter((f) => /\.(3mf|stl)$/i.test(f.name));
+      const rejected = Array.from(list).length - all.length;
+      const room = Math.max(0, MAX_FILES - jobsRef.current.length);
+      const files = all.slice(0, room);
+      const over = all.length - files.length;
+      if (over) setLoadErr(`Up to ${MAX_FILES} files at a time: ${over} file${over > 1 ? "s were" : " was"} not added. Remove a file to add another.`);
+      else if (rejected) setLoadErr(`${rejected} file${rejected > 1 ? "s were" : " was"} skipped: choose an editable .3mf or .stl, not G-code or a link.`);
       else setLoadErr("");
       for (const f of files) {
         if(!mounted.current) break;
         const id = `f${++seq}`;
         const session=new ProjectWorker(f);
         pool.set(id,session);
+        jobsRef.current = [...jobsRef.current, { id, name: f.name, size: f.size, status: "reading", map: [] }];
         setJobs((js) => [...js, { id, name: f.name, size: f.size, status: "reading", map: [] }]);
         try {
           // Keep at most one idle unpacked source; older jobs can reopen their local File.
@@ -189,8 +249,9 @@ export default function Home() {
       session.stop();
       if(!pool.has(id))return;
       if(settingsKey!==activeSettings.current){patch(id,{status:"ready",stage:undefined});return}
-      const url = URL.createObjectURL(new Blob([res.bytes], { type: "model/3mf" }));
-      patch(id, { status: "done",stage:undefined, result: { url, name: res.report.outputName, size: res.bytes.length, report: res.report } });
+      const blob = new Blob([res.bytes], { type: "model/3mf" });
+      const url = URL.createObjectURL(blob);
+      patch(id, { status: "done",stage:undefined, result: { url, blob, name: res.report.outputName, size: res.bytes.length, report: res.report } });
     } catch (e: any) {
       patch(id, { stage:undefined,status: "ready", error: e?.name==="AbortError" ? undefined : `Conversion failed: ${e?.message || e}` });
     }
@@ -203,16 +264,146 @@ export default function Home() {
   };
 
   const downloadAll = async () => {
-    for (const j of jobsRef.current) {
-      if (!j.result) continue;
-      const a = document.createElement("a");
-      a.href = j.result.url;
-      a.download = j.result.name;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      await new Promise((r) => setTimeout(r, 400));
+    const files = jobsRef.current.flatMap((j) => (j.result?.blob ? [{ name: j.result.name, blob: j.result.blob }] : []));
+    if (!files.length) return;
+    setZipping(true);
+    try {
+      saveBlob(await zipFiles(files), `FilaShift ${files.length} files.zip`);
+    } catch (e: any) {
+      setLoadErr(`The ZIP could not be built: ${e?.message || e}`);
+    } finally {
+      setZipping(false);
     }
+  };
+
+  // ---- batch: every convertible file × [main target, ...extra printers] ----
+  const convertible = jobs.filter((j) => j.analysis && !j.analysis.error && (j.analysis.kind === "bambu" || j.analysis.kind === "orca") && j.status !== "reading");
+  const extras = extraIds.filter((id) => id !== targetId && printers.some((p) => p.id === id));
+  const batchOn = extras.length > 0;
+  const batchKey = JSON.stringify([settingsKey, outFor, extras, convertible.map((j) => [j.id, j.map, !!j.pauses])]);
+  const clearBatch = () => {
+    for (const b of batchRef.current) if (b.result) URL.revokeObjectURL(b.result.url);
+    batchRef.current = [];
+    setBatch([]);
+  };
+  // any change to files, printers, mapping or settings makes earlier batch results stale
+  useEffect(() => {
+    if (batchRunning) {
+      batchStop.current = true;
+      pool.forEach((p) => p.busy && p.stop());
+    }
+    clearBatch();
+  }, [batchKey]);
+  const patchItem = (key: string, p: Partial<BatchItem>) => {
+    batchRef.current = batchRef.current.map((b) => (b.key === key ? { ...b, ...p } : b));
+    setBatch(batchRef.current);
+  };
+  const runBatch = async () => {
+    if (batchRunning || !profile || !target) return;
+    clearBatch();
+    const key0 = batchKey;
+    const files = convertible;
+    const targets = [{ id: targetId, main: true }, ...extras.map((id) => ({ id, main: false }))];
+    const label = (id: string) => printers.find((p) => p.id === id)?.model || id;
+    const items: BatchItem[] = files.flatMap((j) =>
+      targets.map((t) => ({ key: `${j.id}:${t.id}`, jobId: j.id, fileName: j.name, targetId: t.id, target: t.main && nz !== "0.4" ? `${label(t.id)} · ${nz} mm` : label(t.id), status: "queued" as const })),
+    );
+    batchRef.current = items;
+    setBatch(items);
+    batchStop.current = false;
+    setBatchRunning(true);
+    try {
+      for (const j of files) {
+        const session = pool.get(j.id);
+        for (const t of targets) {
+          const key = `${j.id}:${t.id}`;
+          if (batchStop.current || !session) {
+            patchItem(key, { status: "cancelled" });
+            continue;
+          }
+          patchItem(key, { status: "converting", stage: undefined });
+          try {
+            const a = j.analysis!;
+            let prof: PrinterProfile, options: ConvertOptions;
+            const entry = printers.find((p) => p.id === t.id)!;
+            if (t.main) {
+              const plan = j.pauses ? planPauses(a, slots) : null;
+              const base: ConvertOptions = plan ? { map: plan.map, keepSpeeds, recenter, slotColors: plan.slotColors, pauses: plan.changes } : { map: j.map, keepSpeeds, recenter };
+              prof = { ...profile, slots };
+              options = usePrusa ? { ...base, output: "prusa", prusa: await getPrusaData(profileId) } : base;
+            } else {
+              prof = await getProfile(t.id);
+              const base: ConvertOptions = { map: defaultMapping(a, prof.slots), keepSpeeds, recenter };
+              const prusa = !!entry.prusaOnly || (!!entry.prusa && outFor === "prusa");
+              options = prusa ? { ...base, output: "prusa", prusa: await getPrusaData(t.id) } : base;
+            }
+            if (batchStop.current) {
+              patchItem(key, { status: "cancelled" });
+              continue;
+            }
+            const res = await session.run({ kind: "convert", profile: prof, options }, (stage) => patchItem(key, { stage }));
+            if (batchStop.current && !mounted.current) return;
+            const blob = new Blob([res.bytes], { type: "model/3mf" });
+            patchItem(key, { status: "done", stage: undefined, result: { url: URL.createObjectURL(blob), blob, name: res.report.outputName, size: res.bytes.length, report: res.report } });
+          } catch (e: any) {
+            patchItem(key, e?.name === "AbortError" ? { status: "cancelled", stage: undefined } : { status: "error", stage: undefined, error: `Conversion failed: ${e?.message || e}` });
+          }
+        }
+        // free the unpacked project before the next file
+        session?.stop();
+      }
+    } finally {
+      if (mounted.current) setBatchRunning(false);
+      if (key0 !== batchKeyRef.current) clearBatch();
+    }
+  };
+  const batchKeyRef = useRef(batchKey);
+  batchKeyRef.current = batchKey;
+  const stopBatch = () => {
+    batchStop.current = true;
+    pool.forEach((p) => p.busy && p.stop());
+  };
+  const zipBatch = async () => {
+    const done = batchRef.current.filter((b) => b.result);
+    if (!done.length) return;
+    setZipping(true);
+    try {
+      saveBlob(await zipFiles(done.map((b) => ({ name: b.result!.name, blob: b.result!.blob, folder: b.target }))), `FilaShift batch ${done.length} files.zip`);
+    } catch (e: any) {
+      setLoadErr(`The ZIP could not be built: ${e?.message || e}`);
+    } finally {
+      setZipping(false);
+    }
+  };
+
+  // ---- before/after colour preview ----
+  const loadMesh = useCallback(async (jobId: string): Promise<PreviewMesh> => {
+    if (meshCache.current?.id === jobId) return meshCache.current.mesh;
+    const session = pool.get(jobId);
+    if (!session) throw new Error("The file is no longer loaded.");
+    if (session.busy) throw new Error("The file is busy. Try again when the current step has finished.");
+    meshCache.current = null; // keep at most one preview mesh in memory
+    try {
+      const mesh = await session.run({ kind: "preview", budget: previewBudget() }, (stage) => patch(jobId, { stage }));
+      meshCache.current = { id: jobId, mesh };
+      return mesh;
+    } finally {
+      patch(jobId, { stage: undefined });
+    }
+  }, []);
+  const openPreview = (j: Job) => {
+    if (!j.analysis) return;
+    setPreview({
+      jobId: j.id,
+      fileName: j.name,
+      target: j.result?.report.target || target?.model || "",
+      rows: previewRows(j.analysis, j.map, { report: j.result?.report, pauses: j.pauses, slots }),
+    });
+  };
+  const openBatchPreview = (b: BatchItem) => {
+    const j = jobsRef.current.find((x) => x.id === b.jobId);
+    if (!j?.analysis || !b.result) return;
+    setPreview({ jobId: j.id, fileName: j.name, target: b.target, rows: previewRows(j.analysis, j.map, { report: b.result.report, slots }) });
   };
 
   const removeJob = (id: string) => {
@@ -220,6 +411,7 @@ export default function Home() {
     if (j?.thumbUrl) URL.revokeObjectURL(j.thumbUrl);
     if (j?.result) URL.revokeObjectURL(j.result.url);
     pool.get(id)?.stop();pool.delete(id);
+    if (meshCache.current?.id === id) meshCache.current = null;
     setJobs((js) => js.filter((x) => x.id !== id));
   };
 
@@ -315,11 +507,27 @@ export default function Home() {
                 <Button size="sm" onClick={convertAll} disabled={!pending || !profile} data-testid="button-convert-all">
                   {`Convert all (${pending})`}
                 </Button>
-                <Button size="sm" variant="outline" onClick={downloadAll} disabled={!done} data-testid="button-download-all">
-                  <Download className="mr-1.5 h-4 w-4" />
-                  Download all
+                <Button size="sm" variant="outline" onClick={downloadAll} disabled={!done || zipping} data-testid="button-download-all">
+                  {zipping ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Download className="mr-1.5 h-4 w-4" />}
+                  Download all (.zip)
                 </Button>
               </div>
+            )}
+
+            {batchOn && convertible.length > 0 && (
+              <Suspense fallback={null}>
+              <BatchPanel
+                items={batch}
+                files={convertible.length}
+                printers={extras.length + 1}
+                running={batchRunning}
+                zipping={zipping}
+                onRun={runBatch}
+                onCancel={stopBatch}
+                onZip={zipBatch}
+                onPreview={openBatchPreview}
+              />
+              </Suspense>
             )}
 
             {jobs.map((j) => (
@@ -330,7 +538,7 @@ export default function Home() {
                 onCancel={()=>{if(j.status==="reading")removeJob(j.id);else pool.get(j.id)?.stop()}}
                 slots={slots}
                 targetName={target?.model || ""}
-                canConvert={!!profile}
+                canConvert={!!profile && !batchRunning}
                 onExport={async(fmt) => {
                   const session=pool.get(j.id);
                   if (!session || session.busy) throw new Error("The file is busy or no longer loaded.");
@@ -357,6 +565,7 @@ export default function Home() {
                   )
                 }
                 onConvert={() => runConvert(j.id)}
+                onPreview={() => openPreview(j)}
                 onRemove={() => removeJob(j.id)}
                 onReset={() => {
                   if (j.result) URL.revokeObjectURL(j.result.url);
@@ -389,6 +598,7 @@ export default function Home() {
                   ))}
                 </div>
                 {target && <TestedNote id={target.id} model={target.model} slicer={target.slicer} output={usePrusa ? "PrusaSlicer" : target.slicer} />}
+                <BatchPrinters printers={printers} main={targetId} extras={extras} onChange={setExtraIds} disabled={batchRunning} />
               </div>
 
               {nozzles.length > 1 && (
@@ -498,6 +708,7 @@ export default function Home() {
             </div>
           </aside>
         </div>
+        <ColourPreviewDialog request={preview} onClose={() => setPreview(null)} load={loadMesh} />
 
         <HowItWorks />
         <Brands
@@ -531,6 +742,57 @@ export default function Home() {
           </p>
       </SiteFooter>
     </div>
+  );
+}
+
+function BatchPrinters({ printers, main, extras, onChange, disabled }: { printers: PrinterIndexEntry[]; main: string; extras: string[]; onChange: (ids: string[]) => void; disabled: boolean }) {
+  const full = extras.length + 1 >= MAX_PRINTERS;
+  return (
+    <details className="mt-3 rounded-lg border border-card-border p-2.5 text-sm" open={extras.length > 0 || undefined} data-testid="batch-printers">
+      <summary className="flex cursor-pointer items-center gap-1.5 text-sm font-medium">
+        <Layers className="h-4 w-4 text-primary" />
+        Convert for more printers at once
+      </summary>
+      <p className="mt-2 text-xs text-muted-foreground">{`Add up to ${MAX_PRINTERS - 1} more printers. Every file is converted for each one, and you can download them all as one ZIP.`}</p>
+      {extras.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-1.5" data-testid="batch-printer-list">
+          {extras.map((id) => {
+            const p = printers.find((x) => x.id === id);
+            return (
+              <li key={id} className="inline-flex max-w-full items-center gap-1 rounded-full border border-primary/40 bg-primary/10 py-0.5 pl-2.5 pr-1 text-xs">
+                <span className="truncate" translate="no">{p?.model || id}</span>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onChange(extras.filter((x) => x !== id))}
+                  className="rounded-full p-0.5 text-muted-foreground hover:bg-background hover:text-foreground disabled:opacity-50"
+                  aria-label="Remove printer"
+                  data-testid={`batch-remove-${id}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <div className="mt-2">
+        {full ? (
+          <p className="text-xs text-muted-foreground" data-testid="batch-printer-limit">{`That is the limit of ${MAX_PRINTERS} printers per batch. Remove one to add another.`}</p>
+        ) : (
+          !disabled && (
+            <PrinterPicker
+              printers={printers}
+              value=""
+              onChange={(id) => id !== main && !extras.includes(id) && onChange([...extras, id])}
+              testId="button-batch-printer-picker"
+              placeholder="Add a printer"
+              exclude={[main, ...extras]}
+            />
+          )
+        )}
+      </div>
+    </details>
   );
 }
 
