@@ -30,6 +30,7 @@ python3 scripts/test-tested-catalog.py
 npx tsx scripts/test-filament-review.ts
 node scripts/check-filament-review-ui.mjs "${TD:-$HOME/td}/x1c_paint.3mf" "${TD:-$HOME/td}/ad5x_project.3mf"
 node scripts/check-bed-fit-preview.mjs "${TD:-$HOME/td}/x1c_paint.3mf"
+node scripts/check-slicer-first.mjs
 # Always validate this candidate, never a BASE override pointing at the old site.
 BASE= node scripts/check-converter-width.mjs
 BASE= node scripts/check-evidence.mjs
