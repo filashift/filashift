@@ -11,11 +11,11 @@ import { PLACE } from "./legal-common";
 
 const EMAIL = "support@jacksoncgc.com";
 
-function Page({ title, intro, children, desc }: { title: string; intro?: ReactNode; children: ReactNode; desc?: string }) {
+function Page({ title, intro, children, desc, indexed = true }: { title: string; intro?: ReactNode; children: ReactNode; desc?: string; indexed?: boolean }) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [title]);
-  usePageMeta(`${title} — FilaShift`, desc || (typeof intro === "string" ? intro : undefined));
+  usePageMeta(`${title} — FilaShift`, desc || (typeof intro === "string" ? intro : undefined), { alternates: indexed });
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -47,7 +47,7 @@ export function Source() {
   const T = useT();
   const sha: string = (import.meta as any).env.VITE_RELEASE_SHA || "";
   const pinned = /^[a-f0-9]{40}$/.test(sha);
-  return <Page title={T("Source code")} intro={T("Conversion happens in your browser. Your 3MF and STL files are not uploaded to FilaShift.")}>
+  return <Page title={T("Source code")} indexed={false} intro={T("Conversion happens in your browser. Your 3MF and STL files are not uploaded to FilaShift.")}>
     <div translate="no" className="space-y-8">
       <S h={T("Source for this version")}>
         {pinned && <p><a download href={`/downloads/filashift-${sha}.tar.gz`}>{T("Download release source (.tar.gz)")}</a><br/>

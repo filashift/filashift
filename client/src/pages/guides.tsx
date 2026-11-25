@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { GUIDES, guideBySlug, type Guide } from "@/lib/guides";
 import { localGuide } from "@/lib/guides-local";
-import { LOCALES, tr, useLang } from "@/lib/i18n";
+import { LOCALES, langParam, tr, useLang } from "@/lib/i18n";
 
 /** The guide in the current language (translated text when available, English otherwise). */
 function useLocal() {
@@ -15,7 +15,7 @@ function useLocal() {
   const L = (en: string) => tr(lang, en);
   return { lang, loc, L };
 }
-import { SITE, useJsonLd, usePageMeta } from "@/lib/seo";
+import { siteUrl, useJsonLd, usePageMeta } from "@/lib/seo";
 import NotFound from "./not-found";
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -97,7 +97,7 @@ export function GuidePage() {
   const { lang, loc, L } = useLocal();
   const g0 = guideBySlug(params?.slug || "");
   const g = g0 && loc(g0);
-  usePageMeta(g?.meta || L("Guide not found — FilaShift"), g?.desc);
+  usePageMeta(g?.meta || L("Guide not found — FilaShift"), g?.desc, { alternates: !!g });
   useJsonLd(
     "ld-guide",
     g
@@ -109,6 +109,7 @@ export function GuidePage() {
               name: g.title,
               description: g.desc,
               dateModified: g.updated,
+              inLanguage: lang,
               step: g.steps.map((s, i) => ({ "@type": "HowToStep", position: i + 1, text: s })),
             },
             {
@@ -118,9 +119,9 @@ export function GuidePage() {
             {
               "@type": "BreadcrumbList",
               itemListElement: [
-                { "@type": "ListItem", position: 1, name: "FilaShift", item: `${SITE}/` },
-                { "@type": "ListItem", position: 2, name: L("Guides"), item: `${SITE}/guides` },
-                { "@type": "ListItem", position: 3, name: g.title, item: `${SITE}/guides/${g.slug}` },
+                { "@type": "ListItem", position: 1, name: "FilaShift", item: siteUrl("/", lang) },
+                { "@type": "ListItem", position: 2, name: L("Guides"), item: siteUrl("/guides", lang) },
+                { "@type": "ListItem", position: 3, name: g.title, item: siteUrl(`/guides/${g.slug}`, lang) },
               ],
             },
           ],
@@ -128,7 +129,7 @@ export function GuidePage() {
       : null,
   );
   if (!g) return <NotFound />;
-  const spoolLink = (material?:string, model?:string) => `/filament?pack=single&d=1.75${material ? `&f=${material}&t=${material}` : ""}${model==="bambu-lab-x1-carbon"?"&feeder=ams":model==="snapmaker-u1"?"&feeder=u1":""}${lang !== "en" ? `&lang=${lang}` : ""}`;
+  const spoolLink = (material?:string, model?:string) => `/filament?pack=single&d=1.75${material ? `&f=${material}&t=${material}` : ""}${model==="bambu-lab-x1-carbon"?"&feeder=ams":model==="snapmaker-u1"?"&feeder=u1":""}${langParam(lang) ? `&${langParam(lang)}` : ""}`;
   const href = g.shopping ? spoolLink() : g.printer ? `/?printer=${g.printer}` : "/";
   const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 4).map(loc);
   return (
@@ -225,7 +226,7 @@ export function GuidePage() {
           <time dateTime={g.updated}>{new Date(g.updated + "T12:00:00Z").toLocaleDateString(LOCALES[lang], { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}</time>.
           {g.editorialNote && <span className="mt-1 block" data-testid="guide-editorial-note">
             {g.editorialNote}{" "}
-            <Link href={`/guides/flashforge-creality-to-bambu${lang !== "en" ? `?lang=${lang}` : ""}`} className="text-primary underline">
+            <Link href={`/guides/flashforge-creality-to-bambu${langParam(lang) ? `?${langParam(lang)}` : ""}`} className="text-primary underline">
               {L("How to convert these projects for Bambu Studio")}
             </Link>
           </span>}

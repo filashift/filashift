@@ -10,7 +10,8 @@ import { RequestPrinterButton } from "@/components/printer-request";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { PrinterIndexEntry } from "@/engine/types";
-import { SITE, useJsonLd, usePageMeta } from "@/lib/seo";
+import { SITE, siteUrl, useJsonLd, usePageMeta } from "@/lib/seo";
+import { PATH_LANG, tr, useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const SLICERS = ["OrcaSlicer", "Bambu Studio", "PrusaSlicer"] as const;
@@ -39,6 +40,7 @@ const initialParam = (k: string) => {
 };
 
 export default function TestedPage() {
+  const lang = useLang(), L = (en: string, v?: Record<string, string | number>) => tr(lang, en, v);
   usePageMeta(
     "Printer test results: every profile sliced in OrcaSlicer, Bambu Studio or PrusaSlicer | FilaShift",
     "See which 3D printer profiles FilaShift has tested: sample 3MF projects converted for each printer and sliced in its destination slicer's command-line tool, with slicer versions, pass counts and notes.",
@@ -77,14 +79,15 @@ export default function TestedPage() {
       ? {
           "@context": "https://schema.org",
           "@type": "Dataset",
-          name: "FilaShift printer profile slicer test results",
-          description: `Results of converting sample 3MF projects for ${printers.length} 3D printer profiles and slicing each converted file in its destination slicer's command-line tool (${Object.entries(tested.slicers).map(([n, v]) => `${n} ${v}`).join(", ")}). Software slice tests, not physical prints.`,
-          url: `${SITE}/tested`,
+          name: L("FilaShift printer profile slicer test results"),
+          description: L("Results of converting sample 3MF projects for {count} 3D printer profiles and slicing each converted file in its destination slicer's command-line tool ({versions}). Software slice tests, not physical prints.", { count: printers.length, versions: Object.entries(tested.slicers).map(([n, v]) => `${n} ${v}`).join(", ") }),
+          inLanguage: lang,
+          url: siteUrl("/tested", PATH_LANG ?? "en"),
           dateModified: tested.date,
           isAccessibleForFree: true,
-          creator: { "@type": "Organization", name: "Jackson Technology Solutions LLC", url: `${SITE}/about` },
-          measurementTechnique: "Sample projects converted by FilaShift and sliced with the OrcaSlicer, Bambu Studio and PrusaSlicer command-line interfaces",
-          variableMeasured: ["printer profile", "destination slicer", "slicer version", "slice tests passed", "slice tests run", "colour slots"],
+          creator: { "@type": "Organization", name: "Jackson Technology Solutions LLC", url: siteUrl("/about", PATH_LANG ?? "en") },
+          measurementTechnique: L("Sample projects converted by FilaShift and sliced with the OrcaSlicer, Bambu Studio and PrusaSlicer command-line interfaces"),
+          variableMeasured: ["printer profile", "destination slicer", "slicer version", "slice tests passed", "slice tests run", "colour slots"].map((v) => L(v)),
           distribution: [
             { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: `${SITE}/profiles/tested.json` },
             { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: `${SITE}/profiles/index.json` },

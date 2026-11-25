@@ -26,6 +26,7 @@ const GuidesIndex=lazy(()=>import("@/pages/guides").then(m=>({default:m.GuidesIn
 import { ReportDialog } from "@/components/report-dialog";
 import { PrinterRequestDialog } from "@/components/printer-request";
 import { PATH_ROUTING } from "./routing";
+import { LOCALE_BASE } from "./lib/i18n";
 
 function AppRouter() {
   const [path] = useLocation();
@@ -67,11 +68,12 @@ function App() {
         <ReportDialog />
         <PrinterRequestDialog />
         {PATH_ROUTING ? (
-          <Router>
+          // /es/, /de/ and /fr/ pages route relative to their prefix, so every internal link keeps the language
+          <Router base={LOCALE_BASE}>
             <AppRouter />
           </Router>
         ) : (
-          <Router hook={useHashPath}>
+          <Router hook={useHashPath} base={LOCALE_BASE}>
             <AppRouter />
           </Router>
         )}

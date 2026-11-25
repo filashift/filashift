@@ -191,7 +191,7 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
             {SOURCE_URL && (
               <>
                 FilaShift is free software under the AGPL-3.0.{" "}
-                <Link className="underline hover:text-foreground" href="/source" data-testid="link-source">
+                <Link className="underline hover:text-foreground" href="~/source" data-testid="link-source">
                   Source code
                 </Link>
                 .{" "}

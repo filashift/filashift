@@ -1,4 +1,5 @@
 import { useJsonLd, usePageMeta } from "@/lib/seo";
+import { tr, useLang } from "@/lib/i18n";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { ArrowLeftRight, Check, Cpu, Download, FolderOpen, Layers, Loader2, Lock, Printer, ShieldCheck, Sparkles, Tag, Upload, X } from "lucide-react";
@@ -923,17 +924,19 @@ function SectionTitle({ id, kicker, title }: { id: string; kicker: string; title
 }
 
 function HowItWorks() {
+  const lang = useLang(), L = (en: string) => tr(lang, en);
   useJsonLd("ld-howto", {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    name: "How to convert a 3MF project for another 3D printer",
+    name: L("How to convert a 3MF project for another 3D printer"),
+    inLanguage: lang,
     totalTime: "PT2M",
-    tool: [{ "@type": "HowToTool", name: "FilaShift (free, in the browser)" }],
+    tool: [{ "@type": "HowToTool", name: L("FilaShift (free, in the browser)") }],
     step: [
-      { "@type": "HowToStep", name: "Drop the project", text: "Add a 3MF project from Bambu Studio, OrcaSlicer, PrusaSlicer, MakerWorld or Printables to FilaShift." },
-      { "@type": "HowToStep", name: "Pick your printer", text: "Choose the printer you own and check how each colour maps to your filament slots." },
-      { "@type": "HowToStep", name: "Convert and download", text: "Convert, download the new 3MF and read the conversion report." },
-      { "@type": "HowToStep", name: "Open, check and slice", text: "Open it in your slicer with File → Open Project (not Import), check the preview and slice." },
+      { "@type": "HowToStep", name: L("Drop the project"), text: L("Add a 3MF project from Bambu Studio, OrcaSlicer, PrusaSlicer, MakerWorld or Printables to FilaShift.") },
+      { "@type": "HowToStep", name: L("Pick your printer"), text: L("Choose the printer you own and check how each colour maps to your filament slots.") },
+      { "@type": "HowToStep", name: L("Convert and download"), text: L("Convert, download the new 3MF and read the conversion report.") },
+      { "@type": "HowToStep", name: L("Open, check and slice"), text: L("Open it in your slicer with File → Open Project (not Import), check the preview and slice.") },
     ],
   });
   const steps = [

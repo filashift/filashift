@@ -20,6 +20,38 @@ const KEY = "filashift-lang";
 const DICTS: Record<Lang, Record<string, string>> = { en: {}, es, de, fr };
 const isLang = (x: unknown): x is Lang => (LANGS as readonly unknown[]).includes(x);
 
+// ---- locale URL prefixes (/es/, /de/, /fr/; English stays unprefixed) ----
+/** Languages that get their own URL prefix. */
+export const PREFIXED = ["es", "de", "fr"] as const;
+/** Language named by the first path segment ("/de/guides" -> "de"), or null for unprefixed (English) paths. */
+export function langOfPath(path: string): Exclude<Lang, "en"> | null {
+  const m = /^\/(es|de|fr)(?:\/|$)/.exec(path || "");
+  return m ? (m[1] as Exclude<Lang, "en">) : null;
+}
+/** The path without its locale prefix ("/de/guides" -> "/guides", "/de/" -> "/"). */
+export function stripLocale(path: string): string {
+  return langOfPath(path) ? path.slice(3) || "/" : path || "/";
+}
+/** The same page in another language: "/guides" + de -> "/de/guides", "/" + de -> "/de/". */
+export function localePath(path: string, lang: Lang): string {
+  const rest = stripLocale(path);
+  return lang === "en" ? rest : `/${lang}${rest}`;
+}
+/** Public, indexable routes that exist in every language (prerendered at /, /es/, /de/ and /fr/). */
+export function isLocalizedRoute(path: string): boolean {
+  const p = stripLocale(path).replace(/(.)\/$/, "$1");
+  return /^\/(?:|guides|guides\/[a-z0-9-]+|tested|filament|about|faq|creators|privacy|terms|contact)$/.test(p);
+}
+/** Language prefix in the current URL (real path on filashift.com, or the #/ path elsewhere). */
+function urlLang(): Exclude<Lang, "en"> | null {
+  if (typeof window === "undefined") return null;
+  return langOfPath(window.location.pathname) ?? langOfPath(window.location.hash.replace(/^#/, "").split("?")[0]);
+}
+/** Set when the URL itself names the language; it then wins over ?lang= and the saved choice. */
+export const PATH_LANG: Exclude<Lang, "en"> | null = urlLang();
+/** Router base for the current page ("/de" on /de/…, "" on English URLs), so internal links keep the prefix. */
+export const LOCALE_BASE = PATH_LANG ? `/${PATH_LANG}` : "";
+
 /** Language from ?lang=, then the saved choice, then the browser languages (first supported one wins). */
 export function detectLang(query: string | null, saved: string | null, navLangs: readonly string[]): Lang {
   if (isLang(query)) return query;
@@ -33,6 +65,8 @@ export function detectLang(query: string | null, saved: string | null, navLangs:
 
 function initial(): Lang {
   try {
+    // an explicit /es/, /de/ or /fr/ path always wins (and is not saved: unprefixed URLs keep their own rules)
+    if (PATH_LANG) return PATH_LANG;
     const hashQuery = window.location.hash.split("?")[1] || "";
     const q = new URLSearchParams(hashQuery).get("lang") ?? new URLSearchParams(window.location.search).get("lang");
     if (isLang(q)) {
@@ -69,17 +103,33 @@ export function setLang(l: Lang) {
   applyDoc();
   subs.forEach((f) => f());
   // the DOM translator works on rendered text, so a clean reload is the simplest way to switch
-  if (typeof window !== "undefined") {
-    const u = new URL(window.location.href);
-    u.searchParams.set("lang", l);
-    if (u.hash.startsWith("#/") && u.hash.includes("?")) {
-      const [path, query] = u.hash.split("?");
-      const p = new URLSearchParams(query);
+  if (typeof window !== "undefined") window.location.replace(langSwitchUrl(window.location.href, l));
+}
+/** URL of the current page in language l: the /es/, /de/ or /fr/ path for localized routes, ?lang= for the rest. */
+export function langSwitchUrl(href: string, l: Lang): string {
+  const u = new URL(href);
+  u.searchParams.delete("lang");
+  const hashRouted = u.hash.startsWith("#/");
+  const [hp, hq = ""] = hashRouted ? u.hash.slice(1).split("?") : [u.pathname, ""];
+  if (isLocalizedRoute(hp)) {
+    if (hashRouted) {
+      const p = new URLSearchParams(hq);
       p.delete("lang");
-      u.hash = path + (p.size ? `?${p}` : "");
+      u.hash = localePath(hp, l) + (p.size ? `?${p}` : "");
+    } else u.pathname = localePath(hp, l);
+  } else {
+    u.searchParams.set("lang", l);
+    if (hashRouted && hq) {
+      const p = new URLSearchParams(hq);
+      p.delete("lang");
+      u.hash = hp + (p.size ? `?${p}` : "");
     }
-    window.location.replace(u.toString());
   }
+  return u.toString();
+}
+/** "lang=xx" for links that must carry the language in the query (only needed on unprefixed URLs), else "". */
+export function langParam(lang: Lang): string {
+  return lang !== "en" && !PATH_LANG ? `lang=${lang}` : "";
 }
 function subscribe(f: () => void) {
   subs.add(f);
@@ -178,6 +228,11 @@ function walk(root: Node) {
   doEl(el);
   const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
   for (let n = w.nextNode(); n; n = w.nextNode()) n.nodeType === 3 ? doText(n as Text) : doEl(n as Element);
+}
+/** Translate one UI string (dictionary, then UI and report patterns) into the current language. */
+export function translateUi(s: string): string {
+  const t = lookup(s);
+  return t ?? s;
 }
 let started = false;
 export function startDomTranslator() {

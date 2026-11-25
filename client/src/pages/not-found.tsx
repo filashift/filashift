@@ -4,7 +4,7 @@ import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { usePageMeta } from "@/lib/seo";
 
 export default function NotFound() {
-  usePageMeta("Page not found — FilaShift");
+  usePageMeta("Page not found — FilaShift", undefined, { alternates: false });
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />

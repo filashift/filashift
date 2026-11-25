@@ -26,9 +26,8 @@ try {
           JSON.stringify(Array.from(document.querySelectorAll("header nav [data-testid]"), n=>n.textContent.trim())) === JSON.stringify(names),
           {lang,dark,names:labels[lang]});
       };
-      await p.goto(`${base}/?lang=en`);
-      await check("en",osDark);
-      for (const section of ["how","printers","how","printers"]) {
+      // header section jumps (How it works / Printers / Converter) on the home page of the current language
+      const jumps = async () => { for (const section of ["how","printers","how","printers"]) {
         await p.getByTestId(`nav-${section}`).click();
         await p.waitForFunction(id => {
           const el = document.getElementById(id), h = document.querySelector("header");
@@ -38,13 +37,26 @@ try {
         },section);
         await p.getByTestId("nav-converter").click();
         await p.waitForFunction(() => window.scrollY <= 1 && document.activeElement?.id === "converter");
-      }
+      } };
+      await p.goto(`${base}/?lang=en`);
+      await check("en",osDark);
+      await jumps();
       await p.getByTestId("button-theme").click();
       await check("en",!osDark);
       for (const lang of ["es","de","fr","en"]) {
         // The language selector is a compact menu: open it, then pick the language.
         await p.getByTestId("button-lang").click();
         await Promise.all([p.waitForNavigation(),p.getByTestId(`button-lang-${lang}`).click()]);
+        await check(lang,!osDark);
+        if (lang === "en") continue;
+        // localized home (/es/, /de/, /fr/): same jumps, and from another page they return to the prefixed home
+        assert.equal(new URL(p.url()).pathname,`/${lang}/`);
+        await jumps();
+        await p.getByTestId("nav-faq").click();
+        await p.waitForURL(`**/${lang}/faq`);
+        await p.getByTestId("nav-printers").click();
+        await p.waitForFunction(() => document.activeElement?.id === "printers" && window.scrollY > 0);
+        assert.equal(new URL(p.url()).pathname,`/${lang}/`);
         await check(lang,!osDark);
       }
       await p.getByTestId("nav-faq").click();
@@ -55,7 +67,7 @@ try {
       await p.getByTestId("nav-printers").click();
       await p.waitForFunction(() => document.activeElement?.id === "printers" && window.scrollY > 0);
       assert.equal(await p.evaluate(()=>localStorage.getItem("filashift-theme")),osDark?"light":"dark");
-      console.log(`PASS ${profile}: ${osDark?"light":"dark"} override, all four languages, header order, navigation and reload`);
+      console.log(`PASS ${profile}: ${osDark?"light":"dark"} override, all four languages, header order, section jumps on /, /es/, /de/, /fr/, navigation and reload`);
       await ctx.close();
     }
     await browser.close(); browser=null;

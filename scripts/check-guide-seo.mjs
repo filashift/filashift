@@ -24,9 +24,10 @@ try {
     fr: {width:390, h1:/Guide d'achat/, note:/importer des projets 3MF/, group:/entre trancheurs et imprimantes/, limit:"limite de taille", expand:/décompressés/},
   };
   for (const lang of ["en", "es", "de", "fr"]) {
-    const x = X[lang], q = lang==="en" ? "" : `lang=${lang}`;
+    // every language has its own URL prefix (/es/, /de/, /fr/), so links need no ?lang=
+    const x = X[lang], P = lang==="en" ? "" : `/${lang}`;
     await page.setViewportSize({width:x.width,height:850});
-    await page.goto(`${base}/guides?lang=${lang}`);
+    await page.goto(`${base}${P}/guides`);
     const groups = page.locator('[data-testid="list-guides"] section');
     await groups.first().waitFor();
     assert.equal(await groups.count(),3);
@@ -54,7 +55,7 @@ try {
     const note = page.getByTestId("guide-editorial-note");
     assert.match(await note.innerText(),/ElegooSlicer.*Anycubic Slicer Next/);
     assert.match(await note.innerText(),x.note);
-    assert.equal(await note.locator("a").getAttribute("href"),`/guides/flashforge-creality-to-bambu${q?"?"+q:""}`);
+    assert.equal(await note.locator("a").getAttribute("href"),`${P}/guides/flashforge-creality-to-bambu`);
     const buyingDate = await page.locator("article time").getAttribute("datetime");
     assert.equal(JSON.parse(await page.locator("#ld-guide").textContent())["@graph"][0].dateModified,buyingDate);
     assert(sitemap.includes(`/guides/filament-buying-guide-five-printers</loc><lastmod>${buyingDate}</lastmod>`));
@@ -62,10 +63,10 @@ try {
     for(const [i, material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
       const card=cards.nth(i);
       assert.match(await card.locator('a[href^="https:"]').first().getAttribute("href"),/^https:/);
-      assert.equal(await card.locator('a[href^="/filament"]').getAttribute("href"),`/filament?pack=single&d=1.75&f=${material}&t=${material}${i===2?"&feeder=ams":i===4?"&feeder=u1":""}${q?"&"+q:""}`);
+      assert.equal(await card.locator(`a[href^="${P}/filament"]`).getAttribute("href"),`${P}/filament?pack=single&d=1.75&f=${material}&t=${material}${i===2?"&feeder=ams":i===4?"&feeder=u1":""}`);
     }
     for(const [i,material] of ["PLA","PLA","PETG","PETG","PLA"].entries()){
-      await cards.nth(i).locator('a[href^="/filament"]').click();
+      await cards.nth(i).locator(`a[href^="${P}/filament"]`).click();
       await page.getByTestId("offer-1").waitFor();
       // Explicit results URLs must survive reload even with no stored preference.
       await page.evaluate(()=>localStorage.removeItem("filashift-lang"));
@@ -78,21 +79,21 @@ try {
       assert.match(await page.getByTestId("select-sort").innerText(),/Lowest total price|Menor precio total|Niedrigster Gesamtpreis|Prix total le plus bas/);
       await page.goBack();
     }
-    await page.goto(`${base}/guides?lang=${lang}`);
+    await page.goto(`${base}${P}/guides`);
     assert.match(await groups.nth(1).locator("h2").innerText(),x.group);
-    await page.goto(`${base}/guides/3mf-to-stl?lang=${lang}`, {waitUntil:"networkidle"});
+    await page.goto(`${base}${P}/guides/3mf-to-stl`, {waitUntil:"networkidle"});
     const answer = await page.locator("dt").filter({hasText:x.limit}).locator("+ dd").innerText();
     assert.match(answer,/2 (GB|Go)\b/);
     assert.match(answer,x.expand);
     const date = await page.locator("article time").getAttribute("datetime");
     assert(sitemap.includes(`/guides/3mf-to-stl</loc><lastmod>${date}</lastmod>`));
-    await page.goto(`${base}/?lang=${lang}`, {waitUntil:"networkidle"});
+    await page.goto(`${base}${P}/`, {waitUntil:"networkidle"});
     assert.equal(await page.locator('#ld-faq, [data-testid="faq-0"]').count(),0);
     assert.equal(await page.locator('main #guides, main [data-testid^="home-guide-"]').count(),0);
     assert(await page.getByTestId("nav-guides").isVisible());
     await page.getByTestId("nav-faq").click();
     await page.getByTestId("faq-0").waitFor();
-    assert.equal(new URL(page.url()).pathname,"/faq");
+    assert.equal(new URL(page.url()).pathname,`${P}/faq`);
     assert(sitemap.includes("/faq</loc>"));
     await page.waitForFunction(date=>document.querySelector("#ld-faq")?.textContent.includes(date),results.date);
     const faq = JSON.parse(await page.locator("#ld-faq").textContent()).mainEntity;

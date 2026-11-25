@@ -1,5 +1,6 @@
 import { dataUrl } from "@/lib/seo";
 import { atomicReel } from "./reel-fit";
+import { LOCALE_BASE } from "./i18n";
 // Shared filament price data, affiliate links and colour matching.
 // Data lives at /data on the server (see OPERATIONS.md); nothing here contacts a third party.
 
@@ -187,7 +188,8 @@ export function matchOffers(items: Item[], type: string, colour: string, limit =
 /** link to the filament page with filters set; works with both path and hash routing */
 export function filamentLink(params: Record<string, string>) {
   const q = new URLSearchParams(params).toString();
-  return `/filament${q ? `?${q}` : ""}`;
+  // keep the page's /es/, /de/ or /fr/ prefix so the new tab opens in the same language
+  return `${LOCALE_BASE}/filament${q ? `?${q}` : ""}`;
 }
 export function readQuery(): URLSearchParams {
   const h = window.location.hash;

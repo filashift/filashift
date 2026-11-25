@@ -8,7 +8,7 @@
 // Static checks: every key in any dictionary (es/de/fr.json) exists in all of them with the same {placeholders};
 // the report rules (REPORT_*) and UI pattern rules (*-patterns.ts) use identical regexes in every language;
 // every guide has a translation with the same number of steps, sections, list items and FAQ entries.
-// Browser pass: visits every prerendered route plus the converter flow (uploads ~/td/x1c_paint.3mf or $SAMPLE_3MF,
+// Browser pass: visits every prerendered route (at its /es/, /de/ or /fr/ URL; /source and 404 with ?lang=) plus the converter flow (uploads ~/td/x1c_paint.3mf or $SAMPLE_3MF,
 // converts it and expands the conversion report) and lists visible text nodes, title/description and
 // placeholder/aria-label/title/alt attributes that are still English. Exits 1 when any gap is found, so it can be
 // re-run as a top-up after other branches add strings.
@@ -96,6 +96,7 @@ if (!staticOnly) {
   const base = process.env.BASE || `http://127.0.0.1:${server.httpServer.address().port}`;
   const executablePath = [process.env.CHROME, `${homedir()}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`, "/usr/bin/chromium"].find((p) => p && existsSync(p));
   const routes = ["/", "/filament", "/faq", "/guides", ...mod.GUIDES.map((g) => `/guides/${g.slug}`), "/about", "/contact", "/creators", "/privacy", "/terms", "/source", "/missing-page"];
+  const UNPREFIXED = new Set(["/source", "/missing-page"]);
   // Words that are English and (almost) never appear in Spanish, German or French UI text.
   const EN = new Set("the and your you with this that these those are is was will would should could from not before after each which when what where how have has been only into than then there their they them it's don't can't doesn't isn't won't here more about other printer printers file files colour colours color colors print printed prints printing slicing sliced settings setting choose open download downloads upload convert converted conversion page select shows show keep kept lost every any some our we us".split(" "));
   // Text that is the same in every language (brands, units, codes) and need not be translated.
@@ -149,8 +150,11 @@ if (!staticOnly) {
       for (const route of routes) {
         // retry once if the page has not settled on the right route and language (slow first load)
         for (let attempt = 0; attempt < 2; attempt++) {
-          await page.goto(`${base}${route}?lang=${lang}`, { waitUntil: "networkidle" });
-          const ok = await page.waitForFunction(({ lang, route }) => document.documentElement.lang === lang && (route === "/missing-page" || location.pathname.replace(/\/$/, "") === route.replace(/\/$/, "")), { lang, route }, { timeout: 5000 }).then(() => true, () => false);
+          // public pages have their own /es/, /de/ and /fr/ URLs; /source and the 404 page keep ?lang=
+          const url = UNPREFIXED.has(route) ? `${route}?lang=${lang}` : `/${lang}${route}`;
+          await page.goto(`${base}${url}`, { waitUntil: "networkidle" });
+          const want = url.split("?")[0];
+          const ok = await page.waitForFunction(({ lang, route, want }) => document.documentElement.lang === lang && (route === "/missing-page" || location.pathname.replace(/\/$/, "") === want.replace(/\/$/, "")), { lang, route, want }, { timeout: 5000 }).then(() => true, () => false);
           if (ok) break;
         }
         await page.waitForTimeout(300);
@@ -160,7 +164,7 @@ if (!staticOnly) {
       }
       // Converter flow with a real project and its conversion report.
       if (existsSync(sample)) {
-        await page.goto(`${base}/?lang=${lang}`, { waitUntil: "networkidle" });
+        await page.goto(`${base}/${lang}/`, { waitUntil: "networkidle" });
         await page.getByTestId("button-lang").click();
         await scan("/ language menu");
         await page.keyboard.press("Escape");

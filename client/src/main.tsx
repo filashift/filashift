@@ -1,4 +1,4 @@
-import { startDomTranslator } from "./lib/i18n";
+import { PATH_LANG, startDomTranslator } from "./lib/i18n";
 import "./lib/es-patterns";
 import "./lib/de-patterns";
 import "./lib/fr-patterns";
@@ -25,7 +25,8 @@ if (PATH_ROUTING) {
     if (fromHash()) window.dispatchEvent(new PopStateEvent("popstate"));
   });
 } else if (!window.location.hash) {
-  window.location.hash = "#/";
+  // a prerendered /de/… page opened on a hash-routed host keeps its language prefix in the hash route
+  window.location.hash = PATH_LANG ? `#/${PATH_LANG}/` : "#/";
 }
 document.documentElement.classList.toggle("dark", initialDark());
 
