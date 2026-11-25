@@ -45,6 +45,28 @@ try {
       await preflight.waitFor();
       assert.match(await preflight.innerText(), /OrcaSlicer 2\.5\.2/);
       assert.match(await preflight.innerText(), /not the Ultra S/);
+      if (!osDark) {
+        for (const [lang, phrase] of Object.entries({
+          en:"OrcaSlicer-tested. No physical print verified.",
+          es:"Probado en OrcaSlicer. No se ha verificado ninguna impresión física.",
+          de:"Mit OrcaSlicer getestet. Kein Druck am Gerät bestätigt.",
+          fr:"Testé avec OrcaSlicer. Aucune impression physique vérifiée."
+        })) {
+          const prefix = lang === "en" ? "" : `/${lang}`;
+          await p.goto(`${base}${prefix}/tested`);
+          await p.getByTestId("input-tested-search").fill("WonderMaker");
+          const ultra = p.getByTestId("row-tested-wondermaker-zr-ultra");
+          await ultra.getByText(phrase,{exact:true}).waitFor();
+          for (const id of ["wondermaker-zr","wondermaker-zr-ultra-s"]) {
+            assert.ok(!(await p.getByTestId(`row-tested-${id}`).innerText()).includes(phrase));
+          }
+          await ultra.getByRole("link").first().click();
+          const badge = p.getByTestId("badge-tested-wondermaker-zr-ultra");
+          await badge.filter({hasText:phrase}).waitFor();
+          await badge.click();
+          assert.match(await p.getByTestId("text-tested-note").innerText(), /OrcaSlicer 2\.5\.2/);
+        }
+      }
       for (const id of ["wondermaker-zr","wondermaker-zr-ultra-s"]) {
         await p.goto(`${base}/?printer=${id}&lang=en`);
         const limits = p.getByTestId("wondermaker-limits");

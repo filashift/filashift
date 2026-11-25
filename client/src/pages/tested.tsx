@@ -200,7 +200,7 @@ export default function TestedPage() {
                       </td>
                       <td className="col-span-2 md:py-2.5 md:pr-3 md:align-top">
                         {t?.ok ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"><BadgeCheck className="h-3.5 w-3.5" />Slicer-tested</span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{p.id === "wondermaker-zr-ultra" && outs.some(o => o.slicer === "OrcaSlicer" && o.ok) ? L("OrcaSlicer-tested. No physical print verified.") : L("Slicer-tested")}</span>
                         ) : (
                           <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleDashed className="h-3.5 w-3.5" />{!t?.tests ? "Unverified" : "Not yet passed"}</span>
                         )}
