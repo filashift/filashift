@@ -123,12 +123,15 @@ export default function Filament() {
               {`${data.count.toLocaleString()} offers from ${storeCount} stores · updated ${ago(data.updated)}`}
             </p>
           )}
-          {(affiliates || amazonUrl) && (
-            <p className="mt-2 text-xs text-muted-foreground" data-testid="text-affiliate-disclosure">
-              Some links and codes on this page are affiliate links. FilaShift may earn a commission at no extra cost to you; it never changes the
-              price order.
+          <div className="mt-3" translate="no">
+            <a href="https://elegoo.sjv.io/xJMdoA" target="_blank" rel="sponsored noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary underline" data-testid="link-elegoo-store">
+              {T("Shop ELEGOO (affiliate link)")} <ExternalLink aria-hidden="true" className="h-3.5 w-3.5" />
+            </a>
+            <p className="mt-1 text-xs text-muted-foreground" data-testid="text-affiliate-disclosure">
+              {T("Some links and codes on this page are affiliate links. FilaShift may earn a commission at no extra cost to you; it never changes the price order.")}
             </p>
-          )}
+          </div>
         </section>
 
         {watched.length > 0 && (
