@@ -33,6 +33,29 @@ try {
     await page.getByTestId("link-offer-2").waitFor({state: "detached"});
     assert.equal(await page.getByTestId("link-offer-1").getAttribute("href"), items[0].u);
     console.log(`PASS ${prefix || "/en"} ${width}px: exact storefront URL, disclosure, price order, filtered variant link`);
+    const root = `http://127.0.0.1:${server.httpServer.address().port}${prefix}`;
+    await page.goto(`${root}/guides`);
+    await page.getByTestId("topic-shop").click();
+    async function checkGuideLink(section) {
+      const link = section.getByTestId("link-elegoo-store");
+      await link.waitFor();
+      assert((await link.innerText()).includes(label));
+      assert.equal(await link.getAttribute("href"), store);
+      assert.equal(await link.getAttribute("rel"), "sponsored noopener noreferrer");
+      assert.equal(await link.getAttribute("target"), "_blank");
+      assert.equal(await page.locator(`main a[href="${store}"]`).count(), 1);
+      const notice = section.locator("p").filter({hasText: /commission|comisión|Provision/i});
+      assert(await notice.last().isVisible());
+    }
+    await checkGuideLink(page.locator("#guides-shop"));
+    await page.getByTestId("link-guide-filament-buying-guide-five-printers").click();
+    await checkGuideLink(page.locator("article section").filter({has:page.getByTestId("link-guide-cta")}));
+    const spoolLinks = page.locator('section[id] a[href*="/filament?"][href*="pack=single"]');
+    assert.equal(await spoolLinks.count(), 5);
+    await page.goto(`${root}/guides/3mf-to-stl`);
+    await page.getByTestId("link-guide-cta").waitFor();
+    assert.equal(await page.getByTestId("link-elegoo-store").count(), 0);
+    console.log(`PASS ${prefix || "/en"}: directory and buying guide placements, adjacent disclosure, five comparison links, no link on mesh guide`);
     await page.close();
   }
 } finally {await browser.close(); await server.close();}

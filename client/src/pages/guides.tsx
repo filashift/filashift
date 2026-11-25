@@ -2,6 +2,7 @@ import { Link, useRoute } from "wouter";
 import { limits, reelSpecs } from "@/lib/reel-fit";
 import { ArrowRight, BookOpen, CheckCircle2, ChevronRight } from "lucide-react";
 import { useEffect } from "react";
+import { ElegooStoreLink } from "@/components/elegoo-store-link";
 import { Button } from "@/components/ui/button";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { GUIDES, guideBySlug, type Guide } from "@/lib/guides";
@@ -88,7 +89,12 @@ export function GuidesIndex() {
             </Link>
           </li>
         ))}
-      </ul></section>)}
+      </ul>
+      {group === "shop" && <div className="mt-4">
+        <ElegooStoreLink />
+        <p className="mt-1 text-xs text-muted-foreground">{L("FilaShift may earn a commission from partner store links at no extra cost to you. Prices and stock can change before checkout.")}</p>
+      </div>}
+      </section>)}
       </div>
     </Shell>
   );
@@ -172,6 +178,7 @@ export function GuidePage() {
               <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
           </Button>
+          {g.shopping && <div className="mt-3"><ElegooStoreLink /></div>}
           <p className="mt-2 text-xs text-muted-foreground">{g.shopping ? L("FilaShift may earn a commission from partner store links at no extra cost to you. Prices and stock can change before checkout.") : L("Free · no account · your file never leaves your device")}</p>
         </section>
 
