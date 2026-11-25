@@ -6,6 +6,8 @@ Owner: David Jackson, Jackson Technology Solutions LLC (a subsidiary of Jackson 
 FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF projects between printers (Bambu, Flashforge AD5X/Creator 5, Snapmaker U1, Prusa, Creality, Elegoo, Qidi, Voron, etc., 226 profiles) entirely in the visitor's browser. Static Vite + React + Tailwind site. No backend, no database, no uploads. Licence AGPL-3.0-or-later (printer profiles derive from OrcaSlicer).
 
 ## Code
+
+Use US spelling in English interface copy. After prerendering, the release gate runs `node scripts/check-us-english.mjs` on the English pages, including accessibility text and search metadata. Do not rename slicer fields, printer or filament names, or published guide URLs to enforce this rule.
 - Public clone: `git clone https://github.com/filashift/filashift.git` (branch `master`). Keep private origin details in the operator runbook.
 - Engine: `client/src/engine/engine.ts` (3MF parsing, profile mapping, plate fitting, prime tower placement, filament mapping, report).
 - UI: `client/src/pages/home.tsx`. Footer company name constant `COMPANY`; `/source` offers the production commit archive and repository. Set `VITE_SOURCE_URL` to select a different source repository for a fork.
