@@ -5,7 +5,7 @@
 # (T0..Tn), colour changes (M600) and whether the project carries painted triangles (mmu_segmentation).
 for f in "$@"; do
   D=$(dirname "$f"); b=$(basename "$f" .3mf); j=$D/$b.json; o=$D/out_$b; rm -rf -- "$o"; mkdir -p "$o"
-  sl=$(python3 -c "import json;print(json.load(open('$j'))['slicer'])")
+  sl=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["slicer"])' "$j") || exit 1
   if [[ $sl == "Bambu Studio" ]]; then cli=/tmp/slicers/bambu; elif [[ $sl == "PrusaSlicer" ]]; then cli=${PRUSA_ADAPTER:-/tmp/slicers/prusa}; else cli=/tmp/slicers/orca; fi
   timeout 400 "$cli" $EXTRA --slice 0 --outputdir "$o" "$f" > "$o/log.txt" 2>&1
   python3 - "$o" "$b" "$sl" "$f" "$?" <<'PY'
