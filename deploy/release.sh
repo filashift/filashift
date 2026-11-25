@@ -34,6 +34,7 @@ BASE= node scripts/check-converter-width.mjs
 BASE= node scripts/check-evidence.mjs
 BASE= node scripts/check-header-theme.mjs
 BASE= node scripts/check-wondermaker-finder.mjs
+BASE= node scripts/check-zr-pla-label.mjs
 BASE= node scripts/check-csp.mjs
 BASE= node scripts/check-filament-extras.mjs
 BASE= node scripts/check-content-pages.mjs

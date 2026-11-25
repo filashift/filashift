@@ -11,6 +11,8 @@ For partial results, keep the original sample and the alternative layout or mate
 
 For filament conflicts, identify the flagged project slot without presuming the spool label is wrong. `scripts/check-filament-review-ui.mjs` checks that the mixed-material sample offers both paths (incorrect preset versus intentional mix), and that the all-PLA control shows no action. Preset corrections are never applied automatically or counted as a pass for the mixed original.
 
+The base ZR's PLA qualification is separate from its 2/3 catalog result. `scripts/check-zr-pla-label.mjs` checks the label and mixed-project note in all four languages, and the generic partial-result fallback when the slicer version no longer matches the evidence.
+
 Use US spelling in English interface copy. After prerendering, the release gate runs `node scripts/check-us-english.mjs` on the English pages, including accessibility text and search metadata. Do not rename slicer fields, printer or filament names, or published guide URLs to enforce this rule.
 
 The release gate also runs `scripts/check-wondermaker-finder.mjs` on desktop Chrome and iPhone-sized WebKit. The family shortcut and plural searches must show all three distinct ZR models; reopening the picker must restore the full list. This checks model selection, not slicer certification.

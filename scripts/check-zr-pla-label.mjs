@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import {chromium} from "playwright-core";
 import {preview} from "vite";
 
-const server = await preview({configFile:false,build:{outDir:"dist/public"},preview:{host:"127.0.0.1",port:0}});
-const base=`http://127.0.0.1:${server.httpServer.address().port}`;
+const server = process.env.BASE ? null : await preview({configFile:false,build:{outDir:"dist/public"},preview:{host:"127.0.0.1",port:0}});
+const base=process.env.BASE || `http://127.0.0.1:${server.httpServer.address().port}`;
 const browser=await chromium.launch({executablePath:process.env.CHROME || `${process.env.HOME}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`});
 try {
   for(const [lang,label] of Object.entries({en:"OrcaSlicer-verified for PLA",es:"Verificado en OrcaSlicer para PLA",de:"Für PLA in OrcaSlicer verifiziert",fr:"Vérifié dans OrcaSlicer pour le PLA"})) {
@@ -14,6 +14,7 @@ try {
     await row.getByText(label,{exact:true}).waitFor();
     assert.match(await row.innerText(),/PLA\/PETG/);
     if(lang==="en") assert.match(await row.innerText(), /2 of 3 slice tests passed/);
+    if(lang==="en" && process.env.ZR_LABEL_SHOT) await row.screenshot({path:process.env.ZR_LABEL_SHOT, animations:"disabled"});
     assert.ok(!(await page.getByTestId("row-tested-wondermaker-zr-ultra").innerText()).includes(label));
     assert.ok(!(await page.getByTestId("row-tested-wondermaker-zr-ultra-s").innerText()).includes(label));
     await row.getByRole("link",{name:"WonderMaker ZR",exact:true}).click();
@@ -40,4 +41,4 @@ try {
   await fallback.getByTestId("badge-tested-wondermaker-zr").filter({hasText:"Partial pass"}).waitFor();
   await fallback.close();
   console.log("Verified base ZR row and converter details in EN/ES/DE/FR, Ultra profiles unchanged, and partial-result fallback for a different slicer version.");
-} finally {await browser.close();await server.close();}
+} finally {await browser.close();await server?.close();}
