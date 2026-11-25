@@ -9,6 +9,8 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 
 For partial results, keep the original sample and the alternative layout or material control separate. A native slicer failure is not a pass even if a partial G-code file exists; do not replace its exit code with a bed warning. `scripts/test-slice-classification.sh` checks the harness during releases. The November 25 partial retests are summarized in `docs/partial-slice-retests-2026-11-25.md`.
 
+For filament conflicts, identify the flagged project slot without presuming the spool label is wrong. `scripts/check-filament-review-ui.mjs` checks that the mixed-material sample offers both paths (incorrect preset versus intentional mix), and that the all-PLA control shows no action. Preset corrections are never applied automatically or counted as a pass for the mixed original.
+
 Use US spelling in English interface copy. After prerendering, the release gate runs `node scripts/check-us-english.mjs` on the English pages, including accessibility text and search metadata. Do not rename slicer fields, printer or filament names, or published guide URLs to enforce this rule.
 
 The release gate also runs `scripts/check-wondermaker-finder.mjs` on desktop Chrome and iPhone-sized WebKit. The family shortcut and plural searches must show all three distinct ZR models; reopening the picker must restore the full list. This checks model selection, not slicer certification.

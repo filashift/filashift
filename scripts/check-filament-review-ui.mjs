@@ -19,6 +19,7 @@ try {
     if(hasReview) {
       assert.match(await panel.locator("summary").innerText(), /filament 3 \(PETG\)/);
       assert.equal(await panel.locator("li:visible").count(),2);
+      if (process.env.FILAMENT_REVIEW_SHOT) await panel.screenshot({path:process.env.FILAMENT_REVIEW_SHOT, animations:"disabled"});
       await panel.locator("summary").click();
       assert.equal(await panel.locator("li:visible").count(),0);
     }
