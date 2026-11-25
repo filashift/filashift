@@ -76,13 +76,13 @@ const sampleLabel = (T: ReturnType<typeof useT>, s: string) => {
 export function TestedNote({ id, model, slicer, output }: { id: string; model:string; slicer?: string; output?: string }) {
   const d = useTested();
   const T=useT(), p=d?.printers[id], sl=output||p?.slicer||slicer||"OrcaSlicer";
-  if (d && id.startsWith("wondermaker-") && !p?.tests) return <p data-testid="unverified-printer" className="mt-2 rounded-lg border p-3 text-sm">{T("Unverified")}: {T("Manufacturer profile only. No destination-slicer test or physical print has been verified for this model.")}</p>;
+  if (d && id.startsWith("wondermaker-") && !p?.tests) return <p data-testid="unverified-printer" className="mt-2 rounded-lg border p-3 text-sm">{T("Unverified")}: {T("Manufacturer profile only. No destination-slicer test is recorded for this model.")}</p>;
   const row=p?.outputs?p.outputs[sl]:p && (p.slicer||slicer)===sl?p:undefined;
   const exact=demo.results.find(r=>r.id===id&&r.slicer===sl);
   if(!row || !d) return <p className="mt-2 text-xs text-muted-foreground">{T("No recorded result for this output.")}</p>;
   return <details key={id+sl} translate="no" className="mt-2 rounded-lg border p-2 text-xs" data-testid="text-tested-note">
     <summary className="cursor-pointer font-semibold text-primary" data-testid={`badge-tested-${id}`}>
-      {row.ok ? T(id === "wondermaker-zr-ultra" && sl === "OrcaSlicer" ? "OrcaSlicer-tested. No physical print verified." : "Slicer-tested") : T("Test incomplete")} · {T("View result")}
+      {row.ok ? T(id === "wondermaker-zr-ultra" && sl === "OrcaSlicer" ? "OrcaSlicer-tested" : "Slicer-tested") : T("Test incomplete")} · {T("View result")}
     </summary>
     <div className="mt-2 space-y-1.5">
       <p><b>{model}</b> · {sl} {d.slicers[sl]||""} · {p?.date || d.date}</p>
@@ -90,7 +90,7 @@ export function TestedNote({ id, model, slicer, output }: { id: string; model:st
       {row.note&&<p>{row.note==="large models must be scaled to fit this bed"?T("Large models must be scaled to fit this bed."):row.note}</p>}
       <p>{T("Source projects in the test suite:")}</p>
       <ul className="list-disc pl-4">{d.samples.filter(s=>sl==="PrusaSlicer"||!s.startsWith("PrusaSlicer output only")&&!s.startsWith("PrusaSlicer output also")).map(s=><li key={s}>{sampleLabel(T,s)}</li>)}</ul>
-      <p>{T("The total includes tested nozzle variants. These are software results, not a physical print test or a guarantee for your file.")}</p>
+      <p>{T("The total includes tested nozzle variants. These results apply to the sample projects.")}</p>
       <a className="text-primary underline" href="./profiles/tested.json">{T("Test data (JSON)")}</a>
       {exact&&<p className="border-t pt-2"><b>{T("Separate test: two-color FS nameplate.")}</b>{" "}{T("The PrusaSlicer source was converted and produced G-code with both colors in")} {exact.slicer} {exact.version} · {demo.date}. <a className="text-primary underline" href="./samples/test-results.json">{T("Sample result")}</a></p>}
     </div></details>;

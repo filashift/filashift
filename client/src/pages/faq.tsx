@@ -38,7 +38,7 @@ const FAQ = [
   },
   {
     q: "What does Slicer-tested mean?",
-    a: "A Slicer-tested badge means sample projects converted for that printer profile sliced without errors in its destination slicer. It is not a physical print test or a guarantee for your file. Check the preview before printing.",
+    a: "A Slicer-tested badge means sample projects converted for that printer profile sliced without errors in its destination slicer. Check the preview before printing.",
   },
   {
     q: "Is there a file size limit?",

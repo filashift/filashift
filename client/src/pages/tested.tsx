@@ -80,7 +80,7 @@ export default function TestedPage() {
           "@context": "https://schema.org",
           "@type": "Dataset",
           name: L("FilaShift printer profile slicer test results"),
-          description: L("Results of converting sample 3MF projects for {count} 3D printer profiles and slicing each converted file in its destination slicer's command-line tool ({versions}). Software slice tests, not physical prints.", { count: printers.length, versions: Object.entries(tested.slicers).map(([n, v]) => `${n} ${v}`).join(", ") }),
+          description: L("Results of converting sample 3MF projects for {count} 3D printer profiles and slicing each converted file in its destination slicer's command-line tool ({versions}).", { count: printers.length, versions: Object.entries(tested.slicers).map(([n, v]) => `${n} ${v}`).join(", ") }),
           inLanguage: lang,
           url: siteUrl("/tested", PATH_LANG ?? "en"),
           dateModified: tested.date,
@@ -129,7 +129,7 @@ export default function TestedPage() {
             <li>Each converted file is sliced with the command-line version of its destination slicer: OrcaSlicer, Bambu Studio or PrusaSlicer, at the versions shown above. A test passes when the slicer writes G-code without errors.</li>
             <li>Prusa printers that offer both outputs are tested as PrusaSlicer projects and as OrcaSlicer projects. Pass counts include the tested nozzle variants.</li>
             <li>A note such as “large models must be scaled to fit this bed” means a sample was bigger than the bed. The converter warns and suggests a scale; that test counts as not passed.</li>
-            <li>These are software tests, not physical prints. They show that the converted file opens and slices, not how it prints. Always check the preview in your slicer before printing.</li>
+            <li>These tests check that the converted project opens and slices. Always check the preview in your slicer before printing.</li>
           </ul>
           {tested && (
             <>

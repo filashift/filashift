@@ -328,7 +328,7 @@ export const GUIDES_DE: Record<string, GuideText> = {
       },
       {
         q: "Wie wurde das getestet?",
-        a: "Testprojekte aus ElegooSlicer und Anycubic Slicer Next wurden mit deren eigenen Kommandozeilenwerkzeugen exportiert. Die Creality-Print-Testprojekte werden aus den eigenen Profilen und dem Dateiaufbau von Creality Print erzeugt, weil dessen Kommandozeilenwerkzeug keine Projekte speichern kann. Die konvertierten Dateien wurden in den Kommandozeilenwerkzeugen der Ziel-Slicer fehlerfrei gesliced. Das sind Softwaretests, keine physischen Drucke.",
+        a: "Testprojekte aus ElegooSlicer und Anycubic Slicer Next wurden mit deren eigenen Kommandozeilenwerkzeugen exportiert. Die Creality-Print-Testprojekte werden aus den eigenen Profilen und dem Dateiaufbau von Creality Print erzeugt, weil dessen Kommandozeilenwerkzeug keine Projekte speichern kann. Die konvertierten Dateien wurden in den Kommandozeilenwerkzeugen der Ziel-Slicer fehlerfrei gesliced.",
       },
       {
         q: "Kann ich von Bambu Lab zurück zu einem Creality-Drucker wechseln?",
@@ -388,7 +388,7 @@ export const GUIDES_DE: Record<string, GuideText> = {
       },
       {
         q: "Wie wurde das getestet?",
-        a: "Beispielprojekte, darunter zwei bemalte MakerWorld-Projekte, wurden für jeden Prusa-Drucker und jede Düsenvariante konvertiert und mit dem Kommandozeilenwerkzeug von PrusaSlicer gesliced. Die einzigen Fehlschläge betrafen ein MakerWorld-Modell, das größer als das Druckbett des CORE One MMU3 ist; der Konverter weist darauf mit einem Skalierungsvorschlag hin. Das sind Softwaretests, keine physischen Drucke.",
+        a: "Beispielprojekte, darunter zwei bemalte MakerWorld-Projekte, wurden für jeden Prusa-Drucker und jede Düsenvariante konvertiert und mit dem Kommandozeilenwerkzeug von PrusaSlicer gesliced. Die einzigen Fehlschläge betrafen ein MakerWorld-Modell, das größer als das Druckbett des CORE One MMU3 ist; der Konverter weist darauf mit einem Skalierungsvorschlag hin.",
       },
     ],
   },
@@ -441,7 +441,7 @@ export const GUIDES_DE: Record<string, GuideText> = {
       },
       {
         q: "Wurde das getestet?",
-        a: "Ja, in Software. Die Standard-Beispielprojekte, konvertiert für den H3C und P3C, werden im Kommandozeilenwerkzeug von Bambu Studio fehlerfrei gesliced (siehe die Seite mit den Testergebnissen). Auch Testprojekte mit einem 2,85-mm-TPU-Filament, 10 Farben und gemischten Düsengrößen werden konvertiert und gesliced, und die Werkzeugzuordnung wird aus dem G-Code zurückgelesen. Das sind keine physischen Drucktests.",
+        a: "Ja, in Software. Die Standard-Beispielprojekte, konvertiert für den H3C und P3C, werden im Kommandozeilenwerkzeug von Bambu Studio fehlerfrei gesliced (siehe die Seite mit den Testergebnissen). Auch Testprojekte mit einem 2,85-mm-TPU-Filament, 10 Farben und gemischten Düsengrößen werden konvertiert und gesliced, und die Werkzeugzuordnung wird aus dem G-Code zurückgelesen.",
       },
     ],
   },

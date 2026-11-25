@@ -330,7 +330,7 @@ export const GUIDES_ES: Record<string, GuideText> = {
       },
       {
         q: "¿Cómo se probó?",
-        a: "Los proyectos de prueba de ElegooSlicer y Anycubic Slicer Next se exportaron con sus propias herramientas de línea de comandos. Los de Creality Print se generan a partir de los perfiles y la estructura de archivo del propio Creality Print, porque su herramienta de línea de comandos no puede guardar proyectos. Los archivos convertidos se laminaron sin errores en las herramientas de línea de comandos de los laminadores de destino. Son pruebas de software, no impresiones físicas.",
+        a: "Los proyectos de prueba de ElegooSlicer y Anycubic Slicer Next se exportaron con sus propias herramientas de línea de comandos. Los de Creality Print se generan a partir de los perfiles y la estructura de archivo del propio Creality Print, porque su herramienta de línea de comandos no puede guardar proyectos. Los archivos convertidos se laminaron sin errores en las herramientas de línea de comandos de los laminadores de destino.",
       },
       {
         q: "¿Puedo volver de Bambu Lab a una impresora Creality?",
@@ -390,7 +390,7 @@ export const GUIDES_ES: Record<string, GuideText> = {
       },
       {
         q: "¿Cómo se probó?",
-        a: "Se convirtieron proyectos de prueba, entre ellos dos proyectos pintados de MakerWorld, para cada impresora Prusa y variante de boquilla, y se laminaron con la herramienta de línea de comandos de PrusaSlicer. Los únicos fallos fueron un modelo de MakerWorld más grande que la cama de la CORE One MMU3, que el convertidor señala con una escala sugerida. Son pruebas de software, no impresiones físicas.",
+        a: "Se convirtieron proyectos de prueba, entre ellos dos proyectos pintados de MakerWorld, para cada impresora Prusa y variante de boquilla, y se laminaron con la herramienta de línea de comandos de PrusaSlicer. Los únicos fallos fueron un modelo de MakerWorld más grande que la cama de la CORE One MMU3, que el convertidor señala con una escala sugerida.",
       },
     ],
   },
@@ -443,7 +443,7 @@ export const GUIDES_ES: Record<string, GuideText> = {
       },
       {
         q: "¿Se ha probado?",
-        a: "Sí, en software. Los proyectos de prueba estándar convertidos para la H3C y la P3C se laminan sin errores en la herramienta de línea de comandos de Bambu Studio (consulta la página de resultados de las pruebas). También se convierten y laminan proyectos de prueba con un filamento TPU de 2,85 mm, 10 colores y boquillas de distintos tamaños, y la asignación de herramientas se comprueba en el G-code. No son pruebas de impresión física.",
+        a: "Sí, en software. Los proyectos de prueba estándar convertidos para la H3C y la P3C se laminan sin errores en la herramienta de línea de comandos de Bambu Studio (consulta la página de resultados de las pruebas). También se convierten y laminan proyectos de prueba con un filamento TPU de 2,85 mm, 10 colores y boquillas de distintos tamaños, y la asignación de herramientas se comprueba en el G-code.",
       },
     ],
   },

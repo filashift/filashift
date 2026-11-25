@@ -69,7 +69,8 @@ try {
           assert.ok(!(await p.getByTestId("row-tested-wondermaker-zr-ultra-s").innerText()).includes(row));
           await ultra.getByRole("link").first().click();
           const badge = p.getByTestId("badge-tested-wondermaker-zr-ultra");
-          await badge.filter({hasText:phrase}).waitFor();
+          await badge.filter({hasText:row}).waitFor();
+          assert.ok(!(await badge.innerText()).includes(phrase));
           await badge.click();
           assert.match(await p.getByTestId("text-tested-note").innerText(), /OrcaSlicer 2\.5\.2/);
         }

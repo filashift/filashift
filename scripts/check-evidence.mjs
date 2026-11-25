@@ -12,8 +12,8 @@ const chrome=[process.env.CHROME,`${process.env.HOME}/.cache/ms-playwright/chrom
 const b=await chromium.launch({executablePath:chrome});
 const targets=["flashforge-creator-5-pro","bambu-lab-x1-carbon","snapmaker-u1"];
 try {
- const notPrinted={en:/not physically printed/i,es:/sin prueba de impresión física/i,de:/kein physischer Drucktest/i,fr:/pas de test d'impression physique/i};
-const physical={en:/physical print/,es:/impresión física/,de:/physischer Drucktest/,fr:/impression physique/};
+ const sampleScope={en:/Sample sliced in the destination software/,es:/Ejemplo laminado en el programa de destino/,de:/Beispiel in der Zielsoftware gesliced/,fr:/Exemple tranché dans le logiciel de destination/};
+const evidenceScope={en:/These results apply to the sample projects/,es:/Estos resultados corresponden a los proyectos de muestra/,de:/Diese Ergebnisse gelten für die Beispielprojekte/,fr:/Ces résultats concernent les projets d’exemple/};
 for(const [lang,width] of [["en",1280],["es",320],["de",390],["fr",320]]) {
   const ctx=await b.newContext({viewport:{width,height:900},serviceWorkers:"block"});
   try {
@@ -32,7 +32,7 @@ for(const [lang,width] of [["en",1280],["es",320],["de",390],["fr",320]]) {
     const d=p.getByTestId("sample-download");await d.waitFor();
     const result=await p.getByTestId("sample-result").innerText();
     assert.match(result,/#ff8000/i);assert.match(result,/#1e7fd8/i);
-    assert.match(result,notPrinted[lang]);
+    assert.match(result,sampleScope[lang]);
     const [file]=await Promise.all([p.waitForEvent("download"),d.click()]);
     assert.match(file.suggestedFilename(),/\.3mf$/);assert.equal(await file.failure(),null);
     if(process.env.SAMPLE_OUTPUT&&lang==="en"){
@@ -44,7 +44,7 @@ for(const [lang,width] of [["en",1280],["es",320],["de",390],["fr",320]]) {
    assert.deepEqual(posts.filter(s=>!new URL(s).pathname.includes("pageview")),[]);
    const evidence=p.getByTestId("text-tested-note");await evidence.locator("summary").click();
    assert.match(await evidence.innerText(),/OrcaSlicer 2\.5\.2/);
-   assert.match(await evidence.innerText(),physical[lang]);
+   assert.match(await evidence.innerText(),evidenceScope[lang]);
    assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth),width);
    const item={b:"Atomic Filament",r:"Atomic Filament",t:"Test PLA AMS Compatible",v:"1.75mm - 1KG AMS Compatible",kg:1,n:1,d:1.75,m:"PLA",f:"PLA",p:20,ppk:20,ok:true,c:[],form:"unknown",u:"https://atomicfilament.com/products/test?variant=1"};
    const items=[item,{...item,t:"Other",v:"1 kg"},{...item,t:"Refill",form:"refill"},{...item,t:"3.5KG Black PLA",v:"1.75mm - 3.5KG",kg:3.5}];

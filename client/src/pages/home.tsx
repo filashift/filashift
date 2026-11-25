@@ -600,7 +600,7 @@ export default function Home() {
                 </div>
                 {target && <TestedNote id={target.id} model={target.model} slicer={target.slicer} output={usePrusa ? "PrusaSlicer" : target.slicer} />}
                 {target?.vendor === "WonderMaker" && <div data-testid="wondermaker-limits" className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  {target.id !== "wondermaker-zr-ultra" && <p>Wonderprint-Orca 2.3.2: unverified. Use OrcaSlicer 2.5.2 for converted projects. No physical print has been verified.</p>}
+                  {target.id !== "wondermaker-zr-ultra" && <p>Wonderprint-Orca 2.3.2: unverified. Use OrcaSlicer 2.5.2 for converted projects.</p>}
                   {target.id === "wondermaker-zr" && <p>Base ZR: four colors share one nozzle. The two-color PLA bookmark sliced; a mixed PLA/PETG test was rejected because the filament temperatures differed too much.</p>}
                   <a className="text-primary underline" href="./samples/wondermaker-results.json">WonderMaker test results</a>
                 </div>}

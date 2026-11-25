@@ -342,7 +342,7 @@ export const GUIDES: Guide[] = [
       },
       {
         q: "How was this tested?",
-        a: "Test projects from ElegooSlicer and Anycubic Slicer Next were exported by their own command-line tools. The Creality Print test projects are built from Creality Print's own presets and file layout, because its command-line tool cannot save projects. The converted files were sliced in the destination slicers' command-line tools without errors. These are software tests, not physical prints.",
+        a: "Test projects from ElegooSlicer and Anycubic Slicer Next were exported by their own command-line tools. The Creality Print test projects are built from Creality Print's own presets and file layout, because its command-line tool cannot save projects. The converted files were sliced in the destination slicers' command-line tools without errors.",
       },
       {
         q: "Can I go back from Bambu Lab to a Creality printer?",
@@ -405,7 +405,7 @@ export const GUIDES: Guide[] = [
       },
       {
         q: "How was this tested?",
-        a: "Sample projects, including two painted MakerWorld projects, were converted for every Prusa printer and nozzle variant and sliced with PrusaSlicer's command-line tool. The only failures were a MakerWorld model larger than the CORE One MMU3 bed, which the converter flags with a scale suggestion. These are software tests, not physical prints.",
+        a: "Sample projects, including two painted MakerWorld projects, were converted for every Prusa printer and nozzle variant and sliced with PrusaSlicer's command-line tool. The only failures were a MakerWorld model larger than the CORE One MMU3 bed, which the converter flags with a scale suggestion.",
       },
     ],
     updated: "2026-11-25",
@@ -461,7 +461,7 @@ export const GUIDES: Guide[] = [
       },
       {
         q: "Was this tested?",
-        a: "Yes, in software. The standard sample projects converted for the H3C and P3C slice without errors in Bambu Studio's command-line tool (see the test results page). Test projects with a 2.85 mm TPU filament, 10 colours and mixed nozzle sizes are also converted and sliced, and the tool assignment is read back from the G-code. These are not physical print tests.",
+        a: "Yes, in software. The standard sample projects converted for the H3C and P3C slice without errors in Bambu Studio's command-line tool (see the test results page). Test projects with a 2.85 mm TPU filament, 10 colours and mixed nozzle sizes are also converted and sliced, and the tool assignment is read back from the G-code.",
       },
     ],
     updated: "2026-11-25",

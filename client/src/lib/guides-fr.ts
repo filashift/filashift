@@ -328,7 +328,7 @@ export const GUIDES_FR: Record<string, GuideText> = {
       },
       {
         q: "Comment cela a-t-il été testé ?",
-        a: "Les projets de test ElegooSlicer et Anycubic Slicer Next ont été exportés avec leurs propres outils en ligne de commande. Les projets de test Creality Print sont construits à partir des profils et de la structure de fichier de Creality Print, car son outil en ligne de commande ne peut pas enregistrer de projets. Les fichiers convertis ont été tranchés sans erreur dans les outils en ligne de commande des trancheurs de destination. Ce sont des tests logiciels, pas des impressions physiques.",
+        a: "Les projets de test ElegooSlicer et Anycubic Slicer Next ont été exportés avec leurs propres outils en ligne de commande. Les projets de test Creality Print sont construits à partir des profils et de la structure de fichier de Creality Print, car son outil en ligne de commande ne peut pas enregistrer de projets. Les fichiers convertis ont été tranchés sans erreur dans les outils en ligne de commande des trancheurs de destination.",
       },
       {
         q: "Puis-je revenir de Bambu Lab vers une imprimante Creality ?",
@@ -388,7 +388,7 @@ export const GUIDES_FR: Record<string, GuideText> = {
       },
       {
         q: "Comment cela a-t-il été testé ?",
-        a: "Des projets d'exemple, dont deux projets MakerWorld peints, ont été convertis pour chaque imprimante Prusa et chaque variante de buse, puis tranchés avec l'outil en ligne de commande de PrusaSlicer. Les seuls échecs concernaient un modèle MakerWorld plus grand que le plateau de la CORE One MMU3, que le convertisseur signale avec une échelle suggérée. Ce sont des tests logiciels, pas des impressions physiques.",
+        a: "Des projets d'exemple, dont deux projets MakerWorld peints, ont été convertis pour chaque imprimante Prusa et chaque variante de buse, puis tranchés avec l'outil en ligne de commande de PrusaSlicer. Les seuls échecs concernaient un modèle MakerWorld plus grand que le plateau de la CORE One MMU3, que le convertisseur signale avec une échelle suggérée.",
       },
     ],
   },
@@ -441,7 +441,7 @@ export const GUIDES_FR: Record<string, GuideText> = {
       },
       {
         q: "Cela a-t-il été testé ?",
-        a: "Oui, de façon logicielle. Les projets d'exemple standard convertis pour la H3C et la P3C se tranchent sans erreur dans l'outil en ligne de commande de Bambu Studio (voir la page des résultats de test). Des projets de test avec un filament TPU 2,85 mm, 10 couleurs et des tailles de buse mélangées sont aussi convertis et tranchés, et l'attribution des outils est relue dans le G-code. Ce ne sont pas des tests d'impression physique.",
+        a: "Oui, de façon logicielle. Les projets d'exemple standard convertis pour la H3C et la P3C se tranchent sans erreur dans l'outil en ligne de commande de Bambu Studio (voir la page des résultats de test). Des projets de test avec un filament TPU 2,85 mm, 10 couleurs et des tailles de buse mélangées sont aussi convertis et tranchés, et l'attribution des outils est relue dans le G-code.",
       },
     ],
   },

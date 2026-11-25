@@ -52,7 +52,7 @@ export function SampleProject() {
       <p><b>{T("Check next: ")}</b>{T("In {slicer}, use File → Open Project (not Import). Check the two color assignments and first layer before printing.",{slicer})}</p>
       {done.report.lines.filter(l=>l.level==="warn").map((l,i)=><p key={i} className="text-xs">{trReport(lang,l.text)}</p>)}
       <a className="inline-block rounded bg-primary px-3 py-2 font-medium text-primary-foreground" href={done.url} download={done.report.outputName} data-testid="sample-download">{T("Download converted project (.3mf)")}</a>
-      <p className="text-xs text-muted-foreground">{T("Sample sliced in the destination software; not physically printed.")} {slicer} {version} · {evidence.date}. <a href="./samples/test-results.json" className="underline">{T("View test record")}</a></p>
+      <p className="text-xs text-muted-foreground">{T("Sample sliced in the destination software.")} {slicer} {version} · {evidence.date}. <a href="./samples/test-results.json" className="underline">{T("View test record")}</a></p>
     </div>}
   </details>;
 }
