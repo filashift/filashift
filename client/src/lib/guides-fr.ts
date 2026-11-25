@@ -95,6 +95,8 @@ export const GUIDES_FR: Record<string, GuideText> = {
           "Seules les formes apparaissent : le fichier a été importé. Utilisez Fichier → Ouvrir un projet.",
           "Le modèle est plus grand que le plateau : la plupart des plateaux Bambu Lab font 256 mm et celui de l'AD5X 220 mm. Le rapport indique quand un modèle ne tient pas et de combien le réduire.",
           "Si OrcaSlicer refuse un mélange comme le PLA et le PETG sur une même buse, vérifiez que les profils correspondent aux bobines utilisées. Si les deux matériaux sont nécessaires, gardez le contrôle de température actif et utilisez une configuration compatible.",
+          "Par exemple, si le filament 3 indique PETG alors que le modèle et la bobine sont en PLA, ouvrez une copie dans OrcaSlicer. Dans Préparer → Filament, sélectionnez le profil PLA approprié dans le menu de la ligne 3, pas dans le carré de couleur. Tranchez le plateau et vérifiez les affectations dans l’aperçu.",
+          "Si le PETG est intentionnel, consultez les notes du concepteur et le matériau d’interface dans Processus → Supports. Ne déclarez pas du PETG comme du PLA. Tranchez les pièces indépendantes sur des plateaux séparés. Si une pièce exige les deux matériaux, utilisez une configuration vérifiée pour ce mélange.",
         ],
       },
     ],

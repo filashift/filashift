@@ -95,6 +95,8 @@ export const GUIDES_DE: Record<string, GuideText> = {
           "Es erscheinen nur die Formen: Die Datei wurde importiert. Nutzen Sie Datei → Projekt öffnen.",
           "Das Modell ist größer als das Druckbett: Die meisten Bambu-Lab-Betten messen 256 mm, das der AD5X 220 mm. Der Bericht sagt, wann ein Modell nicht passt und wie stark es skaliert werden muss.",
           "Lehnt OrcaSlicer eine Mischung wie PLA und PETG an einer Düse ab, prüfen Sie, ob die Profile zu den Spulen passen. Sind beide Materialien erforderlich, lassen Sie die Temperaturprüfung aktiv und verwenden Sie eine kompatible Konfiguration.",
+          "Beispiel: Ist Filament 3 als PETG eingestellt, obwohl Entwurf und Spule PLA vorsehen, öffnen Sie eine Projektkopie. Wählen Sie in OrcaSlicer unter Vorbereiten → Filament das passende PLA-Profil im Menü der dritten Zeile, nicht im Farbfeld. Slicen Sie die Platte und prüfen Sie die Zuordnung in der Vorschau.",
+          "Ist PETG beabsichtigt, prüfen Sie die Hinweise des Designers und das Material der Kontaktschicht unter Prozess → Stützmaterial. Deklarieren Sie PETG nicht als PLA. Slicen Sie unabhängige Teile auf getrennten Platten. Benötigt ein Teil beide Materialien, verwenden Sie eine dafür geprüfte Konfiguration.",
         ],
       },
     ],

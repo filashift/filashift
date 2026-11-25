@@ -12,6 +12,7 @@
  * leave the printer slot empty so all machine settings come from the target's own profile.
  */
 import { isPrusaProject, prusaToOrca } from "./prusa";
+import { reviewSlots } from "./filament-review";
 import { strFromU8, strToU8, type Zippable } from "fflate";
 import { writeZip, type OutFiles } from "./zip-out";
 import { readArchive } from "./archive";
@@ -1286,14 +1287,25 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     const used = reps.map((r, j) => ({ j, r })).filter((x) => x.r && (a.filaments[x.r - 1]?.used || !a.usedKnown));
     const t = (k: string, j: number) => num(Array.isArray(R[k]) ? R[k][j] : R[k]) || 0;
     const bad: string[] = [];
+    const conflicts: [number, number][] = [];
     for (let x = 0; x < used.length; x++)
       for (let y = x + 1; y < used.length; y++) {
         const i = used[x].j, j = used[y].j;
         const ok = (p: number, q: number) => t("nozzle_temperature", p) >= t("nozzle_temperature_range_low", q) && t("nozzle_temperature", p) <= t("nozzle_temperature_range_high", q);
-        if (!(ok(i, j) && ok(j, i))) bad.push(`slot ${i + 1} ${outTypes[i]} ${t("nozzle_temperature", i)} °C vs slot ${j + 1} ${outTypes[j]} ${t("nozzle_temperature", j)} °C`);
+        if (!(ok(i, j) && ok(j, i))) {
+          conflicts.push([i + 1, j + 1]);
+          bad.push(`slot ${i + 1} ${outTypes[i]} ${t("nozzle_temperature", i)} °C vs slot ${j + 1} ${outTypes[j]} ${t("nozzle_temperature", j)} °C`);
+        }
       }
     if (bad.length)
       owarn(`OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges (${bad.slice(0, 2).join("; ")}). Check that the presets match the actual spools. If the project requires this mix, keep the temperature check on and use a compatible setup.`);
+    if (conflicts.length) {
+      const slots = reviewSlots(conflicts);
+      const labels = slots.map(n => `${n} (${outTypes[n - 1]})`).join(", ");
+      owarn(`Review ${slots.length === 1 ? "filament" : "filaments"} ${labels} in OrcaSlicer. Is the material selection intentional?`);
+      owarn("If a preset is wrong: in Prepare → Filament, use the numbered row’s preset dropdown, not its color square. Match the actual spool and design, save a copy, then slice and check Preview.");
+      owarn("If the mix is intentional: check the designer’s notes and Process → Support for the interface filament. Keep the temperature check on. Use separate plates for independent parts, or a verified setup if one part needs both materials.");
+    }
   }
   R.different_settings_to_system = buildDiffLists(copied, nOut, machDiff);
 

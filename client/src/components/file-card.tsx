@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { planPauses } from "@/engine/mapping";
-import { useT } from "@/lib/i18n";
+import { trReport, useT } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -427,7 +427,10 @@ function ResultPanel({ job, onReset, onPreview, working }: { job: Job; onReset: 
   const r = job.result!;
   const rep = r.report;
   const [open, setOpen] = useState(false);
+  const { lang } = useT();
   const warns = rep.lines.filter((l) => l.level === "warn");
+  const review = warns.find(l => /^Review filaments? /.test(l.text));
+  const steps = review ? warns.filter(l => l.text.startsWith("If a preset is wrong:") || l.text.startsWith("If the mix is intentional:")) : [];
   return (
     <div className="p-4" data-testid={`panel-result-${job.id}`}>
       <div className="flex items-start gap-2">
@@ -440,6 +443,10 @@ function ResultPanel({ job, onReset, onPreview, working }: { job: Job; onReset: 
         </div>
       </div>
 
+      {review && <details open className="mt-3 rounded-md border border-amber-500/40 p-3 text-sm" data-testid="filament-review" translate="no">
+        <summary className="cursor-pointer font-medium">{trReport(lang, review.text)}</summary>
+        <ul className="mt-2 list-disc space-y-2 pl-5">{steps.map(l => <li key={l.text}>{trReport(lang, l.text)}</li>)}</ul>
+      </details>}
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <Button asChild className="flex-1" data-testid={`button-download-${job.id}`}>
           <a href={r.url} download={r.name}>
@@ -483,7 +490,7 @@ function ResultPanel({ job, onReset, onPreview, working }: { job: Job; onReset: 
       />
 
       <ul className="mt-4 space-y-2" data-testid={`list-report-${job.id}`}>
-        {warns.map((l, i) => (
+        {warns.filter(l => l !== review && !steps.includes(l)).map((l, i) => (
           <li key={"w" + i} className="flex gap-2 rounded-md bg-amber-500/10 p-2 text-sm text-amber-900 dark:text-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             {l.text}

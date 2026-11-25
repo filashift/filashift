@@ -97,6 +97,8 @@ export const GUIDES_ES: Record<string, GuideText> = {
           "Solo aparecen las formas: el archivo se importó. Usa Archivo → Abrir proyecto.",
           "El modelo es más grande que la cama: la mayoría de las camas de Bambu Lab miden 256 mm y la de la AD5X, 220 mm. El informe indica cuándo un modelo no cabe y cuánto hay que escalarlo.",
           "Si OrcaSlicer rechaza una mezcla como PLA y PETG en una sola boquilla, comprueba que los perfiles coincidan con las bobinas reales. Si el proyecto requiere ambos materiales, mantén activa la comprobación de temperatura y usa una configuración compatible.",
+          "Por ejemplo, si el filamento 3 indica PETG pero tanto el diseño como la bobina requieren PLA, abre una copia en OrcaSlicer. En Preparar → Filamento, selecciona el perfil PLA adecuado en el menú de la fila 3, no en el cuadro de color. Lamina la placa y comprueba las asignaciones en la vista previa.",
+          "Si el PETG es intencional, consulta las notas del diseñador y el material de interfaz en Proceso → Soporte. No etiquetes el PETG como PLA. Lamina las piezas independientes en placas separadas; si una sola pieza necesita ambos materiales, usa una configuración verificada para esa mezcla.",
         ],
       },
     ],

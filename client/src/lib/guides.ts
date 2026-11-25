@@ -113,6 +113,8 @@ export const GUIDES: Guide[] = [
           "Only the shapes appear: the file was imported. Use File → Open Project.",
           "The model is larger than the bed: most Bambu Lab beds are 256 mm, the AD5X bed is 220 mm. The report says when a model doesn't fit and how much to scale it.",
           "If OrcaSlicer rejects a mix such as PLA and PETG on one nozzle, check that the filament presets match the actual spools. If the project requires both materials, keep the temperature check on and use a compatible setup.",
+          "For example, if filament 3 is set to PETG but the design and spool are PLA, open a copy in OrcaSlicer. In Prepare → Filament, select the matching PLA preset in row 3 using the dropdown, not the color square. Slice the plate and check the filament assignments in Preview.",
+          "If PETG was intentional, check the designer’s notes and the support interface under Process → Support. Do not relabel PETG as PLA. Slice independent parts on separate plates; if a single part needs both materials, use a setup verified for that mix.",
         ],
       },
     ],

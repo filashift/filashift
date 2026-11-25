@@ -2,6 +2,9 @@
 import type { Rules } from "./report-types";
 
 export const REPORT_FR: Rules = [
+  [/^Review (filaments?) (.+) in OrcaSlicer\. Is the material selection intentional\?$/, (_m, f, slots) => `Vérifiez ${f === "filament" ? "le filament" : "les filaments"} ${slots} dans OrcaSlicer. Ce choix de matériau est-il intentionnel ?`],
+  [/^If a preset is wrong: in Prepare → Filament,.+$/, "Si le profil est incorrect : dans Préparer → Filament, utilisez le menu du profil sur la ligne numérotée, pas le carré de couleur. Choisissez le profil correspondant à la bobine et au modèle. Enregistrez une copie, tranchez et vérifiez l’aperçu."],
+  [/^If the mix is intentional: check the designer’s notes.+$/, "Si le mélange est intentionnel, consultez les notes du concepteur et le filament d’interface dans Processus → Supports. Gardez le contrôle de température actif. Répartissez les pièces indépendantes sur plusieurs plateaux ou utilisez une configuration vérifiée si une pièce exige les deux matériaux."],
   [/^(?:Plate (\d+): )?The current layout is (\d+) × (\d+) mm on a (\d+) × (\d+) mm bed\. To keep the original dimensions,.+$/, (_m, p, w, h, x, y) => `${p ? `Plateau ${p} : ` : ""}La disposition occupe ${w} × ${h} mm sur un plateau de ${x} × ${y} mm. Pour conserver les dimensions d’origine, réorganisez les objets ou déplacez-en certains sur un autre plateau. Laissez de la place pour la tour de purge si nécessaire.`],
   [/^Converted for (.+)\. Open it in (.+) with File → Open Project \(not Import\), review, then slice\.$/, "Converti pour $1. Ouvrez-le dans $2 avec Fichier → Ouvrir un projet (pas Importer), vérifiez-le, puis tranchez."],
   [/^Print preset: “(.+)” \(closest to the project's ([\d.]+) mm layers\)\. Machine settings, start\/end G-code and limits come from “(.+)”\.$/, "Profil d'impression : « $1 » (le plus proche des couches de $2 mm du projet). Les réglages machine, le G-code de début/fin et les limites proviennent de « $3 »."],
