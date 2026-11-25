@@ -1293,7 +1293,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
         if (!(ok(i, j) && ok(j, i))) bad.push(`slot ${i + 1} ${outTypes[i]} ${t("nozzle_temperature", i)} °C vs slot ${j + 1} ${outTypes[j]} ${t("nozzle_temperature", j)} °C`);
       }
     if (bad.length)
-      owarn(`OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges (${bad.slice(0, 2).join("; ")}). Use materials that print at similar temperatures, or turn on Preferences → Control → Slicing → Remove mixed temperature restriction if you accept the risk.`);
+      owarn(`OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges (${bad.slice(0, 2).join("; ")}). Check that the presets match the actual spools. If the project requires this mix, keep the temperature check on and use a compatible setup.`);
   }
   R.different_settings_to_system = buildDiffLists(copied, nOut, machDiff);
 
@@ -1505,7 +1505,11 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (w > dstArea.w || h > dstArea.h) {
       const rot = h <= dstArea.w && w <= dstArea.h;
       const pct = Math.floor(Math.min(dstArea.w / w, dstArea.h / h) * 95);
-      warn(`${lab ? lab + "the" : "The"} model footprint is ${w.toFixed(0)} × ${h.toFixed(0)} mm, larger than the ${dstArea.w.toFixed(0)} × ${dstArea.h.toFixed(0)} mm bed. ${rot ? "Rotating it 90° in the slicer should make it fit." : `Scale it to about ${pct}% or split it before slicing.`}`);
+      if ((parts.get(pid)?.length ?? 0) > 1) {
+        warn(`${lab}The current layout is ${w.toFixed(0)} × ${h.toFixed(0)} mm on a ${dstArea.w.toFixed(0)} × ${dstArea.h.toFixed(0)} mm bed. To keep the original dimensions, arrange the separate objects or move some to another plate. Leave room for the wipe tower if used.`);
+      } else {
+        warn(`${lab ? lab + "the" : "The"} model footprint is ${w.toFixed(0)} × ${h.toFixed(0)} mm, larger than the ${dstArea.w.toFixed(0)} × ${dstArea.h.toFixed(0)} mm bed. ${rot ? "Rotating it 90° in the slicer should make it fit." : `Scale it to about ${pct}% or split it before slicing.`}`);
+      }
     } else {
       const x0 = fit[0] + dx, y0 = fit[1] + dy, x1 = fit[2] + dx, y1 = fit[3] + dy;
       if (x0 < dstArea.minx - 0.5 || y0 < dstArea.miny - 0.5 || x1 > dstArea.minx + dstArea.w + 0.5 || y1 > dstArea.miny + dstArea.h + 0.5)

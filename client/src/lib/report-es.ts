@@ -2,6 +2,7 @@
 import type { Rules } from "./report-types";
 
 export const REPORT_ES: Rules = [
+  [/^(?:Plate (\d+): )?The current layout is (\d+) × (\d+) mm on a (\d+) × (\d+) mm bed\. To keep the original dimensions,.+$/, (_m, p, w, h, x, y) => `${p ? `Placa ${p}: ` : ""}La distribución ocupa ${w} × ${h} mm en una cama de ${x} × ${y} mm. Para conservar las dimensiones originales, reorganiza los objetos o mueve algunos a otra placa. Deja espacio para la torre de purga si se utiliza.`],
   [/^Converted for (.+)\. Open it in (.+) with File → Open Project \(not Import\), review, then slice\.$/, "Convertido para $1. Ábrelo en $2 con Archivo → Abrir proyecto (no Importar), revísalo y lamina."],
   [/^Print preset: “(.+)” \(closest to the project's ([\d.]+) mm layers\)\. Machine settings, start\/end G-code and limits come from “(.+)”\.$/, "Perfil de impresión: “$1” (el más cercano a las capas de $2 mm del proyecto). Los ajustes de máquina, el G-code de inicio/fin y los límites vienen de “$3”."],
   [/^Build plate set to “(.+)”\.$/, "Placa de impresión: “$1”."],
@@ -46,7 +47,7 @@ export const REPORT_ES: Rules = [
   [/^Build plate changed from “(.+)” to “(.+)”: the (.+) filament presets have no bed temperature for the original plate\. .+$/, "Placa cambiada de “$1” a “$2”: los perfiles de filamento de la $3 no tienen temperatura de cama para la placa original. Instala esa placa antes de imprimir o elige otra en el laminador."],
   [/^No build plate suits every filament in the (.+) presets\. .+$/, "Ninguna placa sirve para todos los filamentos en los perfiles de la $1. Elige una placa en el laminador y revisa las temperaturas de la cama."],
   [/^The model has hand-painted supports, so support generation was switched on\.$/, "El modelo tiene soportes pintados a mano, así que se activó la generación de soportes."],
-  [/^OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges \((.+)\)\. .+$/, (_m: string, x: string) => `OrcaSlicer no laminará esto tal cual: con una sola boquilla, la temperatura de cada filamento debe estar dentro del rango recomendado de los demás (${x.replace(/slot (\d+)/g, "ranura $1")}). Usa materiales que se impriman a temperaturas parecidas, o activa Preferencias → Control → Laminado → Quitar la restricción de temperaturas mezcladas si aceptas el riesgo.`],
+  [/^OrcaSlicer will refuse to slice this as-is: on a single nozzle every filament's temperature must sit inside the others' recommended ranges \((.+)\)\. .+$/, (_m: string, x: string) => `OrcaSlicer no laminará esto tal cual: con una sola boquilla, la temperatura de cada filamento debe estar dentro del rango recomendado de los demás (${x.replace(/slot (\d+)/g, "ranura $1")}). Comprueba que los perfiles coincidan con las bobinas reales. Si el proyecto requiere esta mezcla, mantén activa la comprobación de temperatura y usa una configuración compatible.`],
   [/^Exported ([\d,]+) triangles from (\d+) parts?( on (\d+) plates \(one file per plate\))? as (STL|OBJ), in millimeters, with the parts in their plate positions\.$/, (_m: string, t: string, n: string, many: string, pl: string, f: string) => `Se exportaron ${t.replace(/,/g, ".")} triángulos de ${n} pieza(s)${many ? ` en ${pl} placas (un archivo por placa)` : ""} como ${f}, en milímetros, con las piezas en su posición en la placa.`],
   [/^STL stores shape only: .+$/, "El STL solo guarda la forma: no incluye colores, asignaciones de filamento, placas ni ajustes de impresión. Usa OBJ para mantener el color de cada pieza, o convierte el 3MF para conservarlo todo."],
   [/^OBJ keeps one color per part \(from its filament\) in the \.mtl file\. Print settings are not included\.$/, "El OBJ guarda un color por pieza (según su filamento) en el archivo .mtl. No incluye los ajustes de impresión."],
@@ -58,4 +59,3 @@ export const REPORT_ES: Rules = [
   [/^No printable meshes were found in this file\.$/, "No se encontraron mallas imprimibles en este archivo."],
   [/^This printer profile has no pause G-code, so the pauses use M600\. .+$/, "Este perfil no tiene G-code de pausa, así que las pausas usan M600. Comprueba que tu firmware lo admita (en Klipper necesita una macro M600)."],
 ];
-

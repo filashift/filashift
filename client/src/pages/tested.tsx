@@ -128,7 +128,7 @@ export default function TestedPage() {
             <li>Sample projects (listed below) are converted for every printer profile by the same code that runs in your browser.</li>
             <li>Each converted file is sliced with the command-line version of its destination slicer: OrcaSlicer, Bambu Studio or PrusaSlicer, at the versions shown above. A test passes when the slicer writes G-code without errors.</li>
             <li>Prusa printers that offer both outputs are tested as PrusaSlicer projects and as OrcaSlicer projects. Pass counts include the tested nozzle variants.</li>
-            <li>A note such as “large models must be scaled to fit this bed” means a sample was bigger than the bed. The converter warns and suggests a scale; that test counts as not passed.</li>
+            <li>A bed-fit failure is not a pass. Try rearranging separate objects or moving them to another plate before resizing.</li>
             <li>These tests check that the converted project opens and slices. Always check the preview in your slicer before printing.</li>
           </ul>
           {tested && (
@@ -233,7 +233,7 @@ export default function TestedPage() {
                       <td className="col-span-2 text-xs text-muted-foreground md:py-2.5 md:align-top">
                         {p.prusaOnly && <div>PrusaSlicer only: always converted to a PrusaSlicer project.</div>}
                         {p.prusa && !p.prusaOnly && <div>PrusaSlicer or OrcaSlicer output.</div>}
-                        {notes.map((n) => <div key={n}>{n === "large models must be scaled to fit this bed" ? "Large models must be scaled to fit this bed." : n}</div>)}
+                        {notes.map((n) => <div key={n}>{n === "large models must be scaled to fit this bed" ? L("The sample layout exceeds the bed. Try rearranging objects or using another plate before resizing.") : n}</div>)}
                         {p.vendor === "WonderMaker" && <a href="./samples/wondermaker-results.json" className="text-primary underline">WonderMaker test results</a>}
                       </td>
                     </tr>

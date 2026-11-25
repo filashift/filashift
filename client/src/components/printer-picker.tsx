@@ -87,7 +87,7 @@ export function TestedNote({ id, model, slicer, output }: { id: string; model:st
     <div className="mt-2 space-y-1.5">
       <p><b>{model}</b> · {sl} {d.slicers[sl]||""} · {p?.date || d.date}</p>
       <p>{T("{passed} of {tests} slice tests passed for this output.",{passed:row.passed,tests:row.tests})}</p>
-      {row.note&&<p>{row.note==="large models must be scaled to fit this bed"?T("Large models must be scaled to fit this bed."):row.note}</p>}
+      {row.note&&<p>{row.note==="large models must be scaled to fit this bed"?T("The sample layout exceeds the bed. Try rearranging objects or using another plate before resizing."):row.note}</p>}
       <p>{T("Source projects in the test suite:")}</p>
       <ul className="list-disc pl-4">{d.samples.filter(s=>sl==="PrusaSlicer"||!s.startsWith("PrusaSlicer output only")&&!s.startsWith("PrusaSlicer output also")).map(s=><li key={s}>{sampleLabel(T,s)}</li>)}</ul>
       <p>{T("The total includes tested nozzle variants. These results apply to the sample projects.")}</p>

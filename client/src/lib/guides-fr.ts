@@ -94,7 +94,7 @@ export const GUIDES_FR: Record<string, GuideText> = {
         list: [
           "Seules les formes apparaissent : le fichier a été importé. Utilisez Fichier → Ouvrir un projet.",
           "Le modèle est plus grand que le plateau : la plupart des plateaux Bambu Lab font 256 mm et celui de l'AD5X 220 mm. Le rapport indique quand un modèle ne tient pas et de combien le réduire.",
-          "OrcaSlicer refuse de trancher à cause de températures mélangées : le projet mélange des matériaux comme le PLA et le PETG sur une même buse. Utilisez un seul type de matériau ou, si vous savez que le mélange est sûr, levez la restriction de températures mixtes dans les préférences d'OrcaSlicer.",
+          "Si OrcaSlicer refuse un mélange comme le PLA et le PETG sur une même buse, vérifiez que les profils correspondent aux bobines utilisées. Si les deux matériaux sont nécessaires, gardez le contrôle de température actif et utilisez une configuration compatible.",
         ],
       },
     ],
@@ -388,7 +388,7 @@ export const GUIDES_FR: Record<string, GuideText> = {
       },
       {
         q: "Comment cela a-t-il été testé ?",
-        a: "Des projets d'exemple, dont deux projets MakerWorld peints, ont été convertis pour chaque imprimante Prusa et chaque variante de buse, puis tranchés avec l'outil en ligne de commande de PrusaSlicer. Les seuls échecs concernaient un modèle MakerWorld plus grand que le plateau de la CORE One MMU3, que le convertisseur signale avec une échelle suggérée.",
+        a: "Sur la CORE One MMU3, une disposition MakerWorld de huit objets dépassait du plateau. PrusaSlicer a signalé un conflit avec la tour de purge avant de s’arrêter anormalement. En plaçant quatre objets par plateau sans les redimensionner, les deux plateaux ont produit du G-code avec les buses de 0,4 et 0,6 mm. La disposition d’origine n’a pas réussi le test.",
       },
     ],
   },

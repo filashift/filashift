@@ -94,7 +94,7 @@ export const GUIDES_DE: Record<string, GuideText> = {
         list: [
           "Es erscheinen nur die Formen: Die Datei wurde importiert. Nutzen Sie Datei → Projekt öffnen.",
           "Das Modell ist größer als das Druckbett: Die meisten Bambu-Lab-Betten messen 256 mm, das der AD5X 220 mm. Der Bericht sagt, wann ein Modell nicht passt und wie stark es skaliert werden muss.",
-          "OrcaSlicer verweigert das Slicen wegen gemischter Temperaturen: Das Projekt mischt Materialien wie PLA und PETG auf einer Düse. Verwenden Sie nur einen Materialtyp oder, wenn Sie wissen, dass die Mischung sicher ist, heben Sie in den OrcaSlicer-Einstellungen die Einschränkung für gemischte Temperaturen auf.",
+          "Lehnt OrcaSlicer eine Mischung wie PLA und PETG an einer Düse ab, prüfen Sie, ob die Profile zu den Spulen passen. Sind beide Materialien erforderlich, lassen Sie die Temperaturprüfung aktiv und verwenden Sie eine kompatible Konfiguration.",
         ],
       },
     ],
@@ -388,7 +388,7 @@ export const GUIDES_DE: Record<string, GuideText> = {
       },
       {
         q: "Wie wurde das getestet?",
-        a: "Beispielprojekte, darunter zwei bemalte MakerWorld-Projekte, wurden für jeden Prusa-Drucker und jede Düsenvariante konvertiert und mit dem Kommandozeilenwerkzeug von PrusaSlicer gesliced. Die einzigen Fehlschläge betrafen ein MakerWorld-Modell, das größer als das Druckbett des CORE One MMU3 ist; der Konverter weist darauf mit einem Skalierungsvorschlag hin.",
+        a: "Auf dem CORE One MMU3 ragte eine MakerWorld-Anordnung mit acht Objekten über das Druckbett hinaus. PrusaSlicer meldete einen Konflikt mit dem Reinigungsturm und brach ab. Mit vier Objekten pro Platte in Originalgröße erzeugte PrusaSlicer für beide Platten G-Code, sowohl mit der 0,4-mm- als auch mit der 0,6-mm-Düse. Die ursprüngliche Anordnung gilt nicht als bestanden.",
       },
     ],
   },

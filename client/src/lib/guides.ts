@@ -112,7 +112,7 @@ export const GUIDES: Guide[] = [
         list: [
           "Only the shapes appear: the file was imported. Use File → Open Project.",
           "The model is larger than the bed: most Bambu Lab beds are 256 mm, the AD5X bed is 220 mm. The report says when a model doesn't fit and how much to scale it.",
-          "OrcaSlicer refuses to slice because of mixed temperatures: the project mixes materials such as PLA and PETG in one nozzle. Use one material type, or turn on Remove mixed temperature restriction in OrcaSlicer's preferences if you know the mix is safe.",
+          "If OrcaSlicer rejects a mix such as PLA and PETG on one nozzle, check that the filament presets match the actual spools. If the project requires both materials, keep the temperature check on and use a compatible setup.",
         ],
       },
     ],
@@ -405,7 +405,7 @@ export const GUIDES: Guide[] = [
       },
       {
         q: "How was this tested?",
-        a: "Sample projects, including two painted MakerWorld projects, were converted for every Prusa printer and nozzle variant and sliced with PrusaSlicer's command-line tool. The only failures were a MakerWorld model larger than the CORE One MMU3 bed, which the converter flags with a scale suggestion.",
+        a: "On the CORE One MMU3, one eight-object MakerWorld layout exceeded the bed and PrusaSlicer reported a wipe-tower path conflict before it exited abnormally. Keeping the original dimensions and arranging four objects per plate produced G-code for both plates with the 0.4 mm and 0.6 mm nozzles. The original layout is not a pass.",
       },
     ],
     updated: "2026-11-25",

@@ -25,6 +25,7 @@ git archive --format=tar.gz --prefix="filashift-$REV/" -o "dist/public/downloads
 [[ "$(gzip -dc "dist/public/downloads/filashift-$REV.tar.gz" | { git get-tar-commit-id; cat >/dev/null; })" == "$REV" ]]
 node scripts/prerender.mjs
 node scripts/check-us-english.mjs
+bash scripts/test-slice-classification.sh
 # Always validate this candidate, never a BASE override pointing at the old site.
 BASE= node scripts/check-converter-width.mjs
 BASE= node scripts/check-evidence.mjs

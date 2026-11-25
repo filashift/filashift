@@ -96,7 +96,7 @@ export const GUIDES_ES: Record<string, GuideText> = {
         list: [
           "Solo aparecen las formas: el archivo se importó. Usa Archivo → Abrir proyecto.",
           "El modelo es más grande que la cama: la mayoría de las camas de Bambu Lab miden 256 mm y la de la AD5X, 220 mm. El informe indica cuándo un modelo no cabe y cuánto hay que escalarlo.",
-          "OrcaSlicer no quiere laminar por mezcla de temperaturas: el proyecto mezcla materiales como PLA y PETG en una misma boquilla. Usa un solo tipo de material o, si sabes que la mezcla es segura, activa la opción para quitar la restricción de temperaturas mezcladas en las preferencias de OrcaSlicer.",
+          "Si OrcaSlicer rechaza una mezcla como PLA y PETG en una sola boquilla, comprueba que los perfiles coincidan con las bobinas reales. Si el proyecto requiere ambos materiales, mantén activa la comprobación de temperatura y usa una configuración compatible.",
         ],
       },
     ],
@@ -390,7 +390,7 @@ export const GUIDES_ES: Record<string, GuideText> = {
       },
       {
         q: "¿Cómo se probó?",
-        a: "Se convirtieron proyectos de prueba, entre ellos dos proyectos pintados de MakerWorld, para cada impresora Prusa y variante de boquilla, y se laminaron con la herramienta de línea de comandos de PrusaSlicer. Los únicos fallos fueron un modelo de MakerWorld más grande que la cama de la CORE One MMU3, que el convertidor señala con una escala sugerida.",
+        a: "En la CORE One MMU3, una distribución de MakerWorld con ocho objetos excedía la cama. PrusaSlicer detectó un conflicto con la torre de purga antes de cerrarse de forma inesperada. Al colocar cuatro objetos por placa sin cambiar sus dimensiones, ambas placas generaron G-code con las boquillas de 0,4 y 0,6 mm. La distribución original no pasó la prueba.",
       },
     ],
   },

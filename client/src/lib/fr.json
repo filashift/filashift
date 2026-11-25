@@ -1,4 +1,6 @@
 {
+  "A bed-fit failure is not a pass. Try rearranging separate objects or moving them to another plate before resizing.": "Si la disposition dépasse du plateau, le test n’est pas réussi. Avant de redimensionner les objets, réorganisez-les ou déplacez-en certains sur un autre plateau.",
+  "The sample layout exceeds the bed. Try rearranging objects or using another plate before resizing.": "La disposition de l’échantillon dépasse du plateau. Avant de redimensionner les objets, réorganisez-les ou répartissez-les sur plusieurs plateaux.",
   "OrcaSlicer-tested": "Testé avec OrcaSlicer",
   "Use standard OrcaSlicer 2.5.2 for converted projects. Wonderprint-Orca 2.3.2 is not supported for this workflow.": "Utilisez la version standard d’OrcaSlicer 2.5.2 pour les projets convertis. Wonderprint-Orca 2.3.2 n’est pas pris en charge pour cette procédure.",
   "Source code": "Code source",

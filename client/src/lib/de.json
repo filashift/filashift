@@ -1,4 +1,6 @@
 {
+  "A bed-fit failure is not a pass. Try rearranging separate objects or moving them to another plate before resizing.": "Passt die Anordnung nicht auf das Druckbett, gilt der Test nicht als bestanden. Ordnen Sie einzelne Objekte neu an oder verschieben Sie sie vor dem Skalieren auf eine andere Platte.",
+  "The sample layout exceeds the bed. Try rearranging objects or using another plate before resizing.": "Die Beispielanordnung ragt über das Druckbett hinaus. Ordnen Sie Objekte vor dem Skalieren neu an oder verwenden Sie eine weitere Platte.",
   "OrcaSlicer-tested": "Mit OrcaSlicer getestet",
   "Use standard OrcaSlicer 2.5.2 for converted projects. Wonderprint-Orca 2.3.2 is not supported for this workflow.": "Verwende für konvertierte Projekte die Standardversion von OrcaSlicer 2.5.2. Wonderprint-Orca 2.3.2 wird für diesen Ablauf nicht unterstützt.",
   "Source code": "Quellcode",

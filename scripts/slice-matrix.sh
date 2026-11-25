@@ -4,23 +4,22 @@
 # json "slicer" == "PrusaSlicer" uses /tmp/slicers/prusa (text G-code); its line also reports the tool changes
 # (T0..Tn), colour changes (M600) and whether the project carries painted triangles (mmu_segmentation).
 for f in "$@"; do
-  D=$(dirname $f); b=$(basename $f .3mf); j=$D/$b.json; o=$D/out_$b; rm -rf $o; mkdir -p $o
+  D=$(dirname "$f"); b=$(basename "$f" .3mf); j=$D/$b.json; o=$D/out_$b; rm -rf -- "$o"; mkdir -p "$o"
   sl=$(python3 -c "import json;print(json.load(open('$j'))['slicer'])")
-  if [[ $sl == "Bambu Studio" ]]; then cli=/tmp/slicers/bambu; elif [[ $sl == "PrusaSlicer" ]]; then cli=/tmp/slicers/prusa; else cli=/tmp/slicers/orca; fi
-  timeout 400 $cli $EXTRA --slice 0 --outputdir $o $f > $o/log.txt 2>&1
-  python3 - "$o" "$b" "$sl" "$f" <<'PY'
-import json,sys,glob,re,zipfile
-o,b,sl,f=sys.argv[1:]
+  if [[ $sl == "Bambu Studio" ]]; then cli=/tmp/slicers/bambu; elif [[ $sl == "PrusaSlicer" ]]; then cli=${PRUSA_ADAPTER:-/tmp/slicers/prusa}; else cli=/tmp/slicers/orca; fi
+  timeout 400 "$cli" $EXTRA --slice 0 --outputdir "$o" "$f" > "$o/log.txt" 2>&1
+  python3 - "$o" "$b" "$sl" "$f" "$?" <<'PY'
+import json,sys,glob,re,zipfile,os
+o,b,sl,f,process_rc=sys.argv[1:]
 try: r=json.load(open(o+'/result.json'))
-except Exception: r={'return_code':'none','error_string':'no result.json'}
-# PrusaSlicer has no "objects over the bed" code like Orca/Bambu's -52: when the converter already warned that the
-# model is larger than the bed and PrusaSlicer fails (it can crash on a wipe tower that overlaps the model), report -52
-if sl=='PrusaSlicer' and r.get('return_code')!=0:
-  try:
-    if any('larger than the' in l['text'] and 'bed' in l['text'] for l in json.load(open(f[:-4]+'.json'))['lines'] if l['level']=='warn'):
-      r={'return_code':-52,'error_string':'model larger than the bed (the converter warned to scale it); PrusaSlicer rc=%s'%r.get('return_code')}
-  except Exception: pass
+except Exception: r={'return_code':int(process_rc) or 1,'error_string':'no result.json'}
 g=sorted(glob.glob(o+'/*.gcode'))
+def has_toolpath(p):
+  if os.path.getsize(p)<=1000: return False
+  with open(p,'rb') as stream:
+    return any(re.match(rb'^G[123]\s',line) and re.search(rb'\s[XY]-?[\d.]',line) and re.search(rb'\sE-?[\d.]',line) for line in stream)
+if r.get('return_code')==0 and (int(process_rc) or not g or not all(has_toolpath(p) for p in g)):
+  r={'return_code':int(process_rc) or 1,'error_string':'process failed or no complete G-code output'}
 info=''
 if g and r.get('return_code')==0:
   t=open(g[0],errors='ignore').read()
