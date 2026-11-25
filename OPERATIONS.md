@@ -74,7 +74,8 @@ FilaShift (https://filashift.com) converts Bambu Studio / OrcaSlicer 3MF project
 ## Problem reports (/api)
 
 - Service: `filashift-api.service` runs `/opt/filashift/filashift-api.py` (stdlib Python, user caddy) on 127.0.0.1:8787; Caddy proxies `/api/*` with a 16 KB body cap. Source: `deploy/filashift-api.py`, unit `deploy/filashift-api.service`.
-- Endpoints: `POST /api/report` (message, link, email, details, page; honeypot field `website`), `GET /api/health`. Limits: 5 reports per IP per hour, 200 per day overall. No request logging.
+- Endpoints: `POST /api/report` (message, link, email, details, page; honeypot field `website`), `GET /api/health`.
+- Printer requests use the same endpoint with `"kind": "printer-request"` and only brand, model, optional slicer, optional note (`message`) and page; stored reports carry `"kind": "printer-request"` (problem reports have no `kind`). Test: `python3 scripts/test-printer-request.py`. Limits: 5 reports per IP per hour, 200 per day overall. No request logging.
 - Reports land in `/var/lib/filashift/reports/<id>.json` with `"status": "new"`. There is no outgoing email: the Ops Teammate checks daily (`ls /var/lib/filashift/reports`), triages, sets `status` to `seen`/`fixed`, and tells David about anything needing a reply (reply from support@jacksoncgc.com). Reports older than 12 months must be deleted (privacy page promise): `deploy/filashift-reports-cleanup.timer` does it daily once installed; otherwise run `find /var/lib/filashift/reports -name '*.json' -mtime +365 -delete`.
 - The 3MF file is never sent; "conversion details" (file name, source/target, counts, warnings, browser) are included only if the visitor leaves the box ticked.
 - Keep Caddy access logs disabled. The first-party page-view counter stores only UTC date and a sitewide total, outside the web root. No per-page breakdown, cookies, identifiers or event records. Counts begin at rollout; an absent row is not evidence of historical zero traffic. Offline, blocked, automated release-test, DNT and GPC views are not counted. Totals are approximate and not unique visitors.
@@ -146,3 +147,9 @@ is live. The workflow cannot deploy, push, or roll back a release.
 - npm: `overrides.postcss-selector-parser ^6.1.6` clears the last moderate build-time advisory (`npm audit` = 0).
 - Filament collector: Jayo moved to `store.jayo3d.com` (old www store lists $0 prices). Region-only listings (`[EU Only]`, United Kingdom variants, etc.) are skipped.
 - Rebase note: `git pull --rebase` re-commits local work with the sandbox's committer identity; pull with the same GIT_COMMITTER_* env vars (or merge) before releasing. 96fd1be (fork importers) carries committer "filashift" for this reason; history was not rewritten.
+
+## Test results page, printer requests, Nov 2026 guides (branch feat/content-pages)
+- `/tested` (client/src/pages/tested.tsx) reads `/profiles/tested.json` and `/profiles/index.json` in the browser: summary, plain-language test method (software slice tests, not physical prints), searchable table with brand/slicer filters (`?q=`, `?brand=`, `?slicer=`), Dataset JSON-LD, prerendered and in the sitemap. Linked from the home Brands section and the footer.
+- "Request a printer" (client/src/components/printer-request.tsx) opens from the printer picker's empty search state, the home Brands section and `/tested`. It has no email field. Needs the updated deploy/filashift-api.py; the old API rejects requests.
+- Three guides dated 2026-11-25 in guides.ts / guides-es.ts: `creality-print-to-bambu`, `bambu-to-prusaslicer-mmu3-xl`, `bambu-h3c-p3c-multicolour` (Printer conversion topic; check-guide-seo expects 9 there).
+- Test: `npm run build && node scripts/prerender.mjs && node scripts/check-content-pages.mjs` (EN/ES at 1280, 320 and iPhone 13 webkit; mocks `/api/report`; `SHOTS=dir` saves screenshots).

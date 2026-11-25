@@ -283,4 +283,168 @@ export const GUIDES_ES: Record<string, GuideText> = {
       },
     ],
   },
+  "creality-print-to-bambu": {
+    title: "Convertir un proyecto de Creality Print para Bambu Lab",
+    meta: "Convierte 3MF de Creality Print, ElegooSlicer y Anycubic Slicer Next a Bambu Studio | FilaShift",
+    desc: "Pasa un proyecto 3MF de Creality Print (y proyectos de ElegooSlicer o Anycubic Slicer Next) a una impresora Bambu Lab: colores asignados a las ranuras del AMS, perfiles de Bambu y ajustes exclusivos del laminador de origen eliminados. Incluye los límites de los filamentos mezclados de Creality Print y las placas especiales.",
+    intro:
+      "Creality Print, ElegooSlicer y Anycubic Slicer Next se basan en el mismo código que OrcaSlicer y Bambu Studio, así que sus proyectos 3MF se pueden pasar a una impresora Bambu Lab. FilaShift reconoce qué laminador guardó el archivo, conserva el modelo, la pintura y los ajustes del diseñador, y aplica los perfiles de impresora, proceso y filamento propios de Bambu Lab.",
+    steps: [
+      "En Creality Print, ElegooSlicer o Anycubic Slicer Next, guarda el proyecto con Archivo → Guardar proyecto como (un proyecto .3mf, no un STL exportado ni G-code).",
+      "Suelta el 3MF en FilaShift y elige tu impresora Bambu Lab. La tarjeta del archivo muestra qué laminador guardó el proyecto.",
+      "Asigna cada color a una ranura del AMS. Si tienes menos ranuras que colores, los colores parecidos comparten ranura.",
+      "Convierte, descarga y lee el informe, sobre todo las líneas sobre placas de impresión y filamentos mezclados.",
+      open("Bambu Studio"),
+    ],
+    cta: "Convertir para la Bambu Lab X1 Carbon",
+    sections: [
+      {
+        h: "Qué se conserva",
+        list: [
+          "Todas las placas, objetos y piezas, con los colores pintados, los soportes pintados y las costuras.",
+          "La altura de capa, perímetros, relleno, soportes, borde, costura y planchado del diseñador, con los nombres y unidades de Bambu Studio (por ejemplo, los anchos de línea en porcentaje pasan a milímetros).",
+          "Los tipos y colores de filamento, asociados a los perfiles de filamento de Bambu Lab para que el AMS los reconozca.",
+        ],
+      },
+      {
+        h: "Qué se quita o cambia",
+        list: [
+          "No se copian los ajustes que solo entiende el laminador de origen: las claves de purga del CFS y del método multicolor de Creality, support_mms de Elegoo y los ajustes de ranuras del ACE y las variantes de acero endurecido de Anycubic. Los ajustes normales ya contienen los valores que elegiste.",
+          "El archivo deja de presentarse como de Creality Print, ElegooSlicer o Anycubic Slicer Next: recibe una cabecera limpia de Bambu Studio y se elimina el creality.config de Creality.",
+          "La torre de purga usa el ancho por defecto de la impresora Bambu (algunos perfiles CFS usan torres mucho más anchas), y los valores fuera de los rangos que admite Bambu Studio se limitan y aparecen en el informe.",
+          "Los archivos convertidos se abren en Bambu Studio 2.9.1 o posterior.",
+        ],
+      },
+      {
+        h: "Límites que conviene revisar",
+        list: [
+          "Los filamentos mezclados de Creality Print 7 (mezclas de color) solo existen en Creality Print. Ningún otro laminador puede imprimirlos, así que las piezas o la pintura que usan una mezcla se imprimen con la ranura 1. El informe te avisa; reasigna esas piezas en Bambu Studio.",
+          "Las placas exclusivas de Creality, como Epoxy Resin o Customized, no tienen equivalente en Bambu. Se usa la placa de la impresora Bambu y el informe lo indica; revisa la temperatura de la cama antes de imprimir.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "¿Sirve también para ElegooSlicer y Anycubic Slicer Next?",
+        a: "Sí. FilaShift reconoce los proyectos de ElegooSlicer y Anycubic Slicer Next, incluso cuando Anycubic Slicer Next marca el archivo como de Bambu Studio, y los convierte de la misma manera.",
+      },
+      {
+        q: "¿Cómo se probó?",
+        a: "Los proyectos de prueba de ElegooSlicer y Anycubic Slicer Next se exportaron con sus propias herramientas de línea de comandos. Los de Creality Print se generan a partir de los perfiles y la estructura de archivo del propio Creality Print, porque su herramienta de línea de comandos no puede guardar proyectos. Los archivos convertidos se laminaron sin errores en las herramientas de línea de comandos de los laminadores de destino. Son pruebas de software, no impresiones físicas.",
+      },
+      {
+        q: "¿Puedo volver de Bambu Lab a una impresora Creality?",
+        a: "Sí. La conversión funciona en los dos sentidos: suelta un proyecto de Bambu Studio y elige tu impresora Creality.",
+      },
+    ],
+  },
+  "bambu-to-prusaslicer-mmu3-xl": {
+    title: "De Bambu Studio a PrusaSlicer para MMU3 y XL (proyectos nativos de PrusaSlicer)",
+    meta: "Convierte 3MF de Bambu Studio y MakerWorld a PrusaSlicer para MMU3 y Prusa XL | FilaShift",
+    desc: "Convierte un 3MF de Bambu Studio o MakerWorld en un proyecto nativo de PrusaSlicer 2.9 para la Prusa MK4S MMU3, CORE One MMU3 o XL: perfiles de sistema de PrusaSlicer, colores pintados, cambios de color y placas como camas de PrusaSlicer. Explica qué cambian los perfiles de PrusaSlicer.",
+    intro:
+      "Para impresoras Prusa, FilaShift puede escribir un proyecto real de PrusaSlicer en lugar de un archivo de OrcaSlicer. Usa los perfiles de sistema de PrusaSlicer para tu impresora, así que PrusaSlicer los muestra como perfiles de sistema, y traslada las piezas, la pintura y los cambios de color en el formato propio de PrusaSlicer.",
+    steps: [
+      "Descarga el 3MF de MakerWorld o guarda tu proyecto en Bambu Studio.",
+      "Suéltalo en FilaShift y elige tu impresora Prusa, por ejemplo la MK4S MMU3, CORE One MMU3, XL 2T o XL 5T.",
+      "En el panel de ajustes, deja Salida para: PrusaSlicer (la opción por defecto en impresoras Prusa). Las impresoras que solo existen en PrusaSlicer, como la MK4S MMU3 y la XL 2T, siempre reciben un proyecto de PrusaSlicer.",
+      "Asigna cada color a una ranura del MMU3 o a un cabezal de la XL, convierte y lee el informe.",
+      open("PrusaSlicer 2.9 o posterior"),
+    ],
+    cta: "Convertir para la Prusa MK4S MMU3",
+    sections: [
+      {
+        h: "Qué contiene el proyecto de PrusaSlicer",
+        list: [
+          "Los perfiles de sistema de impresora, impresión y filamento de PrusaSlicer para tu impresora; el perfil de impresión es el más cercano a la altura de capa del proyecto.",
+          "Los objetos con sus piezas, nombres, extrusores, modificadores y ajustes por objeto.",
+          "Los colores pintados, los soportes pintados y las costuras pintadas en el formato propio de PrusaSlicer.",
+          "Los cambios de color y las pausas como cambios por capa de PrusaSlicer (M600), y cada placa como una cama de PrusaSlicer.",
+        ],
+      },
+      {
+        h: "Los perfiles de PrusaSlicer fijan temperaturas y velocidades",
+        p: [
+          "PrusaSlicer guarda sus ajustes de otra manera que Bambu Studio, así que las temperaturas y velocidades vienen de los perfiles de PrusaSlicer para tu impresora y filamento, no del proyecto original. Las decisiones del diseñador que se pueden trasladar, como perímetros, relleno y soportes, se aplican sobre los perfiles y aparecen en el informe.",
+          "Los ajustes por objeto sin equivalente en PrusaSlicer se quedan con los valores del perfil (el informe los enumera). No se trasladan la altura de capa variable ni los modificadores por rango de altura.",
+        ],
+      },
+      {
+        h: "Diferencias entre MMU3 y XL",
+        list: [
+          "Las impresoras con MMU3 tienen una sola boquilla y necesitan torre de purga. FilaShift comprueba el espacio para la torre de PrusaSlicer, que es más ancha, y la mueve a un sitio libre; si no lo hay, el informe te pide escalar o recolocar el modelo.",
+          "En el MMU3, un cambio de color para un filamento que no se imprime a esa altura se convierte en una pausa (M601). Así lo gestiona PrusaSlicer.",
+          "La XL cambia de cabezal en lugar de cargar filamento, así que cada color va a un cabezal. Si hay más colores que cabezales, los colores más parecidos comparten cabezal.",
+          "Si un modelo es más grande que la cama, el convertidor avisa y sugiere una escala. Escálalo o divídelo en PrusaSlicer antes de laminar.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "¿Puedo seguir obteniendo un archivo de OrcaSlicer para mi Prusa?",
+        a: "Sí, en las impresoras Prusa que admite OrcaSlicer: elige Salida para: OrcaSlicer en el panel de ajustes. Las impresoras que solo existen en PrusaSlicer, como la MK4S MMU3, la MK3S MMU3 y la XL 2T, siempre reciben un proyecto de PrusaSlicer.",
+      },
+      {
+        q: "¿Por qué las temperaturas son distintas de las del proyecto de Bambu?",
+        a: "La salida para PrusaSlicer usa los perfiles de filamento de PrusaSlicer, que fijan las temperaturas para tu impresora y material. Revísalas en PrusaSlicer si necesitas los valores del diseñador.",
+      },
+      {
+        q: "¿Cómo se probó?",
+        a: "Se convirtieron proyectos de prueba, entre ellos dos proyectos pintados de MakerWorld, para cada impresora Prusa y variante de boquilla, y se laminaron con la herramienta de línea de comandos de PrusaSlicer. Los únicos fallos fueron un modelo de MakerWorld más grande que la cama de la CORE One MMU3, que el convertidor señala con una escala sugerida. Son pruebas de software, no impresiones físicas.",
+      },
+    ],
+  },
+  "bambu-h3c-p3c-multicolour": {
+    title: "Multicolor en los cambiadores de herramienta Bambu Lab H3C y P3C (PrintTools, herramienta TPU)",
+    meta: "Convierte 3MF multicolor para las PrintTools de la Bambu Lab H3C y P3C | FilaShift",
+    desc: "Cómo asigna FilaShift cada color de un proyecto 3MF a una PrintTool en los cambiadores de herramienta Bambu Lab H3C y P3C, mantiene el filamento rígido fuera de la herramienta TPU de 2,85 mm de la H3C y comparte el AMS cuando tienes más colores que herramientas.",
+    intro:
+      "Las Bambu Lab H3C y P3C cambian PrintTools completas en lugar de pasar todos los colores por una sola boquilla. Al convertir un proyecto para ellas, FilaShift escribe en el archivo una herramienta para cada filamento, así Bambu Studio conserva esa asignación en lugar de adivinarla.",
+    steps: [
+      "Descarga el 3MF del proyecto de MakerWorld o guárdalo en Bambu Studio, OrcaSlicer u otro laminador compatible.",
+      "Suéltalo en FilaShift y elige la Bambu Lab H3C o P3C.",
+      "Asigna cada color a una ranura y convierte.",
+      "Lee el informe: indica qué filamento va a cada PrintTool y si necesitas instalar alguna herramienta.",
+      open("Bambu Studio 2.9.1 o posterior"),
+    ],
+    cta: "Convertir para la Bambu Lab H3C",
+    sections: [
+      {
+        h: "Cómo se asignan los filamentos a las PrintTools",
+        list: [
+          "Cada color que usa el modelo recibe su propia PrintTool, y el archivo se configura en modo Nozzle Manual, así Bambu Studio conserva la asignación. El informe la indica, por ejemplo filamento 1 → PrintTool 1.",
+          "La H3C de serie tiene 9 PrintTools: ocho para filamento de 1,75 mm y una, la PrintTool 8, para TPU de 2,85 mm. La P3C de serie tiene 5 PrintTools en 7 bases.",
+          "Si el proyecto viene del mismo modelo de impresora, cada filamento conserva, cuando es posible, la herramienta que usaba allí.",
+          "Cuando todas las herramientas instaladas están en uso, FilaShift te pide con un aviso instalar otra herramienta en una base libre (P3C); después, los colores extra comparten la PrintTool 1 a través del AMS. El informe indica cuáles.",
+        ],
+      },
+      {
+        h: "La herramienta TPU de 2,85 mm de la H3C",
+        list: [
+          "Solo el filamento flexible de 2,85 mm va a la herramienta TPU, con el perfil de filamento TPU de 2,85 mm de la impresora. El filamento rígido nunca se le asigna.",
+          "El filamento flexible de 1,75 mm (por ejemplo, TPU de un proyecto con AMS) no puede usar la herramienta de 2,85 mm, así que se imprime con una PrintTool estándar. El informe lo indica.",
+          "En la P3C, un filamento TPU de 2,85 mm necesita una herramienta TPU adicional en una base libre. FilaShift lo pide con un aviso: instala esa herramienta antes de imprimir o cambia el filamento.",
+        ],
+      },
+      {
+        h: "Límites que conviene revisar",
+        list: [
+          "Los proyectos que usaban boquillas de distinto tamaño por herramienta reciben un solo tamaño de boquilla en la H3C y la P3C, con un aviso, porque en las pruebas los archivos convertidos con tamaños mezclados no se laminaban de forma fiable. Ajusta la boquilla de cada herramienta en Bambu Studio si necesitas tamaños distintos.",
+          "Si hacen falta más herramientas de las que tiene la impresora de serie, el informe indica cuáles instalar. También puedes unir colores antes de convertir.",
+          "La H2C funciona de otra manera: Bambu Studio asigna automáticamente su soporte de hotends para reducir la purga.",
+          "Al convertir de la H3C o la P3C a una impresora de una sola boquilla, los colores se mantienen como ranuras del AMS.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "¿Cambiará Bambu Studio mi asignación de herramientas?",
+        a: "No en la H3C ni en la P3C: el archivo usa el modo Nozzle Manual, así que Bambu Studio conserva la PrintTool de cada filamento. Si una herramienta del archivo falta o no sirve para el filamento, Bambu Studio elige otra.",
+      },
+      {
+        q: "¿Se ha probado?",
+        a: "Sí, en software. Los proyectos de prueba estándar convertidos para la H3C y la P3C se laminan sin errores en la herramienta de línea de comandos de Bambu Studio (consulta la página de resultados de las pruebas). También se convierten y laminan proyectos de prueba con un filamento TPU de 2,85 mm, 10 colores y boquillas de distintos tamaños, y la asignación de herramientas se comprueba en el G-code. No son pruebas de impresión física.",
+      },
+    ],
+  },
 };

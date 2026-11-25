@@ -24,7 +24,7 @@ try {
     await groups.first().waitFor();
     assert.equal(await groups.count(),3);
     assert.equal(await groups.nth(0).locator("li").count(),1);
-    assert.equal(await groups.nth(1).locator("li").count(),6);
+    assert.equal(await groups.nth(1).locator("li").count(),9);
     for (const id of ["mesh","project","shop"]) {
       const tile=page.getByTestId(`topic-${id}`);
       const count=await page.locator(`#guides-${id} li a`).count();

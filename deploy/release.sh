@@ -30,6 +30,8 @@ BASE= node scripts/check-evidence.mjs
 BASE= node scripts/check-header-theme.mjs
 BASE= node scripts/check-csp.mjs
 BASE= node scripts/check-filament-extras.mjs
+BASE= node scripts/check-content-pages.mjs
+python3 scripts/test-printer-request.py
 BASE= npm run test:release:mobile-en:shortcuts
 BASE= npm run test:release:mobile-es:shortcuts
 BASE= npm run test:release:mobile-es

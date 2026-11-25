@@ -142,6 +142,7 @@ export function SiteFooter({ children }: { children?: ReactNode }) {
             {[
               ["/about", "About"],
               ["/guides", "Guides"],
+              ["/tested", "Test results"],
               ["/creators", "Creators"],
               ["/faq", "FAQ"],
               ["/privacy", "Privacy"],

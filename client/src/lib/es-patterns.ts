@@ -1,5 +1,8 @@
 // Spanish patterns for UI strings that contain numbers or names. English is matched after whitespace is collapsed.
 import { addPatterns } from "./i18n";
+import es from "./es.json";
+
+const ES = es as Record<string, string>;
 
 const COL: Record<string, string> = {
   army: "verde militar", ash: "ceniza", beige: "beige", black: "negro", blue: "azul", bone: "hueso", brass: "latón", bronze: "bronce",
@@ -58,7 +61,12 @@ addPatterns([
   [/^Last updated (.+)\.$/, "Última actualización: $1."],
   [/^Could not read this file: (.+)$/, "No se pudo leer este archivo: $1"],
   [/^Conversion failed: (.+)$/, "La conversión falló: $1"],
-  [/^(.+) You can also email support@jacksoncgc\.com\.$/, "$1 También puedes escribir a support@jacksoncgc.com."],
+  [/^(.+) You can also email support@jacksoncgc\.com\.$/, (_m, a) => `${ES[a] || a} También puedes escribir a support@jacksoncgc.com.`],
+  [/^(\d+) of (\d+) printers slicer-tested$/, "$1 de $2 impresoras probadas en laminador"],
+  [/^Showing (\d+) of (\d+) printers$/, "Se muestran $1 de $2 impresoras"],
+  [/^(\d+) of (\d+) slice tests passed$/, "$1 de $2 pruebas de laminado superadas"],
+  [/^Nozzles: (.+) mm$/, "Boquillas: $1 mm"],
+  [/^(\d+) extruders$/, "$1 extrusores"],
 ]);
 
 function agoEs(t: string): string {

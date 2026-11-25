@@ -2,6 +2,8 @@
 """FilaShift report inbox: a tiny stdlib HTTP service behind Caddy (/api/*).
 
 POST /api/report  JSON {message, link?, email?, details?, page?, website?}  -> {"ok": true, "id": ...}
+POST /api/report  JSON {kind: "printer-request", brand, model, slicer?, message?, page?, website?}
+                  (a request to add a printer; no email, link or details are accepted for this kind)
 GET  /api/health  -> {"ok": true}
 
 Reports are written one JSON file each to REPORT_DIR. Project files are never accepted:
@@ -26,6 +28,8 @@ MAX_BODY = 16 * 1024
 PER_IP = (5, 3600)  # 5 reports per IP per hour
 GLOBAL = (200, 86400)  # 200 reports per day in total
 LIMITS = {"message": 4000, "link": 500, "email": 200, "details": 6000, "page": 200}
+# "Request a printer": only these fields are kept (no email, link or conversion details)
+REQUEST_LIMITS = {"brand": 80, "model": 120, "slicer": 80, "message": 1000, "page": 200}
 EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,}$")
 
 hits = defaultdict(deque)
@@ -101,12 +105,19 @@ class H(BaseHTTPRequestHandler):
             return self.send(400, {"ok": False, "error": "Bad request"})
         if data.get("website"):  # honeypot field, hidden from people
             return self.send(200, {"ok": True, "id": "x"})
+        kind = data.get("kind", "problem")
+        if kind not in ("problem", "printer-request"):
+            return self.send(400, {"ok": False, "error": "Bad request"})
         rec = {}
-        for k, lim in LIMITS.items():
+        for k, lim in (REQUEST_LIMITS if kind == "printer-request" else LIMITS).items():
             v = data.get(k)
             if isinstance(v, str) and v.strip():
                 rec[k] = v.strip()[:lim]
-        if len(rec.get("message", "")) < 5:
+        if kind == "printer-request":
+            if len(rec.get("brand", "")) < 2 or len(rec.get("model", "")) < 1:
+                return self.send(400, {"ok": False, "error": "Please enter the printer brand and model"})
+            rec = {"kind": kind, **rec}
+        elif len(rec.get("message", "")) < 5:
             return self.send(400, {"ok": False, "error": "Please describe the problem"})
         if "email" in rec and not EMAIL_RE.match(rec["email"]):
             return self.send(400, {"ok": False, "error": "That email address does not look right"})

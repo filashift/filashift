@@ -173,10 +173,10 @@ export function GuidePage() {
               </li>
             ))}
           </ol>
-          <Button asChild className="mt-5 gap-2">
+          <Button asChild className="mt-5 h-auto min-h-9 max-w-full gap-2 whitespace-normal py-2 text-left">
             <Link href={href} data-testid="link-guide-cta">
               {g.cta || L("Open the converter", "Abrir el convertidor")}
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
           </Button>
           <p className="mt-2 text-xs text-muted-foreground">{g.shopping ? L("FilaShift may earn a commission from partner store links at no extra cost to you. Prices and stock can change before checkout.","FilaShift puede recibir una comisión de las tiendas asociadas sin coste adicional para ti. El precio y el inventario pueden cambiar antes del pago.") : L("Free · no account · your file never leaves your device", "Gratis · sin cuenta · tu archivo nunca sale de tu dispositivo")}</p>

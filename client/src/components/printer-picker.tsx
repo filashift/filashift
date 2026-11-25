@@ -7,6 +7,7 @@ import type { PrinterIndexEntry } from "@/engine/types";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 import demo from "../../public/samples/test-results.json";
+import { RequestPrinterButton } from "@/components/printer-request";
 
 /** Shown first, in this order, under "Popular". */
 const FEATURED = ["flashforge-creator-5-pro", "snapmaker-u1", "flashforge-ad5x", "flashforge-adventurer-5m", "flashforge-creator-5"];
@@ -92,6 +93,7 @@ export function PrinterPicker({
   onChange: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const current = printers.find((p) => p.id === value);
   const tested = useTested();
 
@@ -157,9 +159,13 @@ export function PrinterPicker({
       </PopoverTrigger>
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-1rem)] p-0" collisionPadding={8} align="start">
         <Command>
-          <CommandInput placeholder={`Search ${printers.length} printers…`} data-testid="input-printer-search" />
+          <CommandInput placeholder={`Search ${printers.length} printers…`} value={search} onValueChange={setSearch} data-testid="input-printer-search" />
           <CommandList className="max-h-[360px]">
-            <CommandEmpty>No printer found.</CommandEmpty>
+            <CommandEmpty className="px-3 py-5 text-center text-sm" data-testid="printer-search-empty">
+              <p>No printer found.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Ask us to add it. We only list printers whose converted files slice in their own slicer.</p>
+              <RequestPrinterButton className="mt-3" search={search} onBeforeOpen={() => setOpen(false)} />
+            </CommandEmpty>
             <CommandGroup heading="Popular">{groups.popular.map((p) => item(p, `pop-${p.id}`))}</CommandGroup>
             {groups.vendors.map(([vendor, list]) => (
               <CommandGroup key={vendor} heading={vendor}>

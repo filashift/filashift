@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { PrinterPicker, slotLabel, TestedNote } from "@/components/printer-picker";
 import { FileCard, type Job } from "@/components/file-card";
 import { SampleProject } from "@/components/sample-project";
+import { openPrinterRequest } from "@/components/printer-request";
 import { ProjectWorker } from "@/lib/project-worker";
 import { defaultMapping, planPauses } from "@/engine/mapping";
 import type { ConvertOptions, PrinterIndexEntry, PrinterProfile } from "@/engine/types";
@@ -711,6 +712,10 @@ function Brands({ printers, onPick }: { printers: PrinterIndexEntry[]; onPick: (
     <section className="mt-14">
       <SectionTitle id="printers" kicker="Supported printers" title={`${printers.length} printers from ${brands.length} brands`} />
       <p className="-mt-2 mb-4 text-sm text-muted-foreground">Pick a brand to set its most popular model as your target, or search every model in the printer list.</p>
+      <p className="-mt-2 mb-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+        <Link href="/tested" className="font-medium text-primary underline" data-testid="link-tested-results">See the slicer test results for every printer</Link>
+        <button type="button" className="text-muted-foreground underline hover:text-foreground" onClick={() => openPrinterRequest()} data-testid="link-request-printer">Printer not listed? Request it</button>
+      </p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {brands.map(([brand, list]) => {
           const pick = list.find((p) => p.popular) || list[0];

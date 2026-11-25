@@ -20,9 +20,11 @@ const Contact=lazy(()=>import("@/pages/info").then(m=>({default:m.Contact})));
 const Privacy=lazy(()=>import("@/pages/info").then(m=>({default:m.Privacy})));
 const Terms=lazy(()=>import("@/pages/info").then(m=>({default:m.Terms})));
 const Creators=lazy(()=>import("@/pages/creators"));
+const Tested=lazy(()=>import("@/pages/tested"));
 const GuidePage=lazy(()=>import("@/pages/guides").then(m=>({default:m.GuidePage})));
 const GuidesIndex=lazy(()=>import("@/pages/guides").then(m=>({default:m.GuidesIndex})));
 import { ReportDialog } from "@/components/report-dialog";
+import { PrinterRequestDialog } from "@/components/printer-request";
 import { PATH_ROUTING } from "./routing";
 
 function AppRouter() {
@@ -49,6 +51,7 @@ function AppRouter() {
       <Route path="/source" component={Source} />
       <Route path="/contact" component={Contact} />
       <Route path="/creators" component={Creators} />
+      <Route path="/tested" component={Tested} />
       <Route path="/guides" component={GuidesIndex} />
       <Route path="/guides/:slug" component={GuidePage} />
       <Route component={NotFound} />
@@ -62,6 +65,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <ReportDialog />
+        <PrinterRequestDialog />
         {PATH_ROUTING ? (
           <Router>
             <AppRouter />

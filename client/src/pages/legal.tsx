@@ -105,6 +105,11 @@ export function privacySections(lang: Lang): Sec[] {
             </li>
           </ul>
           <p>
+            If you use "Request a printer", we receive only the printer brand and model you type, the optional slicer and note, the page you were
+            on and the time it was sent. That form has no email field. We use printer requests only to decide which printers to add; otherwise they are
+            stored, processed and deleted in the same way as problem reports, as described below.
+          </p>
+          <p>
             We never receive the file itself. To stop spam, the server briefly holds your IP address in memory to limit how many reports can be sent.
             It isn't saved with your report.
           </p>
@@ -481,6 +486,11 @@ function PRIVACY_ES(): Sec[] {
               operativo)
             </li>
           </ul>
+          <p>
+            Si usas "Solicitar una impresora", recibimos solo la marca y el modelo de impresora que escribas, el laminador y la nota opcionales, la
+            página en la que estabas y la hora de envío. Ese formulario no tiene campo de correo. Usamos las solicitudes de impresoras solo para decidir qué impresoras
+            añadir; por lo demás, se guardan, procesan y eliminan igual que los informes de problemas, como se explica a continuación.
+          </p>
           <p>
             Nunca recibimos el archivo. Para evitar el spam, el servidor guarda brevemente tu dirección IP en memoria para limitar cuántos informes se
             pueden enviar. No se guarda con tu informe.
