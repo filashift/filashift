@@ -12,12 +12,13 @@ const SITE = "https://filashift.com";
 const guides = fs.readFileSync("client/src/lib/guides.ts", "utf8").match(/slug: "([a-z0-9-]+)"/g).map((s) => s.slice(7, -1));
 const EN_ROUTES = ["/", "/filament", "/faq", "/guides", ...guides.map((g) => `/guides/${g}`), "/tested", "/about", "/contact", "/creators", "/privacy", "/terms", "/source", "/404"];
 // Every public, indexable route also exists at /es/…, /de/… and /fr/…, rendered in that language (see i18n.tsx
-// localePath). /source and the 404 page stay English-only and get no hreflang.
+// localePath). /source stays English-only; the 404 page gets a translated copy per language (/es/404 -> es/404.html,
+// served by Caddy for unknown /es/… paths), but no hreflang, no canonical, robots noindex and no sitemap entry.
 const LOCALES = ["es", "de", "fr"];
 const NOT_LOCALIZED = new Set(["/source", "/404"]);
 const LOCALIZED = EN_ROUTES.filter((r) => !NOT_LOCALIZED.has(r));
 const localeRoute = (r, lang) => (lang === "en" ? r : `/${lang}${r}`);
-const ROUTES = [...EN_ROUTES, ...LOCALES.flatMap((l) => LOCALIZED.map((r) => localeRoute(r, l)))];
+const ROUTES = [...EN_ROUTES, ...LOCALES.flatMap((l) => [...LOCALIZED, "/404"].map((r) => localeRoute(r, l)))];
 const langOf = (route) => /^\/(es|de|fr)(\/|$)/.exec(route)?.[1] ?? "en";
 const baseRoute = (route) => (langOf(route) === "en" ? route : route.slice(3) || "/");
 // home pages keep their slash (https://filashift.com/de/), every other page has none (…/de/guides)
@@ -84,6 +85,19 @@ for (const route of ROUTES) {
     };
     return { html: "<!doctype html>\n" + document.documentElement.outerHTML, head };
   }, lang);
+  if (plain === "/404") {
+    // not-found copies: in the page's language, kept out of search results
+    const p404 = await page.evaluate(() => ({
+      robots: document.querySelector('meta[name="robots"]')?.content || "",
+      h1: document.querySelector("h1")?.textContent || "",
+      links: [...document.querySelectorAll("main a")].map((a) => a.getAttribute("href")),
+    }));
+    if (p404.robots !== "noindex" || head.canonical || head.alternates.length) throw new Error(`${route}: 404 must be noindex without canonical/hreflang`);
+    const want = lang === "en" ? ["/", "/guides"] : [`/${lang}/`, `/${lang}/guides`];
+    if (JSON.stringify(p404.links) !== JSON.stringify(want)) throw new Error(`${route}: 404 buttons ${JSON.stringify(p404.links)}`);
+    if (lang === "en") enHead.set(plain, { ...head, h1: p404.h1 });
+    else if (head.title === enHead.get(plain)?.title || p404.h1 === enHead.get(plain)?.h1) untranslated.push(`${route}: 404 title/heading ${head.title} / ${p404.h1}`);
+  }
   if (localized) {
     // the HTML itself must already be in the page's language with a self canonical and the full hreflang set
     const want = [...["en", ...LOCALES].map((l) => [l, url(localeRoute(plain, l))]), ["x-default", url(plain)]];
@@ -102,7 +116,7 @@ for (const route of ROUTES) {
   // lazy-route preloads injected while rendering carry the temporary server origin; make them site-relative
   html = html.split(base + "/").join(route === "/" ? "./" : "/");
   if (html.includes("127.0.0.1")) throw new Error(`${route}: prerendered HTML still references the local render server`);
-  const file = route === "/" ? "index.html" : route === "/404" ? "404.html" : path.join(route.slice(1), "index.html");
+  const file = route === "/" ? "index.html" : plain === "/404" ? (lang === "en" ? "404.html" : `${lang}/404.html`) : path.join(route.slice(1), "index.html");
   fs.mkdirSync(path.dirname(path.join(ROOT, file)), { recursive: true });
   fs.writeFileSync(path.join(ROOT, file), html);
   out.push(route);
@@ -123,7 +137,7 @@ const entry = (route) => {
         .join("");
   return `  <url><loc>${url(route)}</loc>${modified.has(route) ? `<lastmod>${modified.get(route)}</lastmod>` : ""}${alt}${alt ? "\n  " : ""}</url>`;
 };
-const urls = out.filter((r) => r !== "/404").map(entry).join("\n");
+const urls = out.filter((r) => baseRoute(r) !== "/404").map(entry).join("\n");
 fs.writeFileSync(
   path.join(ROOT, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`,

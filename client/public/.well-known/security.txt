@@ -1,0 +1,6 @@
+# FilaShift security contact (RFC 9116). Renew Expires before it passes; see OPERATIONS.md.
+Contact: mailto:support@jacksoncgc.com
+Expires: 2027-11-20T00:00:00.000Z
+Preferred-Languages: en, es, de, fr
+Canonical: https://filashift.com/.well-known/security.txt
+Policy: https://filashift.com/contact#security

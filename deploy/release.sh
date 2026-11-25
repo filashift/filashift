@@ -63,4 +63,6 @@ for u in https://filashift.com/ https://filashift.com/faq https://filashift.com/
   c=$(curl -s -o /dev/null -w '%{http_code}' "$u"); echo "$u $c"; [[ $c == 200 ]] || { echo "CHECK FAILED - run --rollback"; exit 1; }
 done
 $SSH "$HOST" "printf 'release %s %s\n' '$REV' \"\$(date -u +%FT%TZ)\" >> /var/log/filashift-releases.log"
+# IndexNow (Bing etc.): only after a passing smoke test, and never fatal; it logs the HTTP status.
+node scripts/indexnow.mjs || echo "IndexNow: ping failed (non-fatal)"
 echo "Released $REV."

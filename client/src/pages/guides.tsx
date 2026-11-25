@@ -97,7 +97,7 @@ export function GuidePage() {
   const { lang, loc, L } = useLocal();
   const g0 = guideBySlug(params?.slug || "");
   const g = g0 && loc(g0);
-  usePageMeta(g?.meta || L("Guide not found — FilaShift"), g?.desc, { alternates: !!g });
+  usePageMeta(g?.meta || L("Guide not found — FilaShift"), g?.desc, { alternates: !!g, noindex: !g });
   useJsonLd(
     "ld-guide",
     g

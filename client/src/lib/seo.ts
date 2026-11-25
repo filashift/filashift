@@ -31,14 +31,16 @@ function meta(sel: string, attr: string, key: string, val: string) {
 }
 
 /** Per-page <title>, description, canonical, hreflang and Open Graph tags (also captured by the prerender step).
- * Pass { alternates: false } for pages that are not indexed in several languages (404, /source). */
-export function usePageMeta(title: string, desc: string = DEFAULT_DESC, opts: { alternates?: boolean } = {}) {
+ * Pass { alternates: false } for pages that are not indexed in several languages (404, /source), and { noindex: true }
+ * for pages that must stay out of search results (404: robots noindex and no canonical). */
+export function usePageMeta(title: string, desc: string = DEFAULT_DESC, opts: { alternates?: boolean; noindex?: boolean } = {}) {
   // titles and descriptions are not visible text, so the DOM translator never sees them; translate them here so
   // the prerendered <title>, description and og: tags are already in the page's language
   const lang = getLang();
   const heading = translateUi(title);
   const description = translateUi(tr(lang, desc));
-  const wantAlt = opts.alternates !== false;
+  const wantAlt = opts.alternates !== false && !opts.noindex;
+  const noindex = !!opts.noindex;
   useEffect(() => {
     document.title = heading;
     meta('meta[name="description"]', "name", "description", description);
@@ -57,6 +59,9 @@ export function usePageMeta(title: string, desc: string = DEFAULT_DESC, opts: { 
       document.head.appendChild(link);
     }
     link.href = url;
+    if (noindex) link.remove();
+    if (noindex) meta('meta[name="robots"]', "name", "robots", "noindex");
+    else document.head.querySelector('meta[name="robots"]')?.remove();
     document.head.querySelectorAll('link[rel="alternate"][hreflang], meta[property="og:locale:alternate"]').forEach((e) => e.remove());
     if (wantAlt && isLocalizedRoute(path)) {
       for (const [hl, href] of alternates(path)) {
@@ -78,7 +83,7 @@ export function usePageMeta(title: string, desc: string = DEFAULT_DESC, opts: { 
     return () => {
       document.title = DEFAULT_TITLE;
     };
-  }, [heading, description, wantAlt]);
+  }, [heading, description, wantAlt, noindex]);
 }
 
 const APP_DESC =

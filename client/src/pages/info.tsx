@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { Link } from "wouter";
-import { Mail, MessageSquareWarning } from "lucide-react";
+import { Mail, MessageSquareWarning, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { COMPANY, JtsEmblem, SiteFooter, SiteHeader, SOURCE_URL } from "@/components/site-chrome";
 import { openReport } from "@/components/report-dialog";
@@ -156,6 +156,24 @@ export function Contact() {
           </Button>
         </div>
       </div>
+      <section id="security" aria-labelledby="security-heading" className="scroll-mt-24 rounded-xl border border-card-border bg-card p-5" data-testid="section-security">
+        <ShieldCheck className="h-5 w-5 text-primary" />
+        <h2 id="security-heading" className="mt-3 font-semibold">Security</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Found a vulnerability or another security problem in FilaShift? Email the details and the steps to reproduce it. Please give us time to fix it before you publish anything, and don't access other people's data or disrupt the site while testing.
+        </p>
+        <Button asChild variant="outline" className="mt-4">
+          <a href={`mailto:${EMAIL}?subject=FilaShift%20security`} data-testid="link-security-email">
+            {EMAIL}
+          </a>
+        </Button>
+        <p className="mt-3 text-sm text-muted-foreground">
+          Machine-readable contact details:{" "}
+          <a href="/.well-known/security.txt" translate="no" className="text-primary underline-offset-2 hover:underline" data-testid="link-security-txt">
+            security.txt
+          </a>
+        </p>
+      </section>
       <p className="text-sm text-muted-foreground">
         FilaShift is operated by {COMPANY}, Waukesha, Wisconsin, USA. Please don't email project files you aren't allowed to share; a link to the
         model page is usually enough.

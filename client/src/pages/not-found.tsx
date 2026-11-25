@@ -4,7 +4,7 @@ import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { usePageMeta } from "@/lib/seo";
 
 export default function NotFound() {
-  usePageMeta("Page not found — FilaShift", undefined, { alternates: false });
+  usePageMeta("Page not found — FilaShift", undefined, { alternates: false, noindex: true });
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -16,10 +16,10 @@ export default function NotFound() {
         <p className="mt-3 text-muted-foreground">The link may be old or mistyped. The converter and guides are one click away.</p>
         <div className="mt-6 flex flex-wrap gap-2">
           <Button asChild>
-            <Link href="/">Open the converter</Link>
+            <Link href="/" data-testid="link-404-home">Open the converter</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href="/guides">Browse guides</Link>
+            <Link href="/guides" data-testid="link-404-guides">Browse guides</Link>
           </Button>
         </div>
       </main>

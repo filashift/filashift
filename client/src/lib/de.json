@@ -575,5 +575,8 @@
   "colour slots": "Farbslots",
   "Compare PLA, PETG, ABS, TPU and other 3D printer filament prices per kilogram across Bambu Lab, Elegoo, Sunlu, Overture, Polymaker and more, updated four times a day.": "Vergleichen Sie Filamentpreise pro Kilogramm für PLA, PETG, ABS, TPU und andere 3D-Druck-Filamente bei Bambu Lab, Elegoo, Sunlu, Overture, Polymaker und weiteren, viermal täglich aktualisiert.",
   "See which 3D printer profiles FilaShift has tested: sample 3MF projects converted for each printer and sliced in its destination slicer's command-line tool, with slicer versions, pass counts and notes.": "Sehen Sie, welche 3D-Druckerprofile FilaShift getestet hat: Beispiel-3MF-Projekte, für jeden Drucker konvertiert und mit dem Kommandozeilenwerkzeug des Ziel-Slicers gesliced, mit Slicer-Versionen, bestandenen Tests und Hinweisen.",
-  "Any (web browser)": "Beliebig (Webbrowser)"
+  "Any (web browser)": "Beliebig (Webbrowser)",
+  "Security": "Sicherheit",
+  "Found a vulnerability or another security problem in FilaShift? Email the details and the steps to reproduce it. Please give us time to fix it before you publish anything, and don't access other people's data or disrupt the site while testing.": "Sie haben eine Sicherheitslücke oder ein anderes Sicherheitsproblem in FilaShift gefunden? Schicken Sie uns die Details und die Schritte zum Nachstellen per E-Mail. Bitte geben Sie uns Zeit für eine Korrektur, bevor Sie etwas veröffentlichen, und greifen Sie beim Testen weder auf Daten anderer Personen zu noch stören Sie die Website.",
+  "Machine-readable contact details:": "Maschinenlesbare Kontaktdaten:"
 }
