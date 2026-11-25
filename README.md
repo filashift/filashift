@@ -16,7 +16,9 @@ All conversion happens in the browser tab. Project files are never uploaded; the
 
 ## How it was tested
 
-`scripts/matrix.ts` converts source projects to a list of target printers, and `scripts/slice-matrix.sh` slices every result with the destination slicer's command-line interface (OrcaSlicer 2.5.2, Bambu Studio 2.9.2, PrusaSlicer 2.9.4) and reads the settings back from the G-code. `scripts/roundtrip.ts` converts a project through a chain of printers and checks the painted colors come back unchanged. The latest run (2026-11-24) sliced 678 of 678 OrcaSlicer and Bambu Studio conversions (three sample projects from Bambu Studio, OrcaSlicer and PrusaSlicer to all 226 of those printers) and 313 of 315 PrusaSlicer conversions (the three samples plus two painted MakerWorld projects to all 63 Prusa printer and nozzle variants; the other two are a MakerWorld model larger than the CORE One MMU3 bed, which the converter flags with a scale suggestion). All 234 printers are slicer-tested.
+`scripts/matrix.ts` converts source projects and `scripts/slice-matrix.sh` checks them with the destination slicer. The November 24, 2026 baseline recorded 676/678 passes in OrcaSlicer 2.5.2 and Bambu Studio 2.9.2 combined, and 313/315 in native PrusaSlicer 2.9.4. The OrcaSlicer and Bambu Studio baseline allowed mixed filament temperatures; do not take its passes as verification of stock temperature checks.
+
+With the three WonderMaker profiles tested separately on November 25, **234 of 237 profiles passed every recorded test (997/1,002 slices)**. Voron 0.1 passed 1/3; Prusa CORE One MMU3 passed 8/10 native PrusaSlicer exports and 3/3 OrcaSlicer slices; base WonderMaker ZR passed 2/3. Targeted checks of alternative layouts and a separate all-PLA project do not replace the original failures. See [the catalog](client/public/profiles/tested.json) for the results and limitations. These are software tests, not physical prints.
 
 ## Known limits
 
@@ -24,7 +26,7 @@ The separate 2026-11-25 ZR Ultra check sliced five converted projects in OrcaSli
 
 - Always open the converted file in the destination slicer, check the preview and slice it yourself before printing.
 - OrcaSlicer blocks mixing filaments with incompatible temperatures (for example PLA and PETG) on single-nozzle printers; FilaShift warns about this.
-- Models larger than the destination bed must be scaled or split; FilaShift warns with a suggested scale.
+- When a layout exceeds the destination bed, try rearranging separate objects or spreading them over multiple plates before resizing.
 - PrusaSlicer projects can be opened and exported (PrusaSlicer 2.4+ in, 2.9 projects out). PrusaSlicer output uses PrusaSlicer's presets for temperatures and speeds; variable layer height and layer-range modifiers are not carried over.
 
 ## Development

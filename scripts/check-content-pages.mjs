@@ -32,8 +32,8 @@ const server = await preview({ configFile: false, build: { outDir: dist }, previ
 const base = `http://127.0.0.1:${server.httpServer.address().port}`;
 const chrome = process.env.CHROME || `${process.env.HOME}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`;
 const T = {
-  en: { count: `${passed} of ${total} printers slicer-tested`, shown: (n) => `Showing ${n} of ${total} printers`, title: "Printer test results", req: "Request a printer", none: "No printer matches.", sent: "Thanks, your request was received." },
-  es: { count: `${passed} de ${total} impresoras probadas en laminador`, shown: (n) => `Se muestran ${n} de ${total} impresoras`, title: "Resultados de las pruebas de impresoras", req: "Solicitar una impresora", none: "Ninguna impresora coincide.", sent: "Gracias, recibimos tu solicitud." },
+  en: { count: `${passed} of ${total} profiles passed all tests`, shown: (n) => `Showing ${n} of ${total} printers`, title: "Printer test results", req: "Request a printer", none: "No printer matches.", sent: "Thanks, your request was received." },
+  es: { count: `${passed} de ${total} perfiles superaron todas las pruebas`, shown: (n) => `Se muestran ${n} de ${total} impresoras`, title: "Resultados de las pruebas de impresoras", req: "Solicitar una impresora", none: "Ninguna impresora coincide.", sent: "Gracias, recibimos tu solicitud." },
 };
 const ALLOWED = ["kind", "brand", "model", "slicer", "message", "website", "page"];
 let browser;

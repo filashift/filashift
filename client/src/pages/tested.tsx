@@ -83,7 +83,7 @@ export default function TestedPage() {
           description: L("Results of converting sample 3MF projects for {count} 3D printer profiles and slicing each converted file in its destination slicer's command-line tool ({versions}).", { count: printers.length, versions: Object.entries(tested.slicers).map(([n, v]) => `${n} ${v}`).join(", ") }),
           inLanguage: lang,
           url: siteUrl("/tested", PATH_LANG ?? "en"),
-          dateModified: tested.date,
+          dateModified: rows.reduce((date, r) => r.t?.date && r.t.date > date ? r.t.date : date, tested.date),
           isAccessibleForFree: true,
           creator: { "@type": "Organization", name: "Jackson Technology Solutions LLC", url: siteUrl("/about", PATH_LANG ?? "en") },
           measurementTechnique: L("Sample projects converted by FilaShift and sliced with the OrcaSlicer, Bambu Studio and PrusaSlicer command-line interfaces"),
@@ -108,7 +108,7 @@ export default function TestedPage() {
         <div className="mt-6 grid gap-3 sm:grid-cols-3" data-testid="tested-summary">
           <div className="rounded-xl border border-card-border bg-card p-4">
             <div className="text-xs font-medium uppercase tracking-[0.14em] text-primary">Printers</div>
-            <div className="mt-1 text-lg font-semibold" data-testid="text-tested-count">{printers && tested ? `${passed} of ${rows.length} printers slicer-tested` : "Loading…"}</div>
+            <div className="mt-1 text-lg font-semibold" data-testid="text-tested-count">{printers && tested ? L("{passed} of {total} profiles passed all tests", { passed, total: rows.length }) : "Loading…"}</div>
           </div>
           <div className="rounded-xl border border-card-border bg-card p-4">
             <div className="text-xs font-medium uppercase tracking-[0.14em] text-primary">Slicers</div>
@@ -117,7 +117,7 @@ export default function TestedPage() {
             </ul>
           </div>
           <div className="rounded-xl border border-card-border bg-card p-4">
-            <div className="text-xs font-medium uppercase tracking-[0.14em] text-primary">Last run</div>
+            <div className="text-xs font-medium uppercase tracking-[0.14em] text-primary">{L("Baseline date")}</div>
             <div className="mt-1 font-mono text-lg font-semibold" translate="no" data-testid="text-tested-date">{tested ? <time dateTime={tested.date}>{tested.date}</time> : "…"}</div>
           </div>
         </div>
@@ -129,6 +129,7 @@ export default function TestedPage() {
             <li>Each converted file is sliced with the command-line version of its destination slicer: OrcaSlicer, Bambu Studio or PrusaSlicer, at the versions shown above. A test passes when the slicer writes G-code without errors.</li>
             <li>Prusa printers that offer both outputs are tested as PrusaSlicer projects and as OrcaSlicer projects. Pass counts include the tested nozzle variants.</li>
             <li>A bed-fit failure is not a pass. Try rearranging separate objects or moving them to another plate before resizing.</li>
+            {tested?.baselineNote && <li>{L(tested.baselineNote)}</li>}
             <li>These tests check that the converted project opens and slices. Always check the preview in your slicer before printing.</li>
           </ul>
           {tested && (
@@ -202,12 +203,9 @@ export default function TestedPage() {
                         {t?.ok ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{p.id === "wondermaker-zr-ultra" && outs.some(o => o.slicer === "OrcaSlicer" && o.ok) ? L("OrcaSlicer-tested") : L("Slicer-tested")}</span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleDashed className="h-3.5 w-3.5" />{!t?.tests ? "Unverified" : "Not yet passed"}</span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleDashed className="h-3.5 w-3.5" />{L(!t?.tests ? "Unverified" : t.passed ? "Partial pass" : "Not yet passed")}</span>
                         )}
                         {t && <div className="mt-1 text-xs text-muted-foreground">{`${t.passed} of ${t.tests} slice tests passed`}</div>}
-                        {p.id === "wondermaker-zr" && outs.some(o => o.slicer === "OrcaSlicer" && o.tests > 0) && (
-                          <div className="mt-1 text-xs text-muted-foreground">{L("OrcaSlicer-tested")}</div>
-                        )}
                       </td>
                       <td className="col-span-2 md:py-2.5 md:pr-3 md:align-top">
                         <span className="mr-1 text-xs text-muted-foreground md:hidden">Slicer and version:</span>
@@ -233,7 +231,7 @@ export default function TestedPage() {
                       <td className="col-span-2 text-xs text-muted-foreground md:py-2.5 md:align-top">
                         {p.prusaOnly && <div>PrusaSlicer only: always converted to a PrusaSlicer project.</div>}
                         {p.prusa && !p.prusaOnly && <div>PrusaSlicer or OrcaSlicer output.</div>}
-                        {notes.map((n) => <div key={n}>{n === "large models must be scaled to fit this bed" ? L("The sample layout exceeds the bed. Try rearranging objects or using another plate before resizing.") : n}</div>)}
+                        {notes.map((n) => <div key={n}>{L(n)}</div>)}
                         {p.vendor === "WonderMaker" && <a href="./samples/wondermaker-results.json" className="text-primary underline">WonderMaker test results</a>}
                       </td>
                     </tr>

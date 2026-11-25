@@ -66,7 +66,7 @@ export default function FaqPage() {
       const results = Object.values(tested.printers);
       const passed = results.filter(r => r.ok).length;
       const versions = Object.entries(tested.slicers).map(([name,v]) => `${name} ${v}`).join("; ");
-      a += " " + T("Last recorded test ({date}): {passed} of {total} profiles passed. Slicers: {versions}.", { date: tested.date, passed, total: results.length, versions });
+      a += " " + T("Baseline date: {date}. Across the catalog, {passed} of {total} profiles passed all recorded tests. Slicers: {versions}.", { date: tested.date, passed, total: results.length, versions });
     }
     return {q: tr(lang,f.q), a};
   });

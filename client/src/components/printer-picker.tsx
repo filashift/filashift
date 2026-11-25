@@ -22,12 +22,13 @@ export function slotLabel(p: Pick<PrinterIndexEntry, "slots" | "slotUnit">) {
 
 export interface TestedDoc {
   date: string;
+  baselineNote?: string;
   slicers: Record<string, string>;
   samples: string[];
   printers: Record<string, { date?: string; ok: boolean; passed: number; tests: number; note?: string; slicer?: string; outputs?: Record<string, { ok: boolean; passed: number; tests: number; note?: string }> }>;
 }
 let testedP: Promise<TestedDoc | null> | null = null;
-/** Results of the last full slicer run (scripts/tested.py): converted sample projects sliced in the real destination slicer CLI. */
+/** Baseline matrix plus separately dated evidence; only passes from the standard suite count. */
 export function useTested(): TestedDoc | null {
   const [d, setD] = useState<TestedDoc | null>(null);
   useEffect(() => {
@@ -41,9 +42,10 @@ export function useTested(): TestedDoc | null {
 /** `output`: the slicer the converted file is for (Prusa printers can get PrusaSlicer or OrcaSlicer files). */
 export function testedLabel(d: TestedDoc | null, p: Pick<PrinterIndexEntry, "id" | "slicer">, output?: string): string | null {
   const t = d?.printers[p.id];
-  if (!d || !t?.ok) return null;
+  if (!d || !t) return null;
   const sl = output || t.slicer || p.slicer || "OrcaSlicer";
-  if (t.outputs && !t.outputs[sl]?.ok) return null;
+  const row = t.outputs ? t.outputs[sl] : sl === (t.slicer || p.slicer || "OrcaSlicer") ? t : undefined;
+  if (!row?.ok || !row.tests || row.passed !== row.tests) return null;
   const v = d.slicers[sl] || "";
   const when = new Date((t.date || d.date) + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", year: "numeric" });
   return `Slicer-tested: sample projects converted for this printer sliced without errors in ${sl} ${v.replace(/^0/, "")} (${when}).`;
@@ -51,7 +53,7 @@ export function testedLabel(d: TestedDoc | null, p: Pick<PrinterIndexEntry, "id"
 
 export function TestedBadge({ id, slicer, className }: { id: string; slicer?: string; className?: string }) {
   const d = useTested();
-  const label = testedLabel(d, { id, slicer: slicer as any });
+  const label = testedLabel(d, { id, slicer: slicer as any }, slicer);
   if (!label) return null;
   return (
     <span className={cn("inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary", className)} title={label} data-testid={`badge-tested-${id}`}>
@@ -63,7 +65,7 @@ export function TestedBadge({ id, slicer, className }: { id: string; slicer?: st
 
 // tested.json sample descriptions are English; other languages get a short translated label
 const SAMPLES: [string, string][] = [
-  ["4-color painted", "Painted Bambu Studio project, four colors (X1 Carbon, PLA)"],
+  ["4-color painted", "4-color painted Bambu Studio project (X1 Carbon, PLA and PETG)"],
   ["4-color Orca", "Four-color OrcaSlicer project (Flashforge AD5X, PLA)"],
   ["2-object", "PrusaSlicer project with two objects and a color change (MK4S MMU3, PLA)"],
   ["PrusaSlicer output also", "For PrusaSlicer output: two multicolor MakerWorld projects (P1S, PLA)"],
@@ -82,12 +84,13 @@ export function TestedNote({ id, model, slicer, output }: { id: string; model:st
   if(!row || !d) return <p className="mt-2 text-xs text-muted-foreground">{T("No recorded result for this output.")}</p>;
   return <details key={id+sl} translate="no" className="mt-2 rounded-lg border p-2 text-xs" data-testid="text-tested-note">
     <summary className="cursor-pointer font-semibold text-primary" data-testid={`badge-tested-${id}`}>
-      {row.ok ? T(id === "wondermaker-zr-ultra" && sl === "OrcaSlicer" ? "OrcaSlicer-tested" : "Slicer-tested") : T("Test incomplete")} · {T("View result")}
+      {row.ok ? T(id === "wondermaker-zr-ultra" && sl === "OrcaSlicer" ? "OrcaSlicer-tested" : "Slicer-tested") : T(row.passed ? "Partial pass" : "Not yet passed")} · {T("View result")}
     </summary>
     <div className="mt-2 space-y-1.5">
       <p><b>{model}</b> · {sl} {d.slicers[sl]||""} · {p?.date || d.date}</p>
       <p>{T("{passed} of {tests} slice tests passed for this output.",{passed:row.passed,tests:row.tests})}</p>
-      {row.note&&<p>{row.note==="large models must be scaled to fit this bed"?T("The sample layout exceeds the bed. Try rearranging objects or using another plate before resizing."):row.note}</p>}
+      {row.note&&<p>{T(row.note)}</p>}
+      {d.baselineNote && (p?.date || d.date) === d.date && sl !== "PrusaSlicer" && <p>{T(d.baselineNote)}</p>}
       <p>{T("Source projects in the test suite:")}</p>
       <ul className="list-disc pl-4">{d.samples.filter(s=>sl==="PrusaSlicer"||!s.startsWith("PrusaSlicer output only")&&!s.startsWith("PrusaSlicer output also")).map(s=><li key={s}>{sampleLabel(T,s)}</li>)}</ul>
       <p>{T("The total includes tested nozzle variants. These results apply to the sample projects.")}</p>
@@ -150,7 +153,7 @@ export function PrinterPicker({
       <Check className={cn("h-4 w-4 shrink-0", value === p.id || exclude?.includes(p.id) ? "opacity-100" : "opacity-0")} />
       <span className="flex-1 truncate">{p.model}</span>
       {tested?.printers[p.id]?.ok && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-primary" aria-label="Slicer-tested" />}
-      {p.vendor === "WonderMaker" && !tested?.printers[p.id]?.ok && <span className="text-xs text-muted-foreground">Unverified</span>}
+      {tested?.printers[p.id] && !tested.printers[p.id].ok && <span className="text-xs text-muted-foreground">{tested.printers[p.id].passed ? "Partial pass" : tested.printers[p.id].tests ? "Not yet passed" : "Unverified"}</span>}
       <span className="font-mono text-xs text-muted-foreground">
         {p.bed[0]}×{p.bed[1]} · {p.slots}
       </span>

@@ -1,7 +1,7 @@
 // Check public UI on desktop and emulated phone. Only shop edge cases use
 // synthetic data. Set SAMPLE_OUTPUT to retain browser-generated slicer inputs.
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { mkdir,writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { chromium } from "playwright-core";
@@ -11,6 +11,7 @@ const base=process.env.BASE||`http://127.0.0.1:${server.httpServer.address().por
 const chrome=[process.env.CHROME,`${process.env.HOME}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`].find(x=>x&&existsSync(x));
 const b=await chromium.launch({executablePath:chrome});
 const targets=["flashforge-creator-5-pro","bambu-lab-x1-carbon","snapmaker-u1"];
+const catalog=JSON.parse(readFileSync(new URL("../client/public/profiles/tested.json",import.meta.url),"utf8"));
 try {
  const sampleScope={en:/Sample sliced in the destination software/,es:/Ejemplo laminado en el programa de destino/,de:/Beispiel in der Zielsoftware gesliced/,fr:/Exemple tranché dans le logiciel de destination/};
 const evidenceScope={en:/These results apply to the sample projects/,es:/Estos resultados corresponden a los proyectos de muestra/,de:/Diese Ergebnisse gelten für die Beispielprojekte/,fr:/Ces résultats concernent les projets d’exemple/};
@@ -46,6 +47,23 @@ for(const [lang,width] of [["en",1280],["es",320],["de",390],["fr",320]]) {
    assert.match(await evidence.innerText(),/OrcaSlicer 2\.5\.2/);
    assert.match(await evidence.innerText(),evidenceScope[lang]);
    assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth),width);
+   if(catalog.date==="2026-11-24"){
+    const dict=lang==="en"?{}:JSON.parse(readFileSync(new URL(`../client/src/lib/${lang}.json`,import.meta.url),"utf8"));
+    const label=k=>dict[k]||k, ids=["voron-0-1","prusa-core-one-mmu3","wondermaker-zr"];
+    await p.goto(`${base}/tested?lang=${lang}`);
+    for(const id of ids){
+     const row=p.getByTestId(`row-tested-${id}`);
+     await row.getByText(label("Partial pass"),{exact:true}).waitFor();
+     await row.getByText(label(catalog.printers[id].note),{exact:true}).waitFor();
+    }
+    await p.goto(`${base}/?printer=prusa-core-one-mmu3&lang=${lang}`);
+    await evidence.locator("summary").filter({hasText:label("Partial pass")}).click();
+    await evidence.getByText(label(catalog.printers[ids[1]].note),{exact:true}).waitFor();
+    await p.getByTestId("output-orca").click();
+    await evidence.locator("summary").filter({hasText:label("Slicer-tested")}).click();
+    await evidence.getByText(label(catalog.baselineNote),{exact:true}).waitFor();
+    assert(!(await evidence.innerText()).includes(label(catalog.printers[ids[1]].note)));
+   }
    const item={b:"Atomic Filament",r:"Atomic Filament",t:"Test PLA AMS Compatible",v:"1.75mm - 1KG AMS Compatible",kg:1,n:1,d:1.75,m:"PLA",f:"PLA",p:20,ppk:20,ok:true,c:[],form:"unknown",u:"https://atomicfilament.com/products/test?variant=1"};
    const items=[item,{...item,t:"Other",v:"1 kg"},{...item,t:"Refill",form:"refill"},{...item,t:"3.5KG Black PLA",v:"1.75mm - 3.5KG",kg:3.5}];
    await ctx.route("**/data/filament.json",r=>r.fulfill({json:{schema:2,updated:new Date().toISOString(),count:4,stores:{Atomic:4},items}}));
