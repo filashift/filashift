@@ -24,14 +24,16 @@ for (const u of ["/tested", "/guides/creality-print-to-bambu", "/guides/bambu-to
   assert.ok(sitemap.includes(`https://filashift.com${u}<`), `sitemap has ${u}`);
 const index = JSON.parse(fs.readFileSync(path.join(dist, "profiles/index.json"), "utf8"));
 const total = index.length;
+const evidence = JSON.parse(fs.readFileSync(`${dist}/profiles/tested.json`, "utf8")).printers;
+const passed = index.filter(p => evidence[p.id]?.ok).length;
 console.log(`PASS prerender: /tested title, description, Dataset JSON-LD; sitemap has /tested and 3 new guides (${total} printers)`);
 
 const server = await preview({ configFile: false, build: { outDir: dist }, preview: { host: "127.0.0.1", port: 0 } });
 const base = `http://127.0.0.1:${server.httpServer.address().port}`;
 const chrome = process.env.CHROME || `${process.env.HOME}/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome`;
 const T = {
-  en: { count: `${total} of ${total} printers slicer-tested`, shown: (n) => `Showing ${n} of ${total} printers`, title: "Printer test results", req: "Request a printer", none: "No printer matches.", sent: "Thanks, your request was received." },
-  es: { count: `${total} de ${total} impresoras probadas en laminador`, shown: (n) => `Se muestran ${n} de ${total} impresoras`, title: "Resultados de las pruebas de impresoras", req: "Solicitar una impresora", none: "Ninguna impresora coincide.", sent: "Gracias, recibimos tu solicitud." },
+  en: { count: `${passed} of ${total} printers slicer-tested`, shown: (n) => `Showing ${n} of ${total} printers`, title: "Printer test results", req: "Request a printer", none: "No printer matches.", sent: "Thanks, your request was received." },
+  es: { count: `${passed} de ${total} impresoras probadas en laminador`, shown: (n) => `Se muestran ${n} de ${total} impresoras`, title: "Resultados de las pruebas de impresoras", req: "Solicitar una impresora", none: "Ninguna impresora coincide.", sent: "Gracias, recibimos tu solicitud." },
 };
 const ALLOWED = ["kind", "brand", "model", "slicer", "message", "website", "page"];
 let browser;
