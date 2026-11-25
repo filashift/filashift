@@ -1,4 +1,5 @@
 {
+  "OrcaSlicer-tested": "Testé avec OrcaSlicer",
   "OrcaSlicer-tested. No physical print verified.": "Testé avec OrcaSlicer. Aucune impression physique vérifiée.",
   "Use standard OrcaSlicer 2.5.2 for converted projects. Wonderprint-Orca 2.3.2 is not supported for this workflow.": "Utilisez la version standard d’OrcaSlicer 2.5.2 pour les projets convertis. Wonderprint-Orca 2.3.2 n’est pas pris en charge pour cette procédure.",
   "Source code": "Code source",

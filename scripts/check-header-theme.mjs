@@ -46,24 +46,27 @@ try {
       assert.match(await preflight.innerText(), /OrcaSlicer 2\.5\.2/);
       assert.match(await preflight.innerText(), /not the Ultra S/);
       if (!osDark) {
-        for (const [lang, phrase] of Object.entries({
-          en:"OrcaSlicer-tested. No physical print verified.",
-          es:"Probado en OrcaSlicer. No se ha verificado ninguna impresión física.",
-          de:"Mit OrcaSlicer getestet. Kein Druck am Gerät bestätigt.",
-          fr:"Testé avec OrcaSlicer. Aucune impression physique vérifiée."
+        for (const [lang, [row, phrase]] of Object.entries({
+          en:["OrcaSlicer-tested","OrcaSlicer-tested. No physical print verified."],
+          es:["Probado en OrcaSlicer","Probado en OrcaSlicer. No se ha verificado ninguna impresión física."],
+          de:["Mit OrcaSlicer getestet","Mit OrcaSlicer getestet. Kein Druck am Gerät bestätigt."],
+          fr:["Testé avec OrcaSlicer","Testé avec OrcaSlicer. Aucune impression physique vérifiée."]
         })) {
           const prefix = lang === "en" ? "" : `/${lang}`;
           await p.goto(`${base}${prefix}/tested`);
           await p.getByTestId("input-tested-search").fill("WonderMaker");
           const ultra = p.getByTestId("row-tested-wondermaker-zr-ultra");
-          await ultra.getByText(phrase,{exact:true}).waitFor();
+          await ultra.getByText(row,{exact:true}).waitFor();
           const zr = p.getByTestId("row-tested-wondermaker-zr");
-          await zr.getByText(phrase,{exact:true}).waitFor();
+          await zr.getByText(row,{exact:true}).waitFor();
+          for (const id of ["wondermaker-zr","wondermaker-zr-ultra","wondermaker-zr-ultra-s"]) {
+            assert.ok(!(await p.getByTestId(`row-tested-${id}`).innerText()).includes(phrase), `${lang} ${id} row still has the physical-print phrase`);
+          }
           if (lang === "en") {
             assert.match(await zr.innerText(), /Not yet passed/);
             assert.match(await zr.innerText(), /2 of 3 slice tests passed/);
           }
-          assert.ok(!(await p.getByTestId("row-tested-wondermaker-zr-ultra-s").innerText()).includes(phrase));
+          assert.ok(!(await p.getByTestId("row-tested-wondermaker-zr-ultra-s").innerText()).includes(row));
           await ultra.getByRole("link").first().click();
           const badge = p.getByTestId("badge-tested-wondermaker-zr-ultra");
           await badge.filter({hasText:phrase}).waitFor();

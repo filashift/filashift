@@ -200,13 +200,13 @@ export default function TestedPage() {
                       </td>
                       <td className="col-span-2 md:py-2.5 md:pr-3 md:align-top">
                         {t?.ok ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{p.id === "wondermaker-zr-ultra" && outs.some(o => o.slicer === "OrcaSlicer" && o.ok) ? L("OrcaSlicer-tested. No physical print verified.") : L("Slicer-tested")}</span>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{p.id === "wondermaker-zr-ultra" && outs.some(o => o.slicer === "OrcaSlicer" && o.ok) ? L("OrcaSlicer-tested") : L("Slicer-tested")}</span>
                         ) : (
                           <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleDashed className="h-3.5 w-3.5" />{!t?.tests ? "Unverified" : "Not yet passed"}</span>
                         )}
                         {t && <div className="mt-1 text-xs text-muted-foreground">{`${t.passed} of ${t.tests} slice tests passed`}</div>}
                         {p.id === "wondermaker-zr" && outs.some(o => o.slicer === "OrcaSlicer" && o.tests > 0) && (
-                          <div className="mt-1 text-xs text-muted-foreground">{L("OrcaSlicer-tested. No physical print verified.")}</div>
+                          <div className="mt-1 text-xs text-muted-foreground">{L("OrcaSlicer-tested")}</div>
                         )}
                       </td>
                       <td className="col-span-2 md:py-2.5 md:pr-3 md:align-top">
