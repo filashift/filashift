@@ -832,7 +832,7 @@ function Hero({ printers, brands, onChoose }: { printers: number; brands: number
     { icon: Sparkles, text: "Free" },
   ];
   return (
-    <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/[0.09] via-background to-background">
+    <section id="converter" tabIndex={-1} className="relative overflow-hidden border-b border-border bg-gradient-to-br from-primary/[0.09] via-background to-background">
       <Swoosh />
       <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-background/70 px-3 py-1 text-xs font-medium text-primary">
@@ -915,7 +915,7 @@ function Stepper({ steps }: { steps: { label: string; short: string; detail: str
 
 function SectionTitle({ id, kicker, title }: { id: string; kicker: string; title: string }) {
   return (
-    <div id={id} className="mb-4 scroll-mt-24">
+    <div id={id} tabIndex={-1} className="mb-4 scroll-mt-24">
       <div className="text-xs font-medium uppercase tracking-[0.14em] text-primary">{kicker}</div>
       <h2 className="mt-1 text-xl font-bold tracking-tight">{title}</h2>
     </div>

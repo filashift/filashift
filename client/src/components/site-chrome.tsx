@@ -46,16 +46,29 @@ export function JtsEmblem({ className = "h-6" }: { className?: string }) {
   );
 }
 
-// scroll to a section on the converter page, moving there first when needed
+// A single pending jump can survive the old header unmounting during navigation.
+let cancelSectionJump: (() => void) | undefined;
 export function useGoSection() {
   const [loc, navigate] = useLocation();
   return (id: string) => {
-    const go = () => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    if (loc === "/") go();
-    else {
-      navigate("/");
-      setTimeout(go, 120);
-    }
+    cancelSectionJump?.();
+    if (loc !== "/") navigate("/");
+    const go = () => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const header = document.querySelector("header")?.getBoundingClientRect().bottom || 0;
+      const top = id === "converter" ? 0 : window.scrollY + el.getBoundingClientRect().top - header - 8;
+      el.focus({ preventScroll: true });
+      window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
+      return true;
+    };
+    if (go()) return;
+    // Printers is populated asynchronously; observe the actual target mounting.
+    const observer = new MutationObserver(() => { if (go()) cancel(); });
+    const cancel = () => { observer.disconnect(); clearTimeout(timeout); cancelSectionJump = undefined; };
+    const timeout = window.setTimeout(cancel, 15000);
+    cancelSectionJump = cancel;
+    observer.observe(document.body, { childList: true, subtree: true });
   };
 }
 
@@ -95,7 +108,11 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
             );
             const tid = `nav-${n.href === "/" ? "converter" : (n.href?.slice(1) ?? n.section)}`;
             return n.href ? (
-              <Link key={n.label} href={n.href} className={cls} data-testid={tid}>
+              <Link key={n.label} href={n.href} className={cls} data-testid={tid} onClick={(event) => {
+                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                if (n.href === "/") { event.preventDefault(); goSection("converter"); }
+                else cancelSectionJump?.();
+              }}>
                 {n.label}
               </Link>
             ) : (

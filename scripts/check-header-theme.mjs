@@ -28,6 +28,17 @@ try {
       };
       await p.goto(`${base}/?lang=en`);
       await check("en",osDark);
+      for (const section of ["how","printers","how","printers"]) {
+        await p.getByTestId(`nav-${section}`).click();
+        await p.waitForFunction(id => {
+          const el = document.getElementById(id), h = document.querySelector("header");
+          if (!el || !h || document.activeElement !== el) return false;
+          const y = el.getBoundingClientRect().top;
+          return y >= h.getBoundingClientRect().bottom-1 && y < window.innerHeight;
+        },section);
+        await p.getByTestId("nav-converter").click();
+        await p.waitForFunction(() => window.scrollY <= 1 && document.activeElement?.id === "converter");
+      }
       await p.getByTestId("button-theme").click();
       await check("en",!osDark);
       for (const lang of ["es","de","fr","en"]) {
@@ -41,6 +52,8 @@ try {
       await check("en",!osDark);
       await p.reload();
       await check("en",!osDark);
+      await p.getByTestId("nav-printers").click();
+      await p.waitForFunction(() => document.activeElement?.id === "printers" && window.scrollY > 0);
       assert.equal(await p.evaluate(()=>localStorage.getItem("filashift-theme")),osDark?"light":"dark");
       console.log(`PASS ${profile}: ${osDark?"light":"dark"} override, all four languages, header order, navigation and reload`);
       await ctx.close();
