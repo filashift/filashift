@@ -57,9 +57,13 @@ try {
           await p.getByTestId("input-tested-search").fill("WonderMaker");
           const ultra = p.getByTestId("row-tested-wondermaker-zr-ultra");
           await ultra.getByText(phrase,{exact:true}).waitFor();
-          for (const id of ["wondermaker-zr","wondermaker-zr-ultra-s"]) {
-            assert.ok(!(await p.getByTestId(`row-tested-${id}`).innerText()).includes(phrase));
+          const zr = p.getByTestId("row-tested-wondermaker-zr");
+          await zr.getByText(phrase,{exact:true}).waitFor();
+          if (lang === "en") {
+            assert.match(await zr.innerText(), /Not yet passed/);
+            assert.match(await zr.innerText(), /2 of 3 slice tests passed/);
           }
+          assert.ok(!(await p.getByTestId("row-tested-wondermaker-zr-ultra-s").innerText()).includes(phrase));
           await ultra.getByRole("link").first().click();
           const badge = p.getByTestId("badge-tested-wondermaker-zr-ultra");
           await badge.filter({hasText:phrase}).waitFor();
