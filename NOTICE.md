@@ -13,7 +13,7 @@ It includes or derives from the following works:
 
 The profile generators are `scripts/build_profiles.py` and `scripts/build_prusa_profiles.py`. The latter documents the Prusa Research preset bundle and PrusaSlicer option-table inputs for `client/public/profiles/prusa/`. Printer and brand names are trademarks of their respective owners and are used only to identify compatible hardware.
 
-Open-source JavaScript libraries used by the web app (React, Vite, Tailwind CSS, Radix UI, fflate and others) are listed in `package.json` with their own licenses.
+Open-source JavaScript libraries used by the web app (React, Vite, Tailwind CSS, Radix UI, fflate, three.js and others) are listed in `package.json` with their own licenses.
 
 ## Fonts
 
