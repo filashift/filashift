@@ -82,7 +82,7 @@ try {
     assert.match(await groups.nth(1).locator("h2").innerText(),x.group);
     await page.goto(`${base}/guides/3mf-to-stl?lang=${lang}`, {waitUntil:"networkidle"});
     const answer = await page.locator("dt").filter({hasText:x.limit}).locator("+ dd").innerText();
-    assert.match(answer,/2 GB/);
+    assert.match(answer,/2 (GB|Go)\b/);
     assert.match(answer,x.expand);
     const date = await page.locator("article time").getAttribute("datetime");
     assert(sitemap.includes(`/guides/3mf-to-stl</loc><lastmod>${date}</lastmod>`));
