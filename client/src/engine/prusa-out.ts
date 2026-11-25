@@ -9,6 +9,7 @@
  * designer's choices we carry over (layer height, walls, infill, supports, ...) and the colours.
  */
 import { strFromU8, strToU8, type Zippable } from "fflate";
+import { Streamed, type OutFiles } from "./zip-out";
 import type { ReportLine } from "./types";
 
 export interface PrusaCommon {
@@ -365,7 +366,7 @@ function serializeConfig(C: Record<string, string>, tower: { x: number; y: numbe
 }
 
 /** Orca-format project files (as built by convert) -> PrusaSlicer project files */
-export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaContext): { files: Zippable; print: string; filaments: string[]; printer: string; changed: string[] } {
+export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaContext): { files: OutFiles; print: string; filaments: string[]; printer: string; changed: string[] } {
   const { common, target } = ctx.data;
   const ver = common.slicer.replace(/^PrusaSlicer\s*/, "") || "2.9.7";
   const get = (name: string): Uint8Array | undefined => {
@@ -411,15 +412,19 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
   };
 
   const [bminx, bminy, bw, bh] = target.bed;
-  let model = "";
-  let mcfg = `<?xml version="1.0" encoding="UTF-8"?>\n<config>\n`;
   const build: string[] = [];
-  const outId = new Map<string, number>();
   const instCount = new Map<string, number>();
   for (const it of items) instCount.set(it.oid, (instCount.get(it.oid) || 0) + 1);
+  type Painted = { mmu: boolean; sup: boolean; seam: boolean; fuzzy: boolean };
+  // The object meshes are written straight into a deflate stream (`sink`), so a big model never exists
+  // as one string. The XML header lists which paint kinds occur, which is only certain after the
+  // triangles are read: start with a cheap guess and redo the pass in the rare case it was wrong.
+  const writeObjects = (sink: (s: string) => void) => {
+  let mcfg = `<?xml version="1.0" encoding="UTF-8"?>\n<config>\n`;
+  const outId = new Map<string, number>();
   const objVolT = new Map<string, Mat>(); // per output object: transform folded into the instance
   const objBox = new Map<string, number[]>(); // per output object: 3D bbox of its mesh in object coords [x0,y0,z0,x1,y1,z1]
-  let painted = { mmu: false, sup: false, seam: false, fuzzy: false };
+  const painted: Painted = { mmu: false, sup: false, seam: false, fuzzy: false };
   let dropped = 0;
   const droppedKeys = new Set<string>();
   const overrides = (meta: Record<string, string>, type: "object" | "volume", pad: string) => {
@@ -446,8 +451,6 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
     outId.set(it.oid, id);
     const single = vols.length === 1;
     objVolT.set(it.oid, single ? vols[0].t : IDENT);
-    let vtxOut = "";
-    let triOut = "";
     const bb = [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity];
     const grow = (x: number, y: number, z: number) => {
       if (x < bb[0]) bb[0] = x; if (y < bb[1]) bb[1] = y; if (z < bb[2]) bb[2] = z;
@@ -460,37 +463,44 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
     const oext = msObj?.meta.extruder;
     if (oext && +oext > 0) mcfg += `  <metadata type="object" key="extruder" value="${Math.min(+oext, N)}"/>\n`;
     if (msObj) mcfg += overrides(msObj.meta, "object", "  ");
+    sink(`  <object id="${id}" type="model">\n   <mesh>\n    <vertices>\n`);
+    // vertices of every volume first, then their triangles (PrusaSlicer keeps one mesh per object)
+    const nvs: number[] = [];
     for (const v of vols) {
       const bake = !single && !isIdent(v.t);
-      // vertices
       let nv = 0;
+      let parts: string[] = [];
+      const flush = () => { if (parts.length >= 4096) { sink(parts.join("")); parts = []; } };
       if (bake) {
         const vre = /<vertex\s+x="([^"]+)"\s+y="([^"]+)"\s+z="([^"]+)"\s*\/>/g;
         let m: RegExpExecArray | null;
-        const parts: string[] = [];
         while ((m = vre.exec(v.o.vtx!))) {
           const [x, y, z] = ap(v.t, +m[1], +m[2], +m[3]);
           grow(x, y, z);
           parts.push(`     <vertex x="${num(x)}" y="${num(y)}" z="${num(z)}"/>\n`);
           nv++;
+          flush();
         }
-        vtxOut += parts.join("");
       } else {
         const vre = /<vertex\b[^>]*\/>/g;
-        const parts: string[] = [];
         let m: RegExpExecArray | null;
         while ((m = vre.exec(v.o.vtx!))) {
           parts.push("     " + m[0] + "\n"); nv++;
           const c = /x="([^"]+)"\s+y="([^"]+)"\s+z="([^"]+)"/.exec(m[0]);
           if (c) grow(+c[1], +c[2], +c[3]);
+          flush();
         }
-        vtxOut += parts.join("");
       }
-      // triangles
+      sink(parts.join(""));
+      nvs.push(nv);
+    }
+    sink(`    </vertices>\n    <triangles>\n`);
+    vols.forEach((v, vi) => {
+      const nv = nvs[vi];
       const tre = /<triangle\b([^>]*?)\/>/g;
       let m: RegExpExecArray | null;
       let nt = 0;
-      const parts: string[] = [];
+      let parts: string[] = [];
       while ((m = tre.exec(v.o.tri!))) {
         const a = m[1];
         const v1 = +(/\bv1="(\d+)"/.exec(a)?.[1] ?? 0) + vbase, v2 = +(/\bv2="(\d+)"/.exec(a)?.[1] ?? 0) + vbase, v3 = +(/\bv3="(\d+)"/.exec(a)?.[1] ?? 0) + vbase;
@@ -507,9 +517,10 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
         }
         parts.push(`     <triangle v1="${v1}" v2="${v2}" v3="${v3}"${extra}/>\n`);
         nt++;
+        if (parts.length >= 4096) { sink(parts.join("")); parts = []; }
       }
-      triOut += parts.join("");
-      if (!nt) continue;
+      sink(parts.join(""));
+      if (!nt) return;
       const part = msObj?.parts.get(v.partId);
       const pm = part?.meta || {};
       const vt = VOLTYPE[part?.subtype || "normal_part"] || "ModelPart";
@@ -525,13 +536,52 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
       mcfg += `   <mesh edges_fixed="0" degenerate_facets="0" facets_removed="0" facets_reversed="0" backwards_edges="0"/>\n  </volume>\n`;
       vbase += nv;
       tbase += nt;
-    }
+    });
     triTotal += tbase;
     if (bb[0] <= bb[3]) objBox.set(it.oid, bb);
     mcfg += ` </object>\n`;
-    model += `  <object id="${id}" type="model">\n   <mesh>\n    <vertices>\n${vtxOut}    </vertices>\n    <triangles>\n${triOut}    </triangles>\n   </mesh>\n  </object>\n`;
+    sink(`    </triangles>\n   </mesh>\n  </object>\n`);
   }
   mcfg += `</config>\n`;
+  return { mcfg, outId, objVolT, objBox, painted, dropped, droppedKeys, triTotal };
+  };
+  const meta = (k: string, v: string) => ` <metadata name="${k}">${esc(v)}</metadata>\n`;
+  const rootHead = (painted: Painted) =>
+    `<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:slic3rpe="http://schemas.slic3r.org/3mf/2017/06">\n` +
+    meta("slic3rpe:Version3mf", "1") +
+    (painted.sup ? meta("slic3rpe:FdmSupportsPaintingVersion", "1") : "") +
+    (painted.seam ? meta("slic3rpe:SeamPaintingVersion", "1") : "") +
+    (painted.fuzzy ? meta("slic3rpe:FuzzySkinPaintingVersion", "1") : "") +
+    (painted.mmu ? meta("slic3rpe:MmPaintingVersion", "1") : "") +
+    meta("Title", ctx.title) + meta("Designer", "") + meta("Description", ctx.title) + meta("Copyright", "") + meta("LicenseTerms", "") + meta("Rating", "") +
+    meta("CreationDate", (ctx.now || new Date()).toISOString().slice(0, 10)) + meta("ModificationDate", (ctx.now || new Date()).toISOString().slice(0, 10)) +
+    meta("Application", `PrusaSlicer-${ver}`) +
+    ` <resources>\n`;
+  // guess the paint kinds from the triangle text of the volumes that will be written
+  const guess: Painted = { mmu: false, sup: false, seam: false, fuzzy: false };
+  {
+    const seen = new Set<string>();
+    const kinds: [keyof Painted, RegExp][] = [["mmu", /\s(?:paint_color|slic3rpe:mmu_segmentation)="[^"]/], ["sup", /\s(?:paint_supports|slic3rpe:custom_supports)="[^"]/], ["seam", /\s(?:paint_seam|slic3rpe:custom_seam)="[^"]/], ["fuzzy", /\s(?:paint_fuzzy_skin|slic3rpe:fuzzy_skin)="[^"]/]];
+    for (const it of items) {
+      const root = objsIn(null).get(it.oid);
+      if (!root || seen.has(it.oid)) continue;
+      seen.add(it.oid);
+      const vols: Vol[] = [];
+      volsOf(root, null, IDENT, vols);
+      for (const v of vols) for (const [k, re] of kinds) if (!guess[k] && re.test(v.o.tri || "")) guess[k] = true;
+    }
+  }
+  const same = (a: Painted, b: Painted) => a.mmu === b.mmu && a.sup === b.sup && a.seam === b.seam && a.fuzzy === b.fuzzy;
+  let modelOut = new Streamed(4);
+  modelOut.push(rootHead(guess));
+  let W = writeObjects((t) => modelOut.push(t));
+  if (!same(W.painted, guess)) {
+    const exact = W.painted;
+    modelOut = new Streamed(4);
+    modelOut.push(rootHead(exact));
+    W = writeObjects((t) => modelOut.push(t));
+  }
+  const { mcfg, outId, objVolT, objBox, dropped, droppedKeys, triTotal } = W;
 
   // instances, moved from Orca's plate grid to PrusaSlicer's bed grid
   const nPlates = Math.max(1, ctx.plateIds.length);
@@ -559,18 +609,8 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
   if (dropped) ctx.warn(`${dropped} object(s) without geometry were left out of the PrusaSlicer project.`);
   if (droppedKeys.size) ctx.info(`Per-object settings without a PrusaSlicer equivalent were left at the preset values: ${[...droppedKeys].slice(0, 8).join(", ")}${droppedKeys.size > 8 ? ` and ${droppedKeys.size - 8} more` : ""}.`);
 
-  const meta = (k: string, v: string) => ` <metadata name="${k}">${esc(v)}</metadata>\n`;
-  const root =
-    `<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" xmlns:slic3rpe="http://schemas.slic3r.org/3mf/2017/06">\n` +
-    meta("slic3rpe:Version3mf", "1") +
-    (painted.sup ? meta("slic3rpe:FdmSupportsPaintingVersion", "1") : "") +
-    (painted.seam ? meta("slic3rpe:SeamPaintingVersion", "1") : "") +
-    (painted.fuzzy ? meta("slic3rpe:FuzzySkinPaintingVersion", "1") : "") +
-    (painted.mmu ? meta("slic3rpe:MmPaintingVersion", "1") : "") +
-    meta("Title", ctx.title) + meta("Designer", "") + meta("Description", ctx.title) + meta("Copyright", "") + meta("LicenseTerms", "") + meta("Rating", "") +
-    meta("CreationDate", (ctx.now || new Date()).toISOString().slice(0, 10)) + meta("ModificationDate", (ctx.now || new Date()).toISOString().slice(0, 10)) +
-    meta("Application", `PrusaSlicer-${ver}`) +
-    ` <resources>\n${model} </resources>\n <build>\n${build.join("")} </build>\n</model>\n`;
+  modelOut.push(` </resources>\n <build>\n${build.join("")} </build>\n</model>\n`);
+  modelOut.finish();
 
   // wipe tower per bed (bed-local position)
   const towerX = Array.isArray(R.wipe_tower_x) ? R.wipe_tower_x : R.wipe_tower_x !== undefined ? [R.wipe_tower_x] : [];
@@ -656,9 +696,9 @@ export function toPrusa(files: Zippable, R: Record<string, any>, ctx: PrusaConte
     }
   }
 
-  const out: Zippable = {
+  const out: OutFiles = {
     "[Content_Types].xml": strToU8(`<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>\n <Default Extension="png" ContentType="image/png"/>\n</Types>`),
-    "3D/3dmodel.model": strToU8(root),
+    "3D/3dmodel.model": modelOut,
     "Metadata/Slic3r_PE.config": strToU8(serializeConfig(C, towers[0], ver, ctx.now || new Date())),
     "Metadata/Slic3r_PE_model.config": strToU8(mcfg),
     "Metadata/Prusa_Slicer_wipe_tower_information.xml": strToU8(wt),

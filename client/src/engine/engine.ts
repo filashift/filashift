@@ -12,12 +12,13 @@
  * leave the printer slot empty so all machine settings come from the target's own profile.
  */
 import { isPrusaProject, prusaToOrca } from "./prusa";
-import { zipSync, strFromU8, strToU8, type Zippable } from "fflate";
+import { strFromU8, strToU8, type Zippable } from "fflate";
+import { writeZip, type OutFiles } from "./zip-out";
 import { readArchive } from "./archive";
 export { planPauses, defaultMapping, colorDistance, type PausePlan } from "./mapping";
 import RULES from "../rules.json";
 import SLICER_KEYS from "./slicer-keys.json";
-import { scanPaint, remapPaintText } from "./paint";
+import { eachPaint, remapPaintText } from "./paint";
 import { readSourceTools, toolTarget, applyTools, nozzleSizesNote, isFlexible } from "./tools";
 import { toPrusa } from "./prusa-out";
 import type {
@@ -261,8 +262,35 @@ function mul(a: Mat, b: Mat): Mat {
   return r;
 }
 
-function parseModelObjects(text: string): Map<string, ModelObj> {
+/** Everything the analysis needs from one .model part, gathered in a single decode. */
+interface ModelScan {
+  objects: Map<string, ModelObj>;
+  /** painted triangles per state over the whole part, and malformed paint strings */
+  counts: Map<number, number>;
+  bad: number;
+  /** the part contains paint_color= / mmu_segmentation= at all */
+  painted: boolean;
+  /** hand-painted supports (paint_supports with data) */
+  paintSupports: boolean;
+  /** number of <triangle> elements in the part */
+  triangles: number;
+}
+// Keyed by the entry's bytes, so every caller holding the same archive shares one scan and edited
+// data (a new Uint8Array) is never mistaken for the original.
+const SCANS = new WeakMap<Uint8Array, ModelScan>();
+function scanModel(u: Uint8Array): ModelScan {
+  let s = SCANS.get(u);
+  if (!s) {
+    s = scanModelText(dec(u));
+    SCANS.set(u, s);
+  }
+  return s;
+}
+
+function scanModelText(text: string): ModelScan {
   const out = new Map<string, ModelObj>();
+  // bodies of objects whose painted states are wanted, in text order
+  const ranges: { b: number; e: number; set: Set<number> }[] = [];
   let pos = 0;
   for (;;) {
     const s = text.indexOf("<object", pos);
@@ -300,11 +328,29 @@ function parseModelObjects(text: string): Map<string, ModelObj> {
     }
     let paint: Set<number> | undefined;
     if (body.includes("paint_color=") || body.includes("mmu_segmentation=")) {
-      paint = new Set([...scanPaint(body).counts.keys()].filter((k) => k > 0));
+      paint = new Set();
+      ranges.push({ b: tagEnd + 1, e: end, set: paint });
     }
     out.set(id, { bbox, comps, paint });
   }
-  return out;
+  // One pass over the paint attributes of the whole part: totals for the file, and the states of each
+  // object's own triangles (a paint attribute never spans an object boundary).
+  const counts = new Map<number, number>();
+  let bad = 0, r = 0;
+  const painted = text.includes("paint_color=") || text.includes("mmu_segmentation=");
+  if (painted)
+    eachPaint(text, (i, st) => {
+      if (!st) {
+        bad++;
+        return;
+      }
+      for (const s of st) counts.set(s, (counts.get(s) || 0) + 1);
+      while (r < ranges.length && ranges[r].e <= i) r++;
+      if (r < ranges.length && ranges[r].b <= i) for (const s of st) if (s > 0) ranges[r].set.add(s);
+    });
+  let triangles = 0;
+  for (let i = text.indexOf("<triangle "); i >= 0; i = text.indexOf("<triangle ", i + 10)) triangles++;
+  return { objects: out, counts, bad, painted, paintSupports: /paint_supports="[^"]/.test(text), triangles };
 }
 
 interface BuildItem {
@@ -331,11 +377,12 @@ function itemBoxes(e: Entries, rootText: string): Map<string, [number, number, n
   const load = (path: string) => {
     if (!cache.has(path)) {
       const k = findEntry(e, path);
-      cache.set(path, k ? parseModelObjects(dec(e[k])) : new Map());
+      cache.set(path, k ? scanModel(e[k]).objects : new Map());
     }
     return cache.get(path)!;
   };
-  cache.set(ROOT_MODEL, parseModelObjects(rootText));
+  // rootText is always the decoded root part, so its cached scan describes the same objects
+  cache.set(ROOT_MODEL, scanModel(e[findEntry(e, ROOT_MODEL)!]).objects);
   const out = new Map<string, [number, number, number, number]>();
   const acc = (box: number[] | null, b: [number, number, number, number, number, number], t: Mat) => {
     for (const x of [b[0], b[3]])
@@ -373,11 +420,12 @@ function filamentStacks(e: Entries, rootText: string, objects: MSObject[], plate
   const load = (path: string) => {
     if (!cache.has(path)) {
       const k = findEntry(e, path);
-      cache.set(path, k ? parseModelObjects(dec(e[k])) : new Map());
+      cache.set(path, k ? scanModel(e[k]).objects : new Map());
     }
     return cache.get(path)!;
   };
-  cache.set(ROOT_MODEL, parseModelObjects(rootText));
+  // rootText is always the decoded root part, so its cached scan describes the same objects
+  cache.set(ROOT_MODEL, scanModel(e[findEntry(e, ROOT_MODEL)!]).objects);
   const msById = new Map(objects.map((o) => [o.id, o]));
   const plateOf = new Map<string, number>();
   for (const p of plates) for (const id of p.objectIds) if (!plateOf.has(id)) plateOf.set(id, p.id);
@@ -515,12 +563,9 @@ function analyzeUse(e: Entries, S: Dict, nfil: number, objects: MSObject[], msXm
   let bad = 0;
   for (const k of Object.keys(e)) {
     if (!k.toLowerCase().endsWith(".model")) continue;
-    const u = e[k];
-    // quick byte check before decoding big meshes
-    const t = dec(u);
-    if (!t.includes("paint_color=") && !t.includes("mmu_segmentation=")) continue;
+    const r = scanModel(e[k]);
+    if (!r.painted) continue;
     hasPaint = true;
-    const r = scanPaint(t);
     bad += r.bad;
     for (const [s, c] of r.counts) {
       if (s > 0) {
@@ -574,7 +619,43 @@ export interface Loaded {
   analysis: Analysis;
 }
 
-export function analyze(bytes: Uint8Array, fileName: string): Loaded {
+/**
+ * Re-centring can push a big layout into the destination's excluded bed corner (e.g. the X1/P1 purge chute,
+ * bed_exclude_area 18 × 28 mm), which Bambu Studio rejects ("too close to exclusion area"). Slide the layout
+ * just clear of it along one axis when the bed has room; otherwise keep the centred shift.
+ */
+function avoidExcluded(fit: [number, number, number, number], shift: [number, number], bed: { minx: number; miny: number; w: number; h: number }, ex: unknown): [number, number] {
+  const pts = (Array.isArray(ex) ? ex : []).map((p) => String(p).split("x").map(Number)).filter((p) => p.length === 2 && p.every(Number.isFinite));
+  if (pts.length < 3) return shift;
+  const r = [Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1]))];
+  if (r[2] - r[0] <= 0 || r[3] - r[1] <= 0) return shift;
+  const m = 1; // clearance kept from the excluded area and the bed edge
+  const b = [fit[0] + shift[0], fit[1] + shift[1], fit[2] + shift[0], fit[3] + shift[1]];
+  if (b[0] >= r[2] + m || b[2] <= r[0] - m || b[1] >= r[3] + m || b[3] <= r[1] - m) return shift;
+  const bx0 = bed.minx + m, by0 = bed.miny + m, bx1 = bed.minx + bed.w - m, by1 = bed.miny + bed.h - m;
+  const moves: [number, number][] = [[r[2] + m - b[0], 0], [r[0] - m - b[2], 0], [0, r[3] + m - b[1]], [0, r[1] - m - b[3]]];
+  const ok = moves.filter(([dx, dy]) => b[0] + dx >= bx0 && b[2] + dx <= bx1 && b[1] + dy >= by0 && b[3] + dy <= by1);
+  if (ok.length) {
+    const [dx, dy] = ok.sort((p, q) => Math.hypot(...p) - Math.hypot(...q))[0];
+    return [shift[0] + dx, shift[1] + dy];
+  }
+  // No clean slide: the bounding box is too big, but the real outline is usually rounder than its box.
+  // Move away from the excluded corner as far as the bed allows on both axes (never off the bed).
+  const away = (lo: number, hi: number, rlo: number, rhi: number, min: number, max: number) =>
+    rlo - min < max - rhi ? Math.max(0, Math.min(rhi + m - lo, max - hi)) : Math.min(0, Math.max(rlo - m - hi, min - lo));
+  const dx = away(b[0], b[2], r[0], r[2], bx0, bx1), dy = away(b[1], b[3], r[1], r[3], by0, by1);
+  return [shift[0] + dx, shift[1] + dy];
+}
+
+/** Total triangles over every .model part of the archive (cached scans, so no extra decode later). */
+function countTriangles(e: Entries): number {
+  let n = 0;
+  for (const k of Object.keys(e)) if (/^3D\/.*\.model$/i.test(k)) n += scanModel(e[k]).triangles;
+  return n;
+}
+
+/** onStage reports long steps (English text, translated by the UI) so the page can show progress. */
+export function analyze(bytes: Uint8Array, fileName: string, onStage?: (stage: string) => void): Loaded {
   const base: Analysis = {
     fileName,
     fileSize: bytes.length,
@@ -621,6 +702,8 @@ export function analyze(bytes: Uint8Array, fileName: string): Loaded {
       return { entries: e, S: null, analysis: base };
     }
   }
+  onStage?.("Checking models and painted colours");
+  a.triangles = countTriangles(e);
   a.app = detectApp(e);
   const orcaTag = metaValue(e, "OrcaSlicer");
   a.sourceSlicer = slicerLabel(a.app, orcaTag);
@@ -1077,7 +1160,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   }
 
   // painted supports need support generation on
-  const hasPaintedSupports = Object.keys(e).some((n) => n.toLowerCase().endsWith(".model") && /paint_supports="[^"]/.test(dec(e[n])));
+  const hasPaintedSupports = Object.keys(e).some((n) => n.toLowerCase().endsWith(".model") && scanModel(e[n]).paintSupports);
   if (hasPaintedSupports && ["0", "false"].includes(String(first(R.enable_support ?? "0")))) {
     R.enable_support = "1";
     copied.add("enable_support");
@@ -1269,7 +1352,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
           if (u[2] - u[0] <= dstArea.w - 4 && u[3] - u[1] <= dstArea.h - 4) g = u;
         }
       }
-      shifts.set(pid, [ncx - (g[0] + g[2]) / 2, ncy - (g[1] + g[3]) / 2]);
+      shifts.set(pid, avoidExcluded(fit, [ncx - (g[0] + g[2]) / 2, ncy - (g[1] + g[3]) / 2], dstArea, R.bed_exclude_area ?? T.bed_exclude_area));
     }
     else if (srcArea) shifts.set(pid, [ncx - (srcArea.minx + srcArea.w / 2), ncy - (srcArea.miny + srcArea.h / 2)]);
     else shifts.set(pid, [0, 0]);
@@ -1551,7 +1634,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   if (dropped.length) info(`Removed ${dropped.length} unused filament(s): ${dropped.map((f) => f.index).join(", ")}.`);
   if (a.colorChangeLayers) info("This project has layer colour changes; they were kept and re-numbered. Check them in the slicer's preview.");
   if (S.printer_settings_id === profile.machine) info("The project was already set up for this printer; settings were refreshed anyway.");
-  let outZip: Zippable = outFiles;
+  let outZip: Zippable | OutFiles = outFiles;
   let procName = proc.name;
   let filNames = outPresets.map((p) => p.name);
   if (po) {
@@ -1593,7 +1676,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
   } else lines.unshift({ level: "ok", text: `Converted for ${profile.model}. Open it in ${profile.slicer} with File → Open Project (not Import), review, then slice.` });
 
   onPack?.();
-  const bytes = zipSync(outZip, { level: 6 });
+  const bytes = writeZip(outZip, 6);
   const base = a.fileName.replace(/\.3mf$/i, "");
   const tag = profile.model.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const report: ConvertReport = {

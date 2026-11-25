@@ -13,7 +13,7 @@ self.onmessage = async ({data}:MessageEvent<Request>) => {
       const mesh=/\.stl$/i.test(data.file.name);
       if(mesh&&data.file.size>16*1048576)throw Error("STL input exceeds the 16 MiB limit.");
       const bytes=new Uint8Array(await data.file.arrayBuffer());
-      loaded = analyze(mesh?stlProject(bytes):bytes,data.file.name.replace(/\.stl$/i,".3mf"));
+      loaded = analyze(mesh?stlProject(bytes):bytes,data.file.name.replace(/\.stl$/i,".3mf"),stage);
       if(mesh){
         loaded.analysis.sourceSlicer="STL";
         loaded.analysis.notes.unshift("STL geometry only. Units assumed millimeters; a neutral PLA slot was assigned. Check scale and choose your material before printing.");

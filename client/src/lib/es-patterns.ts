@@ -21,7 +21,19 @@ export function colourEs(w: string): string {
 }
 const s = (n: string, one: string, many: string) => (n === "1" ? one : many);
 
+/** "about 1.2 million triangles" / "about 640 thousand triangles" / "a 75 MB file" (see lib/big-model.ts) */
+function bigWhatEs(w: string): string {
+  const m = /^about ([\d.]+) (million|thousand) triangles$/.exec(w);
+  if (m && m[2] === "million" && m[1] === "1.0") return "alrededor de un millón de triángulos";
+  if (m) return `unos ${m[1].replace(".", ",").replace(/,0$/, "")} ${m[2] === "million" ? "millones de" : "mil"} triángulos`;
+  const f = /^a (\d+) MB file$/.exec(w);
+  return f ? `un archivo de ${f[1]} MB` : w;
+}
 addPatterns("es", [
+  [/^Very large project \((.+)\)\. Converting it can take several minutes and needs a lot of memory\. Close other tabs first; if the page stops responding, simplify the model in your slicer\.$/, (_m, w) =>
+    `Proyecto muy grande (${bigWhatEs(w)}). La conversión puede tardar varios minutos y necesita mucha memoria. Cierra antes otras pestañas; si la página deja de responder, simplifica el modelo en tu laminador.`],
+  [/^Large project for this device \((.+)\)\. Converting may be slow and could run out of memory on a phone or tablet\. If it fails, convert it on a computer\.$/, (_m, w) =>
+    `Proyecto grande para este dispositivo (${bigWhatEs(w)}). La conversión puede ser lenta y quedarse sin memoria en un móvil o tableta. Si falla, conviértelo en un ordenador.`],
   [/^(\d[\d,]*) printers$/, "$1 impresoras"],
   [/^(\d+) brands$/, "$1 marcas"],
   [/^(\d[\d,]*) printers from (\d+) brands$/, "$1 impresoras de $2 marcas"],

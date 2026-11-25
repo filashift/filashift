@@ -24,6 +24,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import type { Analysis, ConvertReport } from "@/engine/types";
 import type { ExportResult } from "@/engine/export";
 import { cn } from "@/lib/utils";
+import { bigModelWarning } from "@/lib/big-model";
 import { ProjectFilament } from "@/components/project-filament";
 import { feederFor } from "@/lib/reel-fit";
 import { conversionDetails, openReport } from "@/components/report-dialog";
@@ -123,6 +124,7 @@ export function FileCard({
   const usedCount = a ? a.filaments.filter((f) => f.used).length : 0;
   const overSlots = !!a && convertible && usedCount > slots;
   const plan = overSlots ? planPauses(a!, slots) : null;
+  const heavy = !job.result && !a?.error && !job.error ? bigModelWarning(a?.triangles, job.size) : null;
 
   return (
     <article className="overflow-hidden rounded-xl border border-card-border bg-card" data-testid={`card-file-${job.id}`}>
@@ -173,6 +175,13 @@ export function FileCard({
         <span role="status" data-testid="operation-stage">{job.stage || "Reading project"}</span>
         <Button variant="outline" size="sm" onClick={onCancel} data-testid="cancel-operation">{T("Cancel")}</Button>
       </div>}
+
+      {heavy && (
+        <div className="flex gap-2 border-b border-card-border bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200" role="note" data-testid={`text-large-model-${job.id}`}>
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>{heavy}</p>
+        </div>
+      )}
 
       {(job.error || a?.error) && (
         <div className="flex gap-2 p-4 text-sm text-destructive" data-testid={`text-error-${job.id}`}>

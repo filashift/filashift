@@ -19,7 +19,19 @@ export function colourFr(w: string): string {
 const s = (n: string, one: string, many: string) => (n === "1" || n === "0" ? one : many);
 const MON: Record<string, string> = { Jan: "janv.", Feb: "févr.", Mar: "mars", Apr: "avr.", May: "mai", Jun: "juin", Jul: "juil.", Aug: "août", Sep: "sept.", Oct: "oct.", Nov: "nov.", Dec: "déc." };
 
+/** "about 1.2 million triangles" / "about 640 thousand triangles" / "a 75 MB file" (see lib/big-model.ts) */
+function bigWhatFr(w: string): string {
+  const m = /^about ([\d.]+) (million|thousand) triangles$/.exec(w);
+  if (m && m[2] === "million" && m[1] === "1.0") return "environ un million de triangles";
+  if (m) return m[2] === "million" ? `environ ${m[1].replace(".", ",").replace(/,0$/, "")} millions de triangles` : `environ ${m[1]} 000 triangles`;
+  const f = /^a (\d+) MB file$/.exec(w);
+  return f ? `un fichier de ${f[1]} Mo` : w;
+}
 addPatterns("fr", [
+  [/^Very large project \((.+)\)\. Converting it can take several minutes and needs a lot of memory\. Close other tabs first; if the page stops responding, simplify the model in your slicer\.$/, (_m, w) =>
+    `Projet très volumineux (${bigWhatFr(w)}). La conversion peut prendre plusieurs minutes et demande beaucoup de mémoire. Fermez d’abord les autres onglets ; si la page ne répond plus, simplifiez le modèle dans votre slicer.`],
+  [/^Large project for this device \((.+)\)\. Converting may be slow and could run out of memory on a phone or tablet\. If it fails, convert it on a computer\.$/, (_m, w) =>
+    `Projet volumineux pour cet appareil (${bigWhatFr(w)}). La conversion peut être lente et manquer de mémoire sur un téléphone ou une tablette. En cas d’échec, convertissez-le sur un ordinateur.`],
   [/^(\d[\d,]*) printers$/, "$1 imprimantes"],
   [/^(\d+) brands$/, "$1 marques"],
   [/^(\d[\d,]*) printers from (\d+) brands$/, "$1 imprimantes de $2 marques"],

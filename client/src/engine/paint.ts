@@ -100,26 +100,36 @@ export function remapPaint(code: string, map: (s: number) => number): string | n
 
 const PAINT_ATTR_RE = /\b(paint_color|slic3rpe:mmu_segmentation)="([0-9A-Fa-f]*)"/g;
 
-/** Count painted triangles per state for a whole .model text. */
-export function scanPaint(text: string): { counts: Map<number, number>; bad: number } {
-  const counts = new Map<number, number>();
+/**
+ * Visit every paint attribute of a .model text in order: `on(index, states)` gets the match position and the
+ * states used (null = malformed). Decoded trees are cached per call, so repeated strings cost one lookup.
+ */
+export function eachPaint(text: string, on: (index: number, states: number[] | null) => void): void {
   const cache = new Map<string, number[] | null>();
-  let bad = 0;
-  PAINT_ATTR_RE.lastIndex = 0;
+  const re = new RegExp(PAINT_ATTR_RE.source, "g");
   let m: RegExpExecArray | null;
-  while ((m = PAINT_ATTR_RE.exec(text))) {
+  while ((m = re.exec(text))) {
     const code = m[2];
     let st = cache.get(code);
     if (st === undefined) {
       st = paintStates(code);
       cache.set(code, st);
     }
+    on(m.index, st);
+  }
+}
+
+/** Count painted triangles per state for a whole .model text. */
+export function scanPaint(text: string): { counts: Map<number, number>; bad: number } {
+  const counts = new Map<number, number>();
+  let bad = 0;
+  eachPaint(text, (_i, st) => {
     if (!st) {
       bad++;
-      continue;
+      return;
     }
     for (const s of st) counts.set(s, (counts.get(s) || 0) + 1);
-  }
+  });
   return { counts, bad };
 }
 

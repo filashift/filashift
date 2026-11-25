@@ -20,7 +20,19 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const s = (n: string, one: string, many: string) => (n === "1" ? one : many);
 const MON: Record<string, string> = { Jan: "Jan.", Feb: "Feb.", Mar: "März", Apr: "Apr.", May: "Mai", Jun: "Juni", Jul: "Juli", Aug: "Aug.", Sep: "Sept.", Oct: "Okt.", Nov: "Nov.", Dec: "Dez." };
 
+/** "about 1.2 million triangles" / "about 640 thousand triangles" / "a 75 MB file" (see lib/big-model.ts) */
+function bigWhatDe(w: string): string {
+  const m = /^about ([\d.]+) (million|thousand) triangles$/.exec(w);
+  if (m && m[2] === "million" && m[1] === "1.0") return "etwa eine Million Dreiecke";
+  if (m) return m[2] === "million" ? `etwa ${m[1].replace(".", ",").replace(/,0$/, "")} Millionen Dreiecke` : `etwa ${m[1]}.000 Dreiecke`;
+  const f = /^a (\d+) MB file$/.exec(w);
+  return f ? `eine Datei mit ${f[1]} MB` : w;
+}
 addPatterns("de", [
+  [/^Very large project \((.+)\)\. Converting it can take several minutes and needs a lot of memory\. Close other tabs first; if the page stops responding, simplify the model in your slicer\.$/, (_m, w) =>
+    `Sehr großes Projekt (${bigWhatDe(w)}). Die Konvertierung kann mehrere Minuten dauern und braucht viel Arbeitsspeicher. Schließen Sie zuerst andere Tabs; wenn die Seite nicht mehr reagiert, vereinfachen Sie das Modell in Ihrem Slicer.`],
+  [/^Large project for this device \((.+)\)\. Converting may be slow and could run out of memory on a phone or tablet\. If it fails, convert it on a computer\.$/, (_m, w) =>
+    `Großes Projekt für dieses Gerät (${bigWhatDe(w)}). Die Konvertierung kann langsam sein und auf einem Smartphone oder Tablet den Speicher erschöpfen. Falls sie fehlschlägt, konvertieren Sie die Datei an einem Computer.`],
   [/^(\d[\d,]*) printers$/, "$1 Drucker"],
   [/^(\d+) brands$/, "$1 Marken"],
   [/^(\d[\d,]*) printers from (\d+) brands$/, "$1 Drucker von $2 Marken"],

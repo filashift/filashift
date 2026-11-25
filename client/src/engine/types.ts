@@ -92,6 +92,8 @@ export interface Analysis {
   usedWhy?: string;
   plates: PlateInfo[];
   objectCount: number;
+  /** triangles over all mesh parts; drives the large-model warning */
+  triangles?: number;
   thumbnail?: string; // zip path of the best thumbnail
   notes: string[];
   error?: string;
