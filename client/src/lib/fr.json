@@ -537,5 +537,13 @@
   "Drag to rotate, pinch or scroll to zoom, right-drag or two-finger drag to pan.": "Faites glisser pour pivoter, pincez ou faites défiler pour zoomer, glissez avec le bouton droit ou deux doigts pour déplacer.",
   "Every colour keeps its own slot, so before and after look the same.": "Chaque couleur garde son propre emplacement, donc avant et après sont identiques.",
   "The file is no longer loaded.": "Le fichier n'est plus chargé.",
-  "The file is busy. Try again when the current step has finished.": "Le fichier est occupé. Réessayez lorsque l'étape en cours sera terminée."
+  "The file is busy. Try again when the current step has finished.": "Le fichier est occupé. Réessayez lorsque l'étape en cours sera terminée.",
+  "Also new in 2.1:": "Également nouveau dans la 2.1 :",
+  "The site is now in German and French, as well as English and Spanish.": "Le site est désormais disponible en allemand et en français, en plus de l'anglais et de l'espagnol.",
+  "Convert up to 10 files for up to 10 printers at once and download everything as one ZIP.": "Convertissez jusqu'à 10 fichiers pour jusqu'à 10 imprimantes à la fois et téléchargez le tout dans un seul ZIP.",
+  "Preview your colours in 3D, before and after conversion.": "Prévisualisez vos couleurs en 3D, avant et après la conversion.",
+  "Find filament that matches each colour, and watch prices privately in your browser.": "Trouvez un filament assorti à chaque couleur et suivez les prix en privé dans votre navigateur.",
+  "See the slicer test results for every printer, or request a printer that is missing.": "Consultez les résultats de test en slicer de chaque imprimante ou demandez une imprimante manquante.",
+  "Large models convert faster and use less memory.": "Les gros modèles se convertissent plus vite et utilisent moins de mémoire.",
+  "New guides for Creality Print, PrusaSlicer MMU3 and XL, and the Bambu Lab H3C and P3C tool changers.": "Nouveaux guides pour Creality Print, PrusaSlicer MMU3 et XL, et les changeurs d'outils Bambu Lab H3C et P3C."
 }

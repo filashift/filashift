@@ -537,5 +537,13 @@
   "Drag to rotate, pinch or scroll to zoom, right-drag or two-finger drag to pan.": "Arrastra para girar, pellizca o usa la rueda para ampliar, y arrastra con el botón derecho o con dos dedos para desplazar.",
   "Every colour keeps its own slot, so before and after look the same.": "Cada color conserva su propia ranura, así que antes y después se ven iguales.",
   "The file is no longer loaded.": "El archivo ya no está cargado.",
-  "The file is busy. Try again when the current step has finished.": "El archivo está ocupado. Inténtalo de nuevo cuando termine el paso actual."
+  "The file is busy. Try again when the current step has finished.": "El archivo está ocupado. Inténtalo de nuevo cuando termine el paso actual.",
+  "Also new in 2.1:": "También es nuevo en la 2.1:",
+  "The site is now in German and French, as well as English and Spanish.": "El sitio ya está en alemán y francés, además de inglés y español.",
+  "Convert up to 10 files for up to 10 printers at once and download everything as one ZIP.": "Convierte hasta 10 archivos para hasta 10 impresoras a la vez y descárgalo todo en un solo ZIP.",
+  "Preview your colours in 3D, before and after conversion.": "Previsualiza tus colores en 3D, antes y después de la conversión.",
+  "Find filament that matches each colour, and watch prices privately in your browser.": "Encuentra filamento a juego con cada color y sigue los precios de forma privada en tu navegador.",
+  "See the slicer test results for every printer, or request a printer that is missing.": "Consulta los resultados de las pruebas en laminador de cada impresora o solicita una impresora que falte.",
+  "Large models convert faster and use less memory.": "Los modelos grandes se convierten más rápido y usan menos memoria.",
+  "New guides for Creality Print, PrusaSlicer MMU3 and XL, and the Bambu Lab H3C and P3C tool changers.": "Nuevas guías para Creality Print, PrusaSlicer MMU3 y XL, y los cambiadores de herramienta Bambu Lab H3C y P3C."
 }

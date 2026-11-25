@@ -537,5 +537,13 @@
   "Drag to rotate, pinch or scroll to zoom, right-drag or two-finger drag to pan.": "Ziehen zum Drehen, Zwei-Finger-Geste oder Scrollen zum Zoomen, Rechtsziehen oder Ziehen mit zwei Fingern zum Verschieben.",
   "Every colour keeps its own slot, so before and after look the same.": "Jede Farbe behält ihren eigenen Slot, daher sehen vorher und nachher gleich aus.",
   "The file is no longer loaded.": "Die Datei ist nicht mehr geladen.",
-  "The file is busy. Try again when the current step has finished.": "Die Datei ist beschäftigt. Versuchen Sie es erneut, wenn der aktuelle Schritt abgeschlossen ist."
+  "The file is busy. Try again when the current step has finished.": "Die Datei ist beschäftigt. Versuchen Sie es erneut, wenn der aktuelle Schritt abgeschlossen ist.",
+  "Also new in 2.1:": "Ebenfalls neu in 2.1:",
+  "The site is now in German and French, as well as English and Spanish.": "Die Website gibt es jetzt auch auf Deutsch und Französisch, neben Englisch und Spanisch.",
+  "Convert up to 10 files for up to 10 printers at once and download everything as one ZIP.": "Konvertieren Sie bis zu 10 Dateien für bis zu 10 Drucker auf einmal und laden Sie alles als eine ZIP-Datei herunter.",
+  "Preview your colours in 3D, before and after conversion.": "Sehen Sie Ihre Farben in 3D, vor und nach der Konvertierung.",
+  "Find filament that matches each colour, and watch prices privately in your browser.": "Finden Sie passendes Filament für jede Farbe und beobachten Sie Preise privat in Ihrem Browser.",
+  "See the slicer test results for every printer, or request a printer that is missing.": "Sehen Sie die Slicer-Testergebnisse für jeden Drucker oder fordern Sie einen fehlenden Drucker an.",
+  "Large models convert faster and use less memory.": "Große Modelle werden schneller und mit weniger Arbeitsspeicher konvertiert.",
+  "New guides for Creality Print, PrusaSlicer MMU3 and XL, and the Bambu Lab H3C and P3C tool changers.": "Neue Anleitungen für Creality Print, PrusaSlicer MMU3 und XL sowie die Werkzeugwechsler Bambu Lab H3C und P3C."
 }
