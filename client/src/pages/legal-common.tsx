@@ -5,7 +5,7 @@ import type { Lang } from "@/lib/i18n";
 
 export const EMAIL = "support@jacksoncgc.com";
 export const ENTITY = "Jackson Technology Solutions LLC";
-export const PLACE = "Waukesha, Wisconsin, USA";
+export const PLACE = "PO Box 46, Waukesha, WI 53187, USA";
 export const AFFILIATES = "Amazon Associates, Overture, Sunlu (UpPromote), Flashforge (Impact, when active)";
 
 export const Mailto = () => <a href={`mailto:${EMAIL}`}>{EMAIL}</a>;

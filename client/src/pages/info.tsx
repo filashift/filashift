@@ -7,6 +7,7 @@ import { openReport } from "@/components/report-dialog";
 import { useLang, useT } from "@/lib/i18n";
 import { usePageMeta } from "@/lib/seo";
 import { LEGAL_UPDATED, privacySections, termsSections } from "./legal";
+import { PLACE } from "./legal-common";
 
 const EMAIL = "support@jacksoncgc.com";
 
@@ -130,6 +131,7 @@ export function About() {
 }
 
 export function Contact() {
+  const lang = useLang();
   return (
     <Page title="Contact" intro="Questions, partnership ideas or a file that didn't convert well — we'd like to hear from you.">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -158,6 +160,10 @@ export function Contact() {
         FilaShift is operated by {COMPANY}, Waukesha, Wisconsin, USA. Please don't email project files you aren't allowed to share; a link to the
         model page is usually enough.
       </p>
+      <address translate="no" className="mt-3 text-sm not-italic">
+        <strong>{{ en: "Mailing address", es: "Dirección postal", de: "Postanschrift", fr: "Adresse postale" }[lang]}</strong><br />
+        Jackson Technology Solutions LLC<br />{PLACE}
+      </address>
     </Page>
   );
 }
