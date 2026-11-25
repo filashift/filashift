@@ -33,6 +33,7 @@ try {
       }
       await search.fill("Flashforge AD5X");
       await page.getByTestId("option-printer-flashforge-ad5x").click();
+      await search.waitFor({state:"detached"}); // let the first picker close before opening the batch picker
       assert.match(await picker.innerText(),/AD5X/);
       await page.getByTestId("batch-printers").locator("summary").click();
       await page.getByTestId("button-batch-printer-picker").click();
