@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { BadgeCheck, CircleDashed, FileJson, FlaskConical, Search } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { slotLabel, useTested } from "@/components/printer-picker";
+import { verifiedZrPla, ZR_PLA_LABEL, ZR_MIX_NOTE } from "@/lib/zr-verification";
 import { RequestPrinterButton } from "@/components/printer-request";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -193,6 +194,7 @@ export default function TestedPage() {
               <tbody>
                 {shown.map(({ p, t, outs }) => {
                   const notes = [...new Set(outs.map((o) => o.note).filter(Boolean) as string[])];
+                  const pla = verifiedZrPla(p.id, t?.slicer || "", tested?.slicers.OrcaSlicer, t, t?.date || tested?.date);
                   return (
                     <tr key={p.id} className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-b border-border py-3 md:table-row md:py-0" data-testid={`row-tested-${p.id}`}>
                       <td className="col-span-2 md:py-2.5 md:pr-3 md:align-top">
@@ -200,7 +202,9 @@ export default function TestedPage() {
                         <div className="text-xs text-muted-foreground" translate="no">{p.vendor}</div>
                       </td>
                       <td className="col-span-2 md:py-2.5 md:pr-3 md:align-top">
-                        {t?.ok ? (
+                        {pla ? (
+                          <span translate="no" className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{L(ZR_PLA_LABEL)}</span>
+                        ) : t?.ok ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary"><BadgeCheck className="h-3.5 w-3.5 shrink-0" />{p.id === "wondermaker-zr-ultra" && outs.some(o => o.slicer === "OrcaSlicer" && o.ok) ? L("OrcaSlicer-tested") : L("Slicer-tested")}</span>
                         ) : (
                           <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleDashed className="h-3.5 w-3.5" />{L(!t?.tests ? "Unverified" : t.passed ? "Partial pass" : "Not yet passed")}</span>
@@ -231,7 +235,7 @@ export default function TestedPage() {
                       <td className="col-span-2 text-xs text-muted-foreground md:py-2.5 md:align-top">
                         {p.prusaOnly && <div>PrusaSlicer only: always converted to a PrusaSlicer project.</div>}
                         {p.prusa && !p.prusaOnly && <div>PrusaSlicer or OrcaSlicer output.</div>}
-                        {notes.map((n) => <div key={n}>{L(n)}</div>)}
+                        {(pla ? [ZR_MIX_NOTE] : notes).map((n) => <div key={n}>{L(n)}</div>)}
                         {p.vendor === "WonderMaker" && <a href="./samples/wondermaker-results.json" className="text-primary underline">WonderMaker test results</a>}
                       </td>
                     </tr>

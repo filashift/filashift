@@ -46,11 +46,11 @@ try {
       assert.match(await preflight.innerText(), /OrcaSlicer 2\.5\.2/);
       assert.match(await preflight.innerText(), /not the Ultra S/);
       if (!osDark) {
-        for (const [lang, [row, partial, phrase]] of Object.entries({
-          en:["OrcaSlicer-tested","Partial pass","OrcaSlicer-tested. No physical print verified."],
-          es:["Probado en OrcaSlicer","Resultado parcial","Probado en OrcaSlicer. No se ha verificado ninguna impresión física."],
-          de:["Mit OrcaSlicer getestet","Teilweise bestanden","Mit OrcaSlicer getestet. Kein Druck am Gerät bestätigt."],
-          fr:["Testé avec OrcaSlicer","Réussite partielle","Testé avec OrcaSlicer. Aucune impression physique vérifiée."]
+        for (const [lang, [row, pla, phrase]] of Object.entries({
+          en:["OrcaSlicer-tested","OrcaSlicer-verified for PLA","OrcaSlicer-tested. No physical print verified."],
+          es:["Probado en OrcaSlicer","Verificado en OrcaSlicer para PLA","Probado en OrcaSlicer. No se ha verificado ninguna impresión física."],
+          de:["Mit OrcaSlicer getestet","Für PLA in OrcaSlicer verifiziert","Mit OrcaSlicer getestet. Kein Druck am Gerät bestätigt."],
+          fr:["Testé avec OrcaSlicer","Vérifié dans OrcaSlicer pour le PLA","Testé avec OrcaSlicer. Aucune impression physique vérifiée."]
         })) {
           const prefix = lang === "en" ? "" : `/${lang}`;
           await p.goto(`${base}${prefix}/tested`);
@@ -58,12 +58,14 @@ try {
           const ultra = p.getByTestId("row-tested-wondermaker-zr-ultra");
           await ultra.getByText(row,{exact:true}).waitFor();
           const zr = p.getByTestId("row-tested-wondermaker-zr");
-          await zr.getByText(partial,{exact:true}).waitFor();
+          await zr.getByText(pla,{exact:true}).waitFor();
           assert.equal(await zr.getByText(row,{exact:true}).count(),0);
           for (const id of ["wondermaker-zr","wondermaker-zr-ultra","wondermaker-zr-ultra-s"]) {
             assert.ok(!(await p.getByTestId(`row-tested-${id}`).innerText()).includes(phrase), `${lang} ${id} row still has the physical-print phrase`);
           }
           if (lang === "en") {
+            assert.doesNotMatch(await zr.innerText(), /Not yet passed/);
+            assert.match(await zr.innerText(), /original PLA\/PETG sample did not/);
             assert.match(await zr.innerText(), /2 of 3 slice tests passed/);
           }
           assert.ok(!(await p.getByTestId("row-tested-wondermaker-zr-ultra-s").innerText()).includes(row));
@@ -80,7 +82,7 @@ try {
         const limits = p.getByTestId("wondermaker-limits");
         await limits.waitFor();
         assert.match(await limits.innerText(), /Wonderprint-Orca 2\.3\.2: unverified/);
-        assert.match(await p.getByTestId("text-tested-note").locator("summary").innerText(), id.endsWith("-s") ? /Slicer-tested/ : /Partial pass/);
+        assert.match(await p.getByTestId("text-tested-note").locator("summary").innerText(), id.endsWith("-s") ? /Slicer-tested/ : /OrcaSlicer-verified for PLA/);
       }
       await jumps();
       await p.getByTestId("button-theme").click();

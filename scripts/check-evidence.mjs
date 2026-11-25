@@ -53,8 +53,12 @@ for(const [lang,width] of [["en",1280],["es",320],["de",390],["fr",320]]) {
     await p.goto(`${base}/tested?lang=${lang}`);
     for(const id of ids){
      const row=p.getByTestId(`row-tested-${id}`);
-     await row.getByText(label("Partial pass"),{exact:true}).waitFor();
-     await row.getByText(label(catalog.printers[id].note),{exact:true}).waitFor();
+     const zr=id==="wondermaker-zr";
+     await row.getByText(label(zr?"OrcaSlicer-verified for PLA":"Partial pass"),{exact:true}).waitFor();
+     if(zr){
+      assert.equal(await row.getByText(label(catalog.printers[id].note),{exact:true}).count(),0);
+      assert.match(await row.innerText(),/PLA\/PETG/);
+     }else await row.getByText(label(catalog.printers[id].note),{exact:true}).waitFor();
     }
     await p.goto(`${base}/?printer=prusa-core-one-mmu3&lang=${lang}`);
     await evidence.locator("summary").filter({hasText:label("Partial pass")}).click();

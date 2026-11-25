@@ -7,6 +7,7 @@ import type { PrinterIndexEntry } from "@/engine/types";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import demo from "../../public/samples/test-results.json";
+import { verifiedZrPla, ZR_PLA_LABEL, ZR_MIX_NOTE } from "@/lib/zr-verification";
 import { RequestPrinterButton } from "@/components/printer-request";
 
 /** Shown first, in this order, under "Popular". */
@@ -82,14 +83,15 @@ export function TestedNote({ id, model, slicer, output }: { id: string; model:st
   const row=p?.outputs?p.outputs[sl]:p && (p.slicer||slicer)===sl?p:undefined;
   const exact=demo.results.find(r=>r.id===id&&r.slicer===sl);
   if(!row || !d) return <p className="mt-2 text-xs text-muted-foreground">{T("No recorded result for this output.")}</p>;
+  const pla = verifiedZrPla(id, sl, d.slicers[sl], row, p?.date || d.date);
   return <details key={id+sl} translate="no" className="mt-2 rounded-lg border p-2 text-xs" data-testid="text-tested-note">
     <summary className="cursor-pointer font-semibold text-primary" data-testid={`badge-tested-${id}`}>
-      {row.ok ? T(id === "wondermaker-zr-ultra" && sl === "OrcaSlicer" ? "OrcaSlicer-tested" : "Slicer-tested") : T(row.passed ? "Partial pass" : "Not yet passed")} · {T("View result")}
+      {pla ? T(ZR_PLA_LABEL) : row.ok ? T(id === "wondermaker-zr-ultra" && sl === "OrcaSlicer" ? "OrcaSlicer-tested" : "Slicer-tested") : T(row.passed ? "Partial pass" : "Not yet passed")} · {T("View result")}
     </summary>
     <div className="mt-2 space-y-1.5">
       <p><b>{model}</b> · {sl} {d.slicers[sl]||""} · {p?.date || d.date}</p>
       <p>{T("{passed} of {tests} slice tests passed for this output.",{passed:row.passed,tests:row.tests})}</p>
-      {row.note&&<p>{T(row.note)}</p>}
+      {(pla || row.note) && <p>{T(pla ? ZR_MIX_NOTE : row.note!)}</p>}
       {d.baselineNote && (p?.date || d.date) === d.date && sl !== "PrusaSlicer" && <p>{T(d.baselineNote)}</p>}
       <p>{T("Source projects in the test suite:")}</p>
       <ul className="list-disc pl-4">{d.samples.filter(s=>sl==="PrusaSlicer"||!s.startsWith("PrusaSlicer output only")&&!s.startsWith("PrusaSlicer output also")).map(s=><li key={s}>{sampleLabel(T,s)}</li>)}</ul>
