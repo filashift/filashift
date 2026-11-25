@@ -6,6 +6,7 @@ import { useTested } from "@/components/printer-picker";
 import { FILE_LIMIT } from "@/lib/conversion-facts";
 import { tr, useLang } from "@/lib/i18n";
 import { useJsonLd, usePageMeta } from "@/lib/seo";
+import { slicerFirst } from "@/lib/slicer-first";
 
 const FAQ = [
   {
@@ -26,7 +27,7 @@ const FAQ = [
   },
   {
     q: "How do I keep slicer settings when switching printers?",
-    a: "Download the project 3MF, not the STL: on MakerWorld use the 3MF download of the print profile you want, and on Printables download the 3MF file. Then convert it here. FilaShift keeps the designer's layer height, walls, infill, supports, seam and colors, swaps in your printer's machine and filament profiles, and lists every change in the report.",
+    a: slicerFirst.en.settings,
   },
   {
     q: "Can I convert back to Bambu?",
@@ -60,16 +61,18 @@ export default function FaqPage() {
   const intro = T("Answers about project files, privacy, color mapping and printer profiles.");
   usePageMeta(`${title} | FilaShift`, intro);
   useEffect(() => { window.scrollTo(0,0); }, []);
-  const questions = FAQ.map(f => {
-    let a = f.a === FILE_LIMIT.en ? FILE_LIMIT[lang] : tr(lang, f.a);
+  const questions = FAQ.map((f, i) => {
+    let a = f.a === FILE_LIMIT.en ? FILE_LIMIT[lang] : f.a === slicerFirst.en.settings ? slicerFirst[lang].settings : tr(lang, f.a);
     if (tested && f.q === "What does Slicer-tested mean?") {
       const results = Object.values(tested.printers);
       const passed = results.filter(r => r.ok).length;
       const versions = Object.entries(tested.slicers).map(([name,v]) => `${name} ${v}`).join("; ");
       a += " " + T("Baseline date: {date}. Across the catalog, {passed} of {total} profiles passed all recorded tests. Slicers: {versions}.", { date: tested.date, passed, total: results.length, versions });
     }
-    return {q: tr(lang,f.q), a};
+    return {q: tr(lang,f.q), a, id: `q${i}`};
   });
+  questions.unshift({q: slicerFirst[lang].question, a: slicerFirst[lang].answer, id: "slicer-first"});
+  const topic = new URLSearchParams(window.location.hash.startsWith("#/") ? window.location.hash.split("?")[1] : window.location.search).get("topic");
   useJsonLd("ld-faq", {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -81,10 +84,10 @@ export default function FaqPage() {
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6" lang={lang}>
         <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         <p className="mb-6 mt-2 text-muted-foreground">{intro}</p>
-        <Accordion translate="no" type="single" collapsible className="rounded-xl border border-card-border bg-card px-4 [&_[role=region][data-state=closed]]:hidden">
+        <Accordion translate="no" type="single" collapsible defaultValue={topic === "slicer-first" ? topic : undefined} className="rounded-xl border border-card-border bg-card px-4 [&_[role=region][data-state=closed]]:hidden">
           {questions.map((f, i) => (
-            <AccordionItem key={i} value={`q${i}`} className={i === FAQ.length - 1 ? "border-b-0" : ""}>
-              <AccordionTrigger className="text-left text-sm font-medium" data-testid={`faq-${i}`}>
+            <AccordionItem key={f.id} value={f.id} className={i === questions.length - 1 ? "border-b-0" : ""}>
+              <AccordionTrigger className="text-left text-sm font-medium" data-testid={`faq-${f.id.replace(/^q/, "")}`}>
                 {f.q}
               </AccordionTrigger>
               <AccordionContent forceMount className="text-sm text-muted-foreground">

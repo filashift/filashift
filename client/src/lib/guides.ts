@@ -292,7 +292,7 @@ export const GUIDES: Guide[] = [
         p: ["Every plate is kept and re-centered on your bed. If a plate is bigger than your bed, the report says how much to scale it."],
       },
     ],
-    faq: [{ q: "Why do I only see one color after opening?", a: "The file was imported instead of opened as a project. Use File → Open Project." }],
+    faq: [{ q: "Why do I only see one color after opening?", a: "First check how you opened the original 3MF. Use File → Open Project rather than importing only the geometry. If you still see one color, check whether the original project contains multiple colors and whether they were assigned to the same filament slot." }],
     updated: "2026-11-23",
   },
   {

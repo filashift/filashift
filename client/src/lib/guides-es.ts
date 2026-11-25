@@ -281,7 +281,7 @@ export const GUIDES_ES: Record<string, GuideText> = {
     faq: [
       {
         q: "¿Por qué solo veo un color al abrirlo?",
-        a: "El archivo se importó en lugar de abrirse como proyecto. Usa Archivo → Abrir proyecto.",
+        a: "Primero comprueba cómo abriste el 3MF original. Usa Archivo → Abrir proyecto en vez de importar solo la geometría. Si sigues viendo un solo color, comprueba si el proyecto original tiene varios colores y si se asignaron a la misma ranura de filamento.",
       },
     ],
   },

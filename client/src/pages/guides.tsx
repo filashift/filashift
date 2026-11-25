@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SiteFooter, SiteHeader } from "@/components/site-chrome";
 import { GUIDES, guideBySlug, type Guide } from "@/lib/guides";
 import { localGuide } from "@/lib/guides-local";
+import { slicerFirst } from "@/lib/slicer-first";
 import { LOCALES, langParam, tr, useLang } from "@/lib/i18n";
 
 /** The guide in the current language (translated text when available, English otherwise). */
@@ -32,7 +33,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export function GuidesIndex() {
-  const { loc, L } = useLocal();
+  const { lang, loc, L } = useLocal();
   const topics = [
     { id: "mesh", label: L("Mesh export"), example: "STL / OBJ" },
     { id: "project", label: L("Printer conversion"), example: L("Slicers and colors") },
@@ -50,6 +51,7 @@ export function GuidesIndex() {
       <p className="mt-3 text-muted-foreground">
         {L("Short, tested workflows for moving 3D printing projects between slicers and printers, and for turning 3MF files into STL or OBJ.")}
       </p>
+      <Link href={`/faq?topic=slicer-first${langParam(lang) ? `&${langParam(lang)}` : ""}`} className="mt-3 inline-block text-primary underline" data-testid="slicer-first-link">{slicerFirst[lang].link}</Link>
       <nav aria-label={L("Browse guides by topic")} className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
         {topics.map(t => <button key={t.id} type="button" data-testid={`topic-${t.id}`} aria-controls={`guides-${t.id}`}
           onClick={() => { const target = document.getElementById(`guides-${t.id}`); target?.focus({ preventScroll: true }); target?.scrollIntoView({ block: "start" }); }}

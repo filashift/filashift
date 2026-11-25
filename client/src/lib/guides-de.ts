@@ -279,7 +279,7 @@ export const GUIDES_DE: Record<string, GuideText> = {
     faq: [
       {
         q: "Warum sehe ich beim Öffnen nur eine Farbe?",
-        a: "Die Datei wurde importiert statt als Projekt geöffnet. Nutzen Sie Datei → Projekt öffnen.",
+        a: "Prüfen Sie zuerst, wie Sie die ursprüngliche 3MF geöffnet haben. Nutzen Sie Datei → Projekt öffnen, statt nur die Geometrie zu importieren. Sehen Sie weiterhin nur eine Farbe, prüfen Sie, ob das ursprüngliche Projekt mehrere Farben enthält und ob diese demselben Filamentplatz zugeordnet wurden.",
       },
     ],
   },
