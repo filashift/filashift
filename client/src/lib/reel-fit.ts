@@ -28,3 +28,14 @@ export function reelStatus(it:Item, feeder:Exclude<Feeder,"none">) {
     width<=70&&bore>=52&&bore<=60&&it.kg<=1;
   return within?"within":"outside";
 }
+
+/**
+ * Feeder whose reel limits the finder can check for a converted project's target printer.
+ * Only printers sold with (or for) the original AMS, and the Snapmaker U1's reel holder.
+ * Newer AMS 2 Pro / AMS lite / AMS 3 printers have different limits, so they get no label.
+ */
+export function feederFor(model: string): Feeder {
+  if (/^Bambu Lab (X1|X1 Carbon|X1E|P1S|P1P)$/.test(model)) return "ams";
+  if (model === "Snapmaker U1") return "u1";
+  return "none";
+}

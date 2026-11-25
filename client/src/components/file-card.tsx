@@ -24,6 +24,7 @@ import type { Analysis, ConvertReport } from "@/engine/types";
 import type { ExportResult } from "@/engine/export";
 import { cn } from "@/lib/utils";
 import { ProjectFilament } from "@/components/project-filament";
+import { feederFor } from "@/lib/reel-fit";
 import { conversionDetails, openReport } from "@/components/report-dialog";
 
 export interface Job {
@@ -445,7 +446,15 @@ function ResultPanel({ job, onReset }: { job: Job; onReset: () => void }) {
         ))}
       </div>
 
-      <ProjectFilament needs={rep.filaments} testId={`shop-${job.id}`} />
+      <ProjectFilament
+        needs={rep.filaments.map((f) => {
+          // subtype comes from the designer's own filament presets; the target printer's preset only names the family
+          const src = f.from.map((i) => job.analysis?.filaments[i - 1]?.preset || "").filter(Boolean);
+          return { ...f, presets: src.length ? src : [f.preset] };
+        })}
+        feeder={feederFor(rep.target)}
+        testId={`shop-${job.id}`}
+      />
 
       <ul className="mt-4 space-y-2" data-testid={`list-report-${job.id}`}>
         {warns.map((l, i) => (

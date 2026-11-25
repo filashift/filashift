@@ -160,12 +160,14 @@ export const closeColour = (it: Item, hex: string) => it.c.some((c,i) => {
  * Cheapest in-stock 1.75 mm offers whose colour is close to `hex` in the same material family.
  * Prefers single spools of 0.5–1.25 kg, which suit one project.
  */
-export function matchOffers(items: Item[], type: string, hex: string, limit = 3, diameter = 1.75): Match[] {
+export function matchOffers(items: Item[], type: string, colour: string, limit = 3, diameter = 1.75, sub = shopType(type)): Match[] {
   const fam = familyOf(type);
+  const hex = normHex(colour);
   const out: Match[] = [];
+  if (!hex) return out;
   for (const it of items) {
     if (!it.ok || it.f !== fam || it.d !== diameter || !oneSpool(it)) continue;
-    if (type.toLowerCase() !== fam.toLowerCase() && it.m.toLowerCase() !== type.toLowerCase()) continue;
+    if (sub && it.m.toLowerCase() !== sub.toLowerCase()) continue;
     let best: { c: string; h: string; d: number } | null = null;
     it.c.forEach((c, i) => {
       const h = colourHex(c, it.x?.[i]);
@@ -192,4 +194,93 @@ export function readQuery(): URLSearchParams {
   const i = h.indexOf("?");
   if (i >= 0) return new URLSearchParams(h.slice(i + 1));
   return new URLSearchParams(window.location.search);
+}
+
+// ---------- project hand-off: hex, subtype, CIEDE2000 colour difference ----------
+/** "#E63A2E", "e63a2eff" -> "#e63a2e"; null when not a hex colour */
+export function normHex(h: string | undefined | null): string | null {
+  const m = /^#?([0-9a-f]{6})(?:[0-9a-f]{2})?$/i.exec((h || "").trim());
+  return m ? `#${m[1].toLowerCase()}` : null;
+}
+
+// Same labels and order as MATERIALS in scripts/collect_filament.py (first match wins).
+const SUBTYPES: [RegExp, string, string][] = [
+  [/\bpla[\s-]*\+|\bpla\s*plus|\bpla[\s-]*pro\b|tough\s*pla|\bpla\s*tough\b/, "PLA", "PLA+"],
+  [/\bpla\b.*\b(cf|carbon\s*fib)/, "PLA", "PLA-CF"],
+  [/\bsilk\b/, "PLA", "PLA Silk"],
+  [/\bmatte\b/, "PLA", "PLA Matte"],
+  [/\b(hs|hf|high[\s-]*(speed|flow)|hyper|rapid)\b/, "PLA", "PLA High Speed"],
+  [/\bpetg\b.*\b(cf|carbon\s*fib)|\bpetg[\s-]*cf\b/, "PETG", "PETG-CF"],
+  [/\b(hs|hf|high[\s-]*(speed|flow)|hyper|rapid)\b/, "PETG", "PETG High Speed"],
+  [/\bmatte\b/, "PETG", "PETG Matte"],
+  [/\bpctg\b/, "PETG", "PCTG"],
+  [/\babs\b.*\b(cf|carbon\s*fib)|\babs[\s-]*cf\b/, "ABS", "ABS-CF"],
+  [/\basa\b.*\b(cf|carbon\s*fib)|\basa[\s-]*cf\b/, "ASA", "ASA-CF"],
+  [/\b(pa|nylon|paht|pa6|pa12|ppa)\b.*\b(cf|gf|carbon|glass)|\b(pa\d*|ppa|paht)[\s-]*(cf|gf)/, "Nylon", "Nylon-CF/GF"],
+  [/\bpc[\s/-]*abs\b/, "PC", "PC-ABS"],
+  [/\bhips\b/, "Other", "HIPS"],
+  [/\bpva\b|\bbvoh\b/, "Other", "PVA / soluble"],
+  [/\bpps\b|\bpeek\b|\bpei\b|\bpekk\b/, "Other", "High-temp"],
+  [/\bpp\b/, "Other", "PP"],
+];
+/**
+ * Finder "type" label for a project filament, or undefined when only the family is known
+ * (plain PLA/PETG, or a speciality the price list does not track, e.g. Galaxy or Wood).
+ * `names` are slicer preset names such as "Bambu PLA Silk @BBL X1C".
+ */
+export function shopType(type: string, names: string[] = []): string | undefined {
+  const fam = familyOf(type);
+  const text = [type, ...names.map((n) => n.replace(/@.*$/, ""))].join(" ").toLowerCase();
+  for (const [re, f, label] of SUBTYPES) if (f === fam && re.test(text)) return label;
+  return undefined;
+}
+
+function lab(hex: string): [number, number, number] {
+  const lin = (c: number) => (c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  const [r, g, b] = rgb(hex).map(lin);
+  const x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047, y = 0.2126 * r + 0.7152 * g + 0.0722 * b, z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883;
+  const f = (t: number) => (t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116);
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+}
+/** CIEDE2000 colour difference between two #rrggbb colours (0 = identical, about 2 = just noticeable) */
+export function deltaE(a: string, b: string): number {
+  const [L1, a1, b1] = lab(a), [L2, a2, b2] = lab(b);
+  const rad = Math.PI / 180, deg = 180 / Math.PI;
+  const C1 = Math.hypot(a1, b1), C2 = Math.hypot(a2, b2), Cm = (C1 + C2) / 2;
+  const G = 0.5 * (1 - Math.sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7)));
+  const ap1 = a1 * (1 + G), ap2 = a2 * (1 + G);
+  const Cp1 = Math.hypot(ap1, b1), Cp2 = Math.hypot(ap2, b2);
+  const hue = (bb: number, aa: number) => (bb === 0 && aa === 0 ? 0 : (Math.atan2(bb, aa) * deg + 360) % 360);
+  const hp1 = hue(b1, ap1), hp2 = hue(b2, ap2);
+  const dL = L2 - L1, dC = Cp2 - Cp1;
+  let dh = 0;
+  if (Cp1 * Cp2 !== 0) dh = Math.abs(hp2 - hp1) <= 180 ? hp2 - hp1 : hp2 - hp1 > 180 ? hp2 - hp1 - 360 : hp2 - hp1 + 360;
+  const dH = 2 * Math.sqrt(Cp1 * Cp2) * Math.sin((dh / 2) * rad);
+  const Lm = (L1 + L2) / 2, Cpm = (Cp1 + Cp2) / 2;
+  let hm = hp1 + hp2;
+  if (Cp1 * Cp2 !== 0) hm = Math.abs(hp1 - hp2) <= 180 ? (hp1 + hp2) / 2 : hp1 + hp2 < 360 ? (hp1 + hp2 + 360) / 2 : (hp1 + hp2 - 360) / 2;
+  const T = 1 - 0.17 * Math.cos((hm - 30) * rad) + 0.24 * Math.cos(2 * hm * rad) + 0.32 * Math.cos((3 * hm + 6) * rad) - 0.2 * Math.cos((4 * hm - 63) * rad);
+  const SL = 1 + (0.015 * (Lm - 50) ** 2) / Math.sqrt(20 + (Lm - 50) ** 2), SC = 1 + 0.045 * Cpm, SH = 1 + 0.015 * Cpm * T;
+  const RT = -2 * Math.sqrt(Cpm ** 7 / (Cpm ** 7 + 25 ** 7)) * Math.sin(60 * Math.exp(-(((hm - 275) / 25) ** 2)) * rad);
+  return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
+}
+/** ΔE00 bands used by the finder: up to VERY_CLOSE "very close", up to CLOSE "close", up to MAX_DE shown as "noticeably different" */
+export const VERY_CLOSE = 5, CLOSE = 12, MAX_DE = 25;
+export type ColourHit = { de: number; colour: string; hex: string; estimated: boolean };
+/** closest listed colour of an offer to `hex`; estimated = the store gave no hex, so it was guessed from the colour name */
+export function colourHit(it: Item, hex: string): ColourHit | null {
+  let best: ColourHit | null = null;
+  it.c.forEach((c, i) => {
+    const store = normHex(it.x?.[i]);
+    const h = store || colourHex(c);
+    if (!h) return;
+    const de = deltaE(hex, h);
+    if (!best || de < best.de) best = { de, colour: c, hex: h, estimated: !store };
+  });
+  return best;
+}
+/** subtype shared by every preset merged into one slot; falls back to the slicer type alone when they disagree */
+export function slotType(type: string, presets: string[] = []): string | undefined {
+  const subs = presets.map((p) => shopType(type, [p]));
+  return subs.length && subs.every((s) => s === subs[0]) ? subs[0] : shopType(type);
 }

@@ -70,7 +70,10 @@ export function privacySections(lang: Lang): Sec[] {
             in its built-in app cache, using a "service worker". This cache holds only FilaShift's files, never your projects, and nothing about you.
             It contains no identifier and isn't used to recognize you. You can remove it at any time by clearing site data for filashift.com in your
             browser settings, or by uninstalling the app if you installed it. Your language and theme choices are remembered in your browser's local storage and
-            never sent to us.
+            never sent to us. If you use "Watch this search" on the filament prices page, the search filters, the lowest price per kg at that moment and the
+            date you saved it are also kept there, only on that device, so the page can tell you when it gets cheaper. Price checks use the same public price
+            list everyone downloads; nothing about your watched searches is sent to us. Remove them with "Remove" or "Clear all" on that page, or by clearing
+            site data.
           </p>
         </>
       ),
@@ -442,6 +445,10 @@ function PRIVACY_ES(): Sec[] {
             archivos de FilaShift, nunca tus proyectos ni nada sobre ti. No contiene ningún identificador y no se usa para reconocerte. Puedes
             eliminarla en cualquier momento borrando los datos del sitio filashift.com en la configuración del navegador, o desinstalando la
             aplicación si la instalaste. Tus preferencias de idioma y de tema se guardan en el almacenamiento local del navegador y nunca se nos envían.
+            Si usas «Seguir esta búsqueda» en la página de precios de filamento, también se guardan allí, solo en ese dispositivo, los filtros de la
+            búsqueda, el precio por kg más bajo en ese momento y la fecha en que la guardaste, para avisarte cuando baje. La comprobación usa la misma
+            lista pública de precios que descarga todo el mundo; no se nos envía nada sobre tus búsquedas seguidas. Puedes eliminarlas con «Quitar» o
+            «Borrar todo» en esa página, o borrando los datos del sitio.
           </p>
         </>
       ),

@@ -4,7 +4,7 @@ import { useLang } from "@/lib/i18n";
 import { atomicReel, limits, reelSpecs, reelStatus, type Feeder } from "@/lib/reel-fit";
 import { Link } from "wouter";
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, Search, Store, Tag } from "lucide-react";
+import { Bell, BellOff, ExternalLink, Search, Store, Tag, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { cn } from "@/lib/utils";
-import { amazonSearch, closeColour, colourHex, nearestName, oneSpool, storeCode, hasAnyAffiliate, loadShopConfig, loadShopData, readQuery, shopUrl, type Item, type ShopConfig, type ShopData } from "@/lib/shop";
+import { amazonSearch, CLOSE, colourHex, nearestName, normHex, storeCode, hasAnyAffiliate, loadShopConfig, loadShopData, readQuery, shopUrl, VERY_CLOSE, type ColourHit, type Item, type ShopConfig, type ShopData } from "@/lib/shop";
+import { addWatched, clearWatched, isCheaper, loadWatched, lowestPpk, removeWatched, searchItems, searchKey, type Search as WatchSearch, type Watched } from "@/lib/watch";
 
 type Data = ShopData;
 type Config = ShopConfig;
@@ -42,13 +43,18 @@ export default function Filament() {
   const q0 = useMemo(() => readQuery(), []);
   const [family, setFamily] = useState(() => (FAMILIES.includes(q0.get("f") || "") ? q0.get("f")! : "All"));
   const [type, setType] = useState(() => q0.get("t")?.slice(0,40) || "all");
-  const [brand, setBrand] = useState("all");
+  const [brand, setBrand] = useState(() => q0.get("b")?.slice(0,60) || "all");
   const [feeder,setFeeder]=useState<Feeder>(()=>q0.get("feeder")==="ams"?"ams":q0.get("feeder")==="u1"?"u1":"none");
   const [dia, setDia] = useState(() => ["2.85","any"].includes(q0.get("d") || "") ? q0.get("d")! : "1.75");
   const [pack, setPack] = useState(() => ["single","multi"].includes(q0.get("pack") || "") ? q0.get("pack")! : "any");
-  const [sort, setSort] = useState(pack === "single" ? "price" : "ppk");
-  const [color,setColor] = useState(() => /^[0-9a-f]{6}$/i.test(q0.get("color") || "") ? "#"+q0.get("color") : "");
-  const changePack = (p:string) => {setPack(p); setSort(p === "single" ? "price" : "ppk");};
+  const [color,setColorRaw] = useState(() => /^[0-9a-f]{6}$/i.test(q0.get("color") || "") ? normHex(q0.get("color"))! : "");
+  const [sort, setSort] = useState(() => {
+    const s0 = q0.get("sort") || "";
+    return ["ppk","price","deal"].includes(s0) || (s0 === "colour" && color) ? s0 : pack === "single" ? "price" : "ppk";
+  });
+  const setColor = (c:string) => {setColorRaw(c); if (!c && sort === "colour") setSort(pack === "single" ? "price" : "ppk");};
+  const changePack = (p:string) => {setPack(p); if (sort !== "colour") setSort(p === "single" ? "price" : "ppk");};
+  const [watched, setWatched] = useState<Watched[]>(() => loadWatched());
   const [inStock, setInStock] = useState(true);
   const [q, setQ] = useState(() => q0.get("q") || "");
   const [shown, setShown] = useState(PAGE);
@@ -72,29 +78,24 @@ export default function Filament() {
   const brands = useMemo(() => Array.from(new Set(items.map((i) => i.b))).sort((a, b) => a.localeCompare(b)), [items]);
   const storeCount = data ? Object.values(data.stores).filter((v) => typeof v === "number" && v > 0).length : 0;
 
-  const list = useMemo(() => {
-    const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const out = items.filter((i) => {
-      if (inStock && !i.ok) return false;
-      if (family !== "All" && i.f !== family) return false;
-      if (type !== "all" && i.m.toLowerCase() !== type.toLowerCase()) return false;
-      if (brand !== "all" && i.b !== brand) return false;
-      if (dia !== "any" && String(i.d) !== dia) return false;
-      if (pack === "single" && !oneSpool(i)) return false;
-      if (color && !closeColour(i,color)) return false;
-      if (pack === "multi" && i.kg < 2) return false;
-      if (words.length) {
-        const hay = `${i.b} ${i.t} ${i.v} ${i.m} ${i.c.join(" ")}`.toLowerCase();
-        if (!words.every((w) => hay.includes(w))) return false;
-      }
-      return true;
-    });
+  const search: WatchSearch = useMemo(() => ({ f: family, t: type, b: brand, d: dia, pack, color, q, stock: inStock }), [family, type, brand, dia, pack, color, q, inStock]);
+  const { list, hits, withoutColour } = useMemo(() => {
+    const { list: out, hits } = searchItems(items, search);
     const off = (i: Item) => (i.was ? 1 - i.p / i.was : 0);
+    const de = (i: Item) => Math.round((hits.get(i)?.de ?? 99) * 2) / 2;
     out.sort((a, b) =>
-      sort === "price" ? a.p - b.p : sort === "deal" ? off(b) - off(a) || a.ppk - b.ppk : a.ppk - b.ppk,
+      sort === "price" ? a.p - b.p : sort === "deal" ? off(b) - off(a) || a.ppk - b.ppk
+        : sort === "colour" ? de(a) - de(b) || (pack === "single" ? a.p - b.p : a.ppk - b.ppk) : a.ppk - b.ppk,
     );
-    return out;
-  }, [items, family, type, brand, dia, pack, sort, inStock, q, color]);
+    // how many offers the colour filter alone hid, for the honest "no close colour" state
+    const withoutColour = color && !out.length ? searchItems(items, { ...search, color: "" }).list.length : 0;
+    return { list: out, hits, withoutColour };
+  }, [items, search, sort, pack, color]);
+  const nearest = color && list.length ? Math.min(...list.map((i) => hits.get(i)?.de ?? 99)) : null;
+  const noCloseColour = !!data && !!color && (nearest === null ? withoutColour > 0 : nearest > CLOSE);
+  const key = searchKey(search);
+  const current = watched.find((w) => w.key === key);
+  const low = useMemo(() => lowestPpk(items, search), [items, search]);
 
   const best = list[0];
   const amazonUrl = cfg.amazonTag
@@ -129,6 +130,19 @@ export default function Filament() {
             </p>
           )}
         </section>
+
+        {watched.length > 0 && (
+          <WatchedList
+            watched={watched}
+            items={data ? items : null}
+            onOpen={(s) => {
+              setFamily(s.f); setType(s.t); setBrand(s.b); setDia(s.d); setPack(s.pack); setColorRaw(s.color); setQ(s.q); setInStock(s.stock);
+              setSort(s.pack === "single" ? "price" : "ppk");
+            }}
+            onRemove={(k) => setWatched(removeWatched(watched, k))}
+            onClear={() => setWatched(clearWatched())}
+          />
+        )}
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <Button size="sm" variant={pack === "single" ? "default" : "outline"} aria-pressed={pack==="single"} onClick={()=>changePack("single")}>One spool for this print</Button>
@@ -203,6 +217,7 @@ export default function Filament() {
               <SelectItem value="ppk">Lowest price per kg</SelectItem>
               <SelectItem value="price">Lowest total price</SelectItem>
               <SelectItem value="deal">Biggest discount</SelectItem>
+              {color && <SelectItem value="colour">Closest colour</SelectItem>}
             </SelectContent>
           </Select>
         </div>
@@ -218,6 +233,34 @@ export default function Filament() {
           </div>
         </div>
 
+        {data && (
+          <div className="mb-4 flex flex-wrap items-center gap-2" data-testid="watch-controls">
+            {current ? (
+              <>
+                <Button size="sm" variant="outline" onClick={() => setWatched(removeWatched(watched, key))} data-testid="unwatch-search"><BellOff className="mr-1.5 h-3.5 w-3.5" /><span>Stop watching</span></Button>
+                <WatchStatus w={current} now={low} testId="watch-status-current" />
+              </>
+            ) : (
+              <Button size="sm" variant="outline" disabled={low === null} onClick={() => low !== null && setWatched(addWatched(watched, search, low))} data-testid="watch-search"><Bell className="mr-1.5 h-3.5 w-3.5" /><span>Watch this search</span></Button>
+            )}
+            <span className="text-xs text-muted-foreground">Saved only in this browser, never sent to FilaShift. No account or email.</span>
+            {color && <span className="text-xs text-muted-foreground">With a colour, only close matches count.</span>}
+          </div>
+        )}
+
+        {color && data && (
+          <p className="mb-4 text-xs text-muted-foreground" data-testid="text-colour-help">
+            Colour closeness is ΔE (CIEDE2000) between the project colour and the store's swatch, or a colour estimated from its name. Under 5 is very close, under 12 is close.
+          </p>
+        )}
+        {noCloseColour && (
+          <div className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-900 dark:text-amber-200" role="status" data-testid="no-close-colour">
+            <p className="font-medium">No close colour match</p>
+            <p className="mt-1">{list.length ? "None of these offers is a close colour match. The nearest ones are listed, but they will look noticeably different." : "No offer with these filters is close to this colour."}</p>
+            <Button size="sm" variant="outline" className="mt-2" onClick={() => setColor("")} data-testid="show-all-colours">Show all colours</Button>
+          </div>
+        )}
+
         {err && <p className="rounded-lg border border-destructive/40 p-4 text-sm text-destructive">{err}</p>}
 
         {!data && !err && (
@@ -226,7 +269,7 @@ export default function Filament() {
           </div>
         )}
 
-        {data && list.length === 0 && (
+        {data && list.length === 0 && !noCloseColour && (
           <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             No offers match these filters. Try another material or turn off "In stock only".
           </p>
@@ -234,7 +277,7 @@ export default function Filament() {
 
         <ul className="space-y-2" data-testid="list-offers">
           {list.slice(0, shown).map((it, idx) => (
-            <Offer key={`${it.u}-${idx}`} it={it} rank={idx + 1} cfg={cfg} feeder={feeder} es={es} />
+            <Offer key={`${it.u}-${idx}`} it={it} rank={idx + 1} cfg={cfg} feeder={feeder} es={es} hit={hits.get(it)} />
           ))}
         </ul>
 
@@ -274,7 +317,55 @@ export default function Filament() {
   );
 }
 
-function Offer({ it, rank, cfg, feeder, es }: { it: Item; rank: number; cfg: Config; feeder: Feeder; es:boolean }) {
+const money = (n: number) => `$${n.toFixed(2)}/kg`;
+function WatchStatus({ w, now, testId }: { w: Watched; now: number | null; testId: string }) {
+  if (now === null) return <span className="text-xs text-muted-foreground" data-testid={testId} data-state="none">No offers match right now</span>;
+  const cheaper = isCheaper(w, now);
+  return (
+    <Badge variant={cheaper ? "default" : "outline"} className={cn("whitespace-normal text-left font-normal", cheaper && "bg-primary/15 text-primary hover:bg-primary/15")} data-testid={testId} data-state={cheaper ? "cheaper" : "same"}>
+      {cheaper ? `Cheaper than when you saved it (was ${money(w.ppk)}, now ${money(now)})` : `Not cheaper yet (was ${money(w.ppk)}, now ${money(now)})`}
+    </Badge>
+  );
+}
+
+function WatchedList({ watched, items, onOpen, onRemove, onClear }: { watched: Watched[]; items: Item[] | null; onOpen: (s: WatchSearch) => void; onRemove: (key: string) => void; onClear: () => void }) {
+  const chip = "rounded-full border border-border px-2 py-0.5";
+  return (
+    <section className="mb-5 rounded-xl border border-card-border bg-card p-3 sm:p-4" aria-labelledby="watched-heading" data-testid="watched-list">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="watched-heading" className="text-sm font-semibold">Watched searches</h2>
+        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={onClear} data-testid="watched-clear">Clear all</Button>
+      </div>
+      <ul className="divide-y divide-border">
+        {watched.map((w, i) => {
+          const s = w.s;
+          const now = items ? lowestPpk(items, s) : undefined;
+          return (
+            <li key={w.key} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 py-2 text-xs" data-testid={`watched-${i}`}>
+              <div className="flex min-w-0 flex-1 basis-56 flex-wrap items-center gap-1">
+                {s.t !== "all" || s.f !== "All" ? <span className={cn(chip, "font-medium")} translate="no">{s.t !== "all" ? s.t : s.f}</span> : <span className={cn(chip, "font-medium")}>All materials</span>}
+                {s.b !== "all" && <span className={chip} translate="no">{s.b}</span>}
+                <span className={chip}>{s.d === "any" ? "Any diameter" : `${s.d} mm`}</span>
+                <span className={chip}>{s.pack === "single" ? "Single spool" : s.pack === "multi" ? "Bulk, 2 kg and up" : "Any size"}</span>
+                {s.color && <span className={cn(chip, "inline-flex items-center gap-1")}><span className="h-2.5 w-2.5 rounded-full border border-black/15 dark:border-white/20" style={{ background: s.color }} aria-hidden /><span>{`close to ${nearestName(s.color)}`}</span></span>}
+                {s.q && <span className={chip} translate="no">{`“${s.q}”`}</span>}
+                {!s.stock && <span className={chip}>Including out of stock</span>}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-muted-foreground">{`Saved ${w.at.slice(0, 10)}`}</span>
+                {now !== undefined && <WatchStatus w={w} now={now} testId={`watched-status-${i}`} />}
+                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => onOpen(s)} data-testid={`watched-open-${i}`}>Show</Button>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onRemove(w.key)} aria-label="Remove watched search" data-testid={`watched-remove-${i}`}><Trash2 className="mr-1 h-3 w-3" /><span>Remove</span></Button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function Offer({ it, rank, cfg, feeder, es, hit }: { it: Item; rank: number; cfg: Config; feeder: Feeder; es:boolean; hit?: ColourHit }) {
   const status=feeder==="none"?null:reelStatus(it,feeder), reel=status==="within"||status==="outside"?atomicReel(it):null;
   const labels={within:es?"Dentro de los límites":"Within size limits",outside:es?"Fuera de los límites":"Outside size limits",unknown:es?"Dimensiones sin verificar":"Reel dimensions unverified",refill:es?"Recarga: comprueba tu bobina reutilizable":"Refill: check your reusable reel"};
   const link = shopUrl(it.u, cfg, "finder");
@@ -314,6 +405,14 @@ function Offer({ it, rank, cfg, feeder, es }: { it: Item; rank: number; cfg: Con
             return h ? <span key={i} title={c} className="h-3 w-3 rounded-full border border-black/15 dark:border-white/20" style={{ background: h }} /> : null;
           })}
         </div>
+        {hit && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs" data-testid={`colour-${rank}`} data-de={hit.de.toFixed(2)}>
+            <span className="h-3 w-3 rounded-full border border-black/15 dark:border-white/20" style={{ background: hit.hex }} aria-hidden />
+            <span className={cn("font-medium", hit.de <= CLOSE ? "text-primary" : "text-amber-700 dark:text-amber-300")}>{hit.de <= VERY_CLOSE ? "Very close" : hit.de <= CLOSE ? "Close match" : "Noticeably different"}</span>
+            <span className="font-mono tabular-nums text-muted-foreground" translate="no">{`ΔE ${hit.de.toFixed(1)}`}</span>
+            {hit.estimated && <span className="text-muted-foreground">colour estimated from its name</span>}
+          </div>
+        )}
         {status&&<div translate="no" data-testid="reel-fit" data-status={status} className="mt-2 text-xs">
           <span className="font-semibold">{feeder==="ams"?"AMS":"U1"}: {labels[status]}</span>
           {reel&&<div>{es?"Ancho":"Width"} {reel.width} mm · Ø {reel.outer} mm · {es?"orificio":"hole"} {reel.bore} mm · <a href={reelSpecs} className="text-primary underline">{es?"Medidas de Atomic":"Atomic reel specs"}</a></div>}

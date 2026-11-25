@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PATH_ROUTING } from "@/routing";
-import { ChevronDown, ExternalLink, ShoppingBag, Store } from "lucide-react";
+import { ChevronDown, ExternalLink, Search, ShoppingBag, Store } from "lucide-react";
+import type { Feeder } from "@/lib/reel-fit";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -12,6 +13,8 @@ import {
   loadShopData,
   matchOffers,
   nearestName,
+  normHex,
+  slotType,
   shopUrl,
   storeCode,
   type Match,
@@ -20,10 +23,11 @@ import {
 } from "@/lib/shop";
 import { cn } from "@/lib/utils";
 
-type Need = { color: string; type: string; diameter?: number; slot?: number };
+/** one converted slot; `presets` = source and target preset names, used to find the subtype (Silk, Matte, PLA+ …) */
+type Need = { color: string; type: string; diameter?: number; slot?: number; presets?: string[] };
 
 /** "Filament for this print": cheapest close colour matches for each slot of a converted project */
-export function ProjectFilament({ needs, testId }: { needs: Need[]; testId: string }) {
+export function ProjectFilament({ needs, testId, feeder = "none" }: { needs: Need[]; testId: string; feeder?: Feeder }) {
   const [data, setData] = useState<ShopData | null>(null);
   const [cfg, setCfg] = useState<ShopConfig>({});
   const [failed, setFailed] = useState(false);
@@ -37,7 +41,7 @@ export function ProjectFilament({ needs, testId }: { needs: Need[]; testId: stri
   // one row per material family + colour
   const seen = new Set<string>();
   const rows = needs.filter((n) => {
-    const k = `${n.type}|${n.diameter}|${n.color.toLowerCase()}`;
+    const k = `${slotType(n.type, n.presets) || n.type}|${n.diameter}|${normHex(n.color) || n.color.toLowerCase()}`;
     return !seen.has(k) && seen.add(k);
   });
   const sponsored = hasAnyAffiliate(cfg) || !!cfg.amazonTag;
@@ -59,7 +63,7 @@ export function ProjectFilament({ needs, testId }: { needs: Need[]; testId: stri
       <CollapsibleContent className="border-t border-primary/15 px-3 pb-3">
         <ul className="divide-y divide-border">
           {rows.map((n, i) => (
-            <NeedRow key={i} need={n} data={data} cfg={cfg} testId={`${testId}-row-${i}`} />
+            <NeedRow key={i} need={n} data={data} cfg={cfg} feeder={feeder} testId={`${testId}-row-${i}`} />
           ))}
         </ul>
         <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
@@ -71,20 +75,34 @@ export function ProjectFilament({ needs, testId }: { needs: Need[]; testId: stri
   );
 }
 
-function NeedRow({ need, data, cfg, testId }: { need: Need; data: ShopData | null; cfg: ShopConfig; testId: string }) {
+function NeedRow({ need, data, cfg, feeder, testId }: { need: Need; data: ShopData | null; cfg: ShopConfig; feeder: Feeder; testId: string }) {
   const fam = familyOf(need.type);
-  const word = nearestName(need.color);
+  const sub = slotType(need.type, need.presets);
+  const hex = normHex(need.color);
+  const word = hex ? nearestName(hex) : "";
   const knownDia = need.diameter === 1.75 || need.diameter === 2.85;
-  const matches: Match[] = data && knownDia ? matchOffers(data.items, need.type, need.color, 2, need.diameter) : [];
+  const matches: Match[] = data && knownDia && hex ? matchOffers(data.items, need.type, hex, 2, need.diameter, sub) : [];
   const codes = [...new Set(matches.map((m) => storeCode(m.item.u, cfg) && `${m.item.r}: ${storeCode(m.item.u, cfg)}`).filter(Boolean))];
-  const params = { f: fam, d: knownDia ? String(need.diameter) : "any", color: need.color.replace(/^#/, ""), ...(fam.toLowerCase() !== need.type.toLowerCase() ? {t:need.type} : {}) };
+  // material family, subtype when known, filament diameter, colour and the target printer's feeder
+  const params: Record<string, string> = { f: fam, d: knownDia ? String(need.diameter) : "any",
+    ...(hex ? { color: hex.slice(1) } : {}), ...(sub ? { t: sub } : {}), ...(feeder !== "none" ? { feeder } : {}) };
+  const href = (extra: Record<string, string>) => (PATH_ROUTING ? "" : "#") + filamentLink({ ...params, ...extra });
   return (
     <li className="py-2.5" data-testid={testId}>
       <div className="flex items-center gap-2 text-sm">
         <span className="h-4 w-4 shrink-0 rounded-full border border-black/15 dark:border-white/20" style={{ background: need.color }} aria-hidden />
         {need.slot ? <span className="font-mono text-xs text-muted-foreground">{need.slot}</span> : null}
-        <span className="font-medium">{need.type}</span>
-        <span className="text-muted-foreground">{`· close to ${word}`}</span>
+        <span className="font-medium" translate="no">{sub || need.type}</span>
+        {word && <span className="text-muted-foreground">{`· close to ${word}`}</span>}
+      </div>
+      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <Button asChild size="sm" className="h-8 px-3 text-xs">
+          <a href={href({ pack: "single", ...(hex ? { sort: "colour" } : {}) })} target="_blank" rel="noopener" data-testid={`${testId}-find`}>
+            <Search className="mr-1.5 h-3.5 w-3.5" />
+            Find matching filament
+          </a>
+        </Button>
+        {feeder !== "none" && <span className="text-xs text-muted-foreground" data-testid={`${testId}-feeder`}>{feeder === "ams" ? "Reel size check: original Bambu Lab AMS" : "Reel size check: Snapmaker U1"}</span>}
       </div>
       {!data ? (
         <div className="mt-2 h-8 animate-pulse rounded bg-secondary" />
@@ -122,11 +140,11 @@ function NeedRow({ need, data, cfg, testId }: { need: Need; data: ShopData | nul
       )}
       <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs">
         {!knownDia && <span>Confirm filament diameter in the finder.</span>}
-        <a href={(PATH_ROUTING ? "" : "#") + filamentLink({...params, pack:"single"})} target="_blank" rel="noopener" className="font-semibold text-primary underline" data-testid={`${testId}-single`}>One spool for this print</a>
-        <a href={(PATH_ROUTING ? "" : "#") + filamentLink({...params, pack:"multi"})} target="_blank" rel="noopener" className="text-primary underline" data-testid={`${testId}-bulk`}>Compare bulk prices</a>
+        <a href={href({ pack: "single" })} target="_blank" rel="noopener" className="font-semibold text-primary underline" data-testid={`${testId}-single`}>One spool for this print</a>
+        <a href={href({ pack: "multi" })} target="_blank" rel="noopener" className="text-primary underline" data-testid={`${testId}-bulk`}>Compare bulk prices</a>
         {cfg.amazonTag && (
           <a
-            href={amazonSearch(`${need.type} filament ${word} ${knownDia ? `${need.diameter}mm` : ""}`, cfg.amazonTag)}
+            href={amazonSearch(`${sub || need.type} filament ${word} ${knownDia ? `${need.diameter}mm` : ""}`, cfg.amazonTag)}
             target="_blank"
             rel="sponsored noopener noreferrer"
             className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
