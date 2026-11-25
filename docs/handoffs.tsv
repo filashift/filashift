@@ -1,0 +1,8 @@
+# Development handoff ledger: one line per dev/<topic> branch tip integrated by Ops.
+# branch	branch_tip	integrated_on_master	released_in	date
+dev/slicer-evidence-copy	74e0650c470f5b3d39620f7dd9909bea92b0a70d	74e0650	74e0650	2026-11-25
+dev/us-english-spelling	4985a641a2999f673ffd0f83a64349ab74bac819	4985a64	2d70012	2026-11-25
+dev/wondermaker-printer-finder	83bd36c50751236e48c7941f0a8d7840944abc41	c3a4437	98af11d	2026-11-25
+dev/partial-slice-retests	0d31549c8f9c0f20ae6e32979bc142625f1cce12	12bbe30	1cab19c	2026-11-25
+dev/filament-review-action	76c3d048dea818b2cccfe27955957aab637ff352	79e62cb	1cab19c	2026-11-25
+dev/zr-pla-verified	5a1dd11c7cd9deac701d930f875760d2835d7edf	5e82e94	42b6705	2026-11-25
