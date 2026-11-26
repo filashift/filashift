@@ -86,6 +86,7 @@ export default function TestedPage() {
           url: siteUrl("/tested", PATH_LANG ?? "en"),
           dateModified: rows.reduce((date, r) => r.t?.date && r.t.date > date ? r.t.date : date, tested.date),
           isAccessibleForFree: true,
+          license: "https://www.gnu.org/licenses/agpl-3.0.html",
           creator: { "@type": "Organization", name: "Jackson Technology Solutions LLC", url: siteUrl("/about", PATH_LANG ?? "en") },
           measurementTechnique: L("Sample projects converted by FilaShift and sliced with the OrcaSlicer, Bambu Studio and PrusaSlicer command-line interfaces"),
           variableMeasured: ["printer profile", "destination slicer", "slicer version", "slice tests passed", "slice tests run", "color slots"].map((v) => L(v)),
