@@ -1,4 +1,5 @@
 # Development handoff ledger: one line per dev/<topic> branch tip integrated by Ops.
+# integrated_on_master = hold: prototype or QA branch Development asked Ops not to release (reason in column 4).
 # branch	branch_tip	integrated_on_master	released_in (self = the commit that adds this line)	date
 dev/slicer-evidence-copy	74e0650c470f5b3d39620f7dd9909bea92b0a70d	74e0650	74e0650	2026-11-25
 dev/us-english-spelling	4985a641a2999f673ffd0f83a64349ab74bac819	4985a64	2d70012	2026-11-25
@@ -11,3 +12,4 @@ dev/bed-fit-preview-action	311e26a682631c1052b57a000e013461a640c90e	adb971b	self
 dev/slicer-first-guidance	06fb7f35ff1cbe47d96053995c24f2930e97d1dd	06fb7f3	self	2026-11-25
 dev/elegoo-filament-store	a5e07105b955814c119ba6279539f2424e9eae9f	a5e0710	self	2026-11-25
 dev/elegoo-filament-guides	c3241d0a3f25e5f9af5f03f04e483a1169c2e847	5be497e	self	2026-11-25
+dev/file-filament-preview	91b4c38ae2068e714b2a9c7d7c2d8dfefe8f0d47	hold	prototype for QA only; Development said do not deploy (Nov 26 2026)	2026-11-26

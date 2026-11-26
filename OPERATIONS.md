@@ -210,3 +210,4 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 
 ## Pasted-link cleanup redirect (Nov 25 2026)
 - Links shared in chats sometimes arrive with leftovers stuck on the end (`/filament[filashift]`, `/guides)`, `/faq.`). Caddy's `@pastejunk` rule in `deploy/Caddyfile.filashift` 301-redirects them to the clean page and keeps the query string. Real unknown paths still return 404. Server backup before the change: /etc/caddy/Caddyfile.bak-1795666541.
+- Prototype or QA branches that Development says not to release get a `hold` line in `docs/handoffs.tsv` (reason in column 4). The check prints HOLD and does not count them as pending. Replace the line with a normal entry if the branch is later handed off for release.

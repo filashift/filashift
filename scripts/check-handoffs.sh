@@ -17,6 +17,7 @@ while read -r ref; do
   row=$(awk -F'\t' -v t="$tip" '$2==t' "$LEDGER" || true)
   if [ -n "$row" ]; then
     integ=$(cut -f3 <<<"$row")
+    if [ "$integ" = "hold" ]; then echo "HOLD      $b ${tip:0:7}: $(cut -f4 <<<"$row")"; continue; fi
     if git merge-base --is-ancestor "$integ" "$LIVE"; then echo "live      $b ${tip:0:7} -> $integ"; continue; fi
     echo "NOT LIVE  $b ${tip:0:7} integrated as $integ but not in live $LIVE"; status=1; continue
   fi
