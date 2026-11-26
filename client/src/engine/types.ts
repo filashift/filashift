@@ -88,6 +88,8 @@ export interface Analysis {
   hasSlicedGcode: boolean;
   colorChangeLayers: boolean;
   filaments: SourceFilament[];
+  /** Named, explicitly assigned parts only. Not an inventory of painted facets. */
+  filePartNames?: Record<number, string[]>;
   usedKnown: boolean;
   usedWhy?: string;
   plates: PlateInfo[];

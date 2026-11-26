@@ -1,4 +1,6 @@
 {
+  "File filament": "Filament in der Datei",
+  "Slots are project assignments. Confirm the loaded spool or toolhead in your slicer; FilaShift cannot see your printer.": "Die Plätze sind Zuordnungen im Projekt. Prüfen Sie die eingelegte Spule oder den Werkzeugkopf im Slicer. FilaShift kann Ihren Drucker nicht auslesen.",
   "Shop ELEGOO (affiliate link)": "Bei ELEGOO einkaufen (Affiliate-Link)",
   "To keep the original size, try rotating the model in your slicer. For separate parts, try Arrange or move some to another plate. Check the layout before slicing.": "Um die Originalgröße zu behalten, drehen Sie das Modell probeweise im Slicer. Bei separaten Teilen können Sie „Anordnen“ verwenden oder einige Teile auf eine andere Platte verschieben. Prüfen Sie die Anordnung vor dem Slicen.",
   "Partial pass": "Teilweise bestanden",

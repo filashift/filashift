@@ -809,6 +809,19 @@ export function analyze(bytes: Uint8Array, fileName: string, onStage?: (stage: s
     a.stacks = undefined;
   }
   a.hasPaint = use.hasPaint;
+  if (!use.hasPaint && use.used) {
+    const names: Record<number, string[]> = {};
+    const add = (slot: number | null, name: string) => {
+      if (!slot || !name || slot > nfil) return;
+      const row = names[slot] ||= [];
+      if (row.length < 6 && !row.includes(name)) row.push(name);
+    };
+    for (const o of objects) {
+      if (!o.parts.length) add(o.ext, o.name);
+      for (const p of o.parts) if (p.subtype === "normal_part") add(p.ext || o.ext, p.name || o.name);
+    }
+    a.filePartNames = names;
+  }
   a.usedKnown = !!use.used;
   a.usedWhy = use.why;
   a.colorChangeLayers = !!findEntry(e, "Metadata/custom_gcode_per_layer.xml") &&
