@@ -214,7 +214,7 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 
 ## "What changed?" download summary (Nov 26 2026)
 - Each finished conversion (single file, sample and batch rows) shows a short "What changed?" box beside the download: output slots built from the finished report, target and process profile, warnings, and settings taken from the printer profile. Part names come read-only from the source file's explicit part assignments, only when the file is not painted. Mapping, conversion and export are unchanged.
-- Check: `node scripts/check-download-summary.mjs` after `npm run build` (four languages, downloaded slot XML, batch, keyboard). Not yet a release.sh gate; adding gates is a deployment-configuration change that needs David's approval under the core working agreement.
+- Release gate: `node scripts/check-download-summary.mjs` (four languages, downloaded slot XML, batch, keyboard).
 - Ops regression: converted x1c_paint, ad5x_project and prusa_synth to 9 targets with the base f54dbfc and with this change; all 27 outputs had identical unzipped contents and reports. Spot slices (H2D Bambu Studio, U1, AD5X, CORE One in OrcaSlicer) rc=0.
 - Release lanes (PM, Nov 26 2026): small, low-risk changes can ship the same day after Development functional tests and Ops regression pass; significant site changes release on a Monday. Scope and risk decide the lane, not line count. Growth comparisons use equal complete UTC windows anchored to the actual release day (page views and Search Console as separate signals; conversion starts/completions are not collected and are reported as unknown).
 
@@ -226,3 +226,8 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - On /filament comparison cards, bulk offers (pack count > 1 or total weight 2 kg and up, except an explicit single spool) show "{kg} kg pack total:" above the existing price; the /kg value, price, sorting and affiliate links are unchanged. Missing or invalid weight keeps the bare price. Project-filament suggestions are out of scope. Check: `node scripts/check-bulk-pack-total.mjs` after a build.
 - Follow-up df7922c: "pack total" only when n > 1 or form = pack; other qualifying offers read "Total for {kg} kg:". The Amazon link wraps on narrow screens (ES/FR overflowed at 320 px before).
 - Live feed sweep at release: 2,733 of 6,601 offers qualify; all weights have at most 2 decimals; p/kg matches ppk for all of them. 2,326 of those are n=1 with unknown form (mostly multi-spool bundles, a few single large spools).
+
+## Regression bed: new tests become release gates (Nov 26 2026)
+- David approved (Nov 26 2026) adding test cases to the regression bed automatically. When Ops integrates a handoff that brings a new `scripts/check-*.mjs` (or similar) that runs against the local build, add it to `deploy/release.sh` in the same integration commit and note it here. No separate approval is needed for adding checks; other deployment-configuration changes still follow the core working agreement.
+- Added now: `check-download-summary.mjs`, `check-flashforge-guide-demo.mjs`, `check-bulk-pack-total.mjs`.
+- Not gated (they need production, staging or private fixtures): check-asset-cache, check-assistant, check-default-printer, check-filament-partners, check-guide-seo, check-major-release, check-mobile-intake, check-pageview-client, check-single-spool, check-spanish-mobile-spools. Run them by hand when their area changes.
