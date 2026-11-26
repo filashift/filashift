@@ -227,7 +227,12 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - Follow-up df7922c: "pack total" only when n > 1 or form = pack; other qualifying offers read "Total for {kg} kg:". The Amazon link wraps on narrow screens (ES/FR overflowed at 320 px before).
 - Live feed sweep at release: 2,733 of 6,601 offers qualify; all weights have at most 2 decimals; p/kg matches ppk for all of them. 2,326 of those are n=1 with unknown form (mostly multi-spool bundles, a few single large spools).
 
+## Flash Studio time comment (Nov 26 2026)
+- Flash Studio 1.7.9 (Flashforge's Orca fork) refused converted Flashforge projects ("Parsing error: Not a variable name") because 19 of 33 Flashforge profiles carry the Orca file_start_gcode time comment with {print_time_*} placeholders. Export now writes an empty file_start_gcode for Flashforge targets only when the field is exactly that comment; profile sources, custom or multi-line macros and other vendors are unchanged. Release 2eb710b (Dev patch f334ae6, sha256 0fcfbcd7...e69).
+- Release gate: `npx --no-install tsx scripts/test-flash-studio-export.ts`.
+- Ops regression: 15 corpus files x 33 Flashforge targets with base 2c84b5c and the fix; the 285 outputs for the 19 affected targets differ only in that key, the other 210 are identical. 38 Orca 2.5.2 slices (x1c_paint, prusa_synth on all 19) rc=0 with colours; Orca restores the expanded time header from its own preset. Flash Studio 1.7.9 GUI (fresh datadir) sliced unmodified 5M Pro, AD5X (4 colours, IFS) and Creator 5 Pro (4 heads) and the sends validated on the virtual bench (not hardware evidence). Known separate issue: the Flash Studio CLI segfaults on Creator 5 Pro; its GUI is fine.
+
 ## Regression bed: new tests become release gates (Nov 26 2026)
 - David approved (Nov 26 2026) adding test cases to the regression bed automatically. When Ops integrates a handoff that brings a new `scripts/check-*.mjs` (or similar) that runs against the local build, add it to `deploy/release.sh` in the same integration commit and note it here. No separate approval is needed for adding checks; other deployment-configuration changes still follow the core working agreement.
-- Added now: `check-download-summary.mjs`, `check-flashforge-guide-demo.mjs`, `check-bulk-pack-total.mjs`.
+- Added now: `check-download-summary.mjs`, `check-flashforge-guide-demo.mjs`, `check-bulk-pack-total.mjs`. Nov 26: `test-flash-studio-export.ts`.
 - Not gated (they need production, staging or private fixtures): check-asset-cache, check-assistant, check-default-printer, check-filament-partners, check-guide-seo, check-major-release, check-mobile-intake, check-pageview-client, check-single-spool, check-spanish-mobile-spools. Run them by hand when their area changes.
