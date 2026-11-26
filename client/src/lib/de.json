@@ -598,5 +598,11 @@
   "Any (web browser)": "Beliebig (Webbrowser)",
   "Security": "Sicherheit",
   "Found a vulnerability or another security problem in FilaShift? Email the details and the steps to reproduce it. Please give us time to fix it before you publish anything, and don't access other people's data or disrupt the site while testing.": "Sie haben eine Sicherheitslücke oder ein anderes Sicherheitsproblem in FilaShift gefunden? Schicken Sie uns die Details und die Schritte zum Nachstellen per E-Mail. Bitte geben Sie uns Zeit für eine Korrektur, bevor Sie etwas veröffentlichen, und greifen Sie beim Testen weder auf Daten anderer Personen zu noch stören Sie die Website.",
-  "Machine-readable contact details:": "Maschinenlesbare Kontaktdaten:"
+  "Machine-readable contact details:": "Maschinenlesbare Kontaktdaten:",
+  "Two colors, two slots: a Creator 5 Pro example": "Zwei Farben, zwei Steckplätze: ein Beispiel für den Creator 5 Pro",
+  "This comparison uses a PrusaSlicer nameplate, not a MakerWorld file. The original assigns orange to the plate and blue to the FS lettering.": "Dieser Vergleich nutzt ein Namensschild aus PrusaSlicer, keine MakerWorld-Datei. Im Original ist das Schild orange und der FS-Schriftzug blau.",
+  "OrcaSlicer 2.5.2 kept both slots but displayed both in teal.": "OrcaSlicer 2.5.2 behielt beide Steckplätze bei, zeigte aber beide in Türkis an.",
+  "After FilaShift conversion, OrcaSlicer sliced both slots and displayed orange and blue.": "Nach der Konvertierung mit FilaShift nutzte OrcaSlicer beim Slicen beide Steckplätze und zeigte Orange und Blau an.",
+  "If your slicer keeps what you need, use its printer switch. These previews verify one slice, not a physical print.": "Wenn Ihr Slicer alles Nötige beibehält, nutzen Sie dessen Druckerauswahl. Die Vorschauen belegen ein Slicing-Ergebnis, keinen physischen Druck.",
+  "Try the two-color nameplate": "Zweifarbiges Namensschild ausprobieren"
 }

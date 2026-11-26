@@ -156,6 +156,19 @@ export function GuidePage() {
           {g.title}
         </h1>
         <p className="mt-3 text-muted-foreground">{g.intro}</p>
+        {g.slug === "makerworld-to-flashforge" && <section className="mt-5 rounded-xl border border-card-border p-4" data-testid="flashforge-nameplate-demo">
+          <h2 className="font-semibold">{L("Two colors, two slots: a Creator 5 Pro example")}</h2>
+          <p className="my-2 text-sm">{L("This comparison uses a PrusaSlicer nameplate, not a MakerWorld file. The original assigns orange to the plate and blue to the FS lettering.")}</p>
+          <div className="grid gap-3 sm:grid-cols-2">{[
+            ["native","OrcaSlicer 2.5.2 kept both slots but displayed both in teal."],
+            ["converted","After FilaShift conversion, OrcaSlicer sliced both slots and displayed orange and blue."],
+          ].map(([id,caption])=><figure key={id}>
+            <img className="w-full rounded border" width="836" height="539" loading="lazy" src={`/samples/nameplate-${id}.webp`} alt="" />
+            <figcaption className="mt-1 text-sm">{L(caption)}</figcaption>
+          </figure>)}</div>
+          <p className="my-2 text-sm">{L("If your slicer keeps what you need, use its printer switch. These previews verify one slice, not a physical print.")}</p>
+          <Link href="/?printer=flashforge-creator-5-pro&sample=nameplate" className="text-primary underline">{L("Try the two-color nameplate")}</Link>
+        </section>}
         {g.shopping && <nav aria-label={L("Jump to your printer")} className="mt-5 flex flex-wrap gap-2">{g.sections.map(s=><button type="button" className="rounded-lg border px-3 py-2 text-sm text-primary hover:underline" onClick={()=>{const target=document.getElementById(s.model!);target?.focus({preventScroll:true});target?.scrollIntoView({block:"start"});}} key={s.model}>{s.h}</button>)}</nav>}
 
         <section className="mt-6 rounded-xl border border-primary/25 bg-primary/[0.04] p-5" aria-labelledby="steps">

@@ -20,6 +20,14 @@ export function SampleProject() {
     blob.current="";
   }
   useEffect(()=>()=>clear(),[]);
+  const panel=useRef<HTMLDetailsElement>(null);
+  useEffect(()=>{
+    const q=new URLSearchParams(window.location.search || window.location.hash.split("?")[1] || "");
+    if(q.get("sample")!=="nameplate" || !panel.current) return;
+    panel.current.open=true;
+    panel.current.querySelector("summary")?.focus({preventScroll:true});
+    panel.current.scrollIntoView({block:"center"});
+  },[]);
   async function run() {
     clear(); setDone(null); setError(false); setBusy(true);
     const ctl=new AbortController(); active.current=ctl;
@@ -37,7 +45,7 @@ export function SampleProject() {
     } catch { if(!ctl.signal.aborted) setError(true); }
     finally { if(!ctl.signal.aborted) {worker.current?.stop();setBusy(false);} }
   }
-  return <details className="rounded-xl border border-card-border bg-card p-4 text-sm" translate="no" data-testid="sample-panel">
+  return <details ref={panel} className="rounded-xl border border-card-border bg-card p-4 text-sm" translate="no" data-testid="sample-panel">
     <summary className="cursor-pointer font-semibold text-primary">{T("Try a sample project")}</summary>
     <p className="my-3">{T("Convert our two-color FS nameplate without uploading a file. Choose a destination tested with this exact sample.")}</p>
     <a className="mb-3 inline-block text-primary underline" href="./samples/filashift-nameplate.3mf" download>{T("Download the PrusaSlicer original (.3mf)")}</a>

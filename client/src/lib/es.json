@@ -598,5 +598,11 @@
   "Any (web browser)": "Cualquiera (navegador web)",
   "Security": "Seguridad",
   "Found a vulnerability or another security problem in FilaShift? Email the details and the steps to reproduce it. Please give us time to fix it before you publish anything, and don't access other people's data or disrupt the site while testing.": "¿Has encontrado una vulnerabilidad u otro problema de seguridad en FilaShift? Envíanos por correo los detalles y los pasos para reproducirlo. Danos tiempo para corregirlo antes de publicar nada, y no accedas a datos de otras personas ni interrumpas el sitio durante las pruebas.",
-  "Machine-readable contact details:": "Datos de contacto legibles por máquina:"
+  "Machine-readable contact details:": "Datos de contacto legibles por máquina:",
+  "Two colors, two slots: a Creator 5 Pro example": "Dos colores, dos ranuras: un ejemplo con la Creator 5 Pro",
+  "This comparison uses a PrusaSlicer nameplate, not a MakerWorld file. The original assigns orange to the plate and blue to the FS lettering.": "Esta comparación usa una placa de PrusaSlicer, no un archivo de MakerWorld. El original asigna naranja a la placa y azul a las letras FS.",
+  "OrcaSlicer 2.5.2 kept both slots but displayed both in teal.": "OrcaSlicer 2.5.2 conservó las dos ranuras, pero mostró ambas en verde azulado.",
+  "After FilaShift conversion, OrcaSlicer sliced both slots and displayed orange and blue.": "Tras la conversión con FilaShift, OrcaSlicer laminó ambas ranuras y mostró naranja y azul.",
+  "If your slicer keeps what you need, use its printer switch. These previews verify one slice, not a physical print.": "Si tu laminador conserva lo que necesitas, usa su selector de impresora. Estas vistas previas verifican un laminado, no una impresión física.",
+  "Try the two-color nameplate": "Prueba la placa de dos colores"
 }

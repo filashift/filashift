@@ -598,5 +598,11 @@
   "Any (web browser)": "Tous (navigateur web)",
   "Security": "Sécurité",
   "Found a vulnerability or another security problem in FilaShift? Email the details and the steps to reproduce it. Please give us time to fix it before you publish anything, and don't access other people's data or disrupt the site while testing.": "Vous avez trouvé une vulnérabilité ou un autre problème de sécurité dans FilaShift ? Envoyez-nous par e-mail les détails et les étapes pour le reproduire. Laissez-nous le temps de le corriger avant de publier quoi que ce soit, et n'accédez pas aux données d'autres personnes ni ne perturbez le site pendant vos tests.",
-  "Machine-readable contact details:": "Coordonnées lisibles par machine :"
+  "Machine-readable contact details:": "Coordonnées lisibles par machine :",
+  "Two colors, two slots: a Creator 5 Pro example": "Deux couleurs, deux emplacements : un exemple sur Creator 5 Pro",
+  "This comparison uses a PrusaSlicer nameplate, not a MakerWorld file. The original assigns orange to the plate and blue to the FS lettering.": "Cette comparaison utilise une plaque créée dans PrusaSlicer, et non un fichier MakerWorld. Dans l’original, la plaque est orange et les lettres FS sont bleues.",
+  "OrcaSlicer 2.5.2 kept both slots but displayed both in teal.": "OrcaSlicer 2.5.2 a conservé les deux emplacements, mais les a affichés tous les deux en bleu-vert.",
+  "After FilaShift conversion, OrcaSlicer sliced both slots and displayed orange and blue.": "Après conversion avec FilaShift, OrcaSlicer a utilisé les deux emplacements au tranchage et a affiché l’orange et le bleu.",
+  "If your slicer keeps what you need, use its printer switch. These previews verify one slice, not a physical print.": "Si votre trancheur conserve ce dont vous avez besoin, utilisez son sélecteur d’imprimante. Ces aperçus vérifient un tranchage, pas une impression physique.",
+  "Try the two-color nameplate": "Essayer la plaque bicolore"
 }
