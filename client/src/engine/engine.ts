@@ -1653,6 +1653,12 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (!pauseG && !po) warn("This printer profile has no pause G-code, so the pauses use M600. Check that your firmware supports it (on Klipper it needs an M600 macro).");
   }
   R.version = fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client;
+  // Flash Studio 1.7.9 evaluates placeholders even in comments. Its stock
+  // presets leave this field empty. Never rewrite a custom or multi-line macro.
+  if (profile.vendor === "Flashforge" &&
+      R.file_start_gcode === "; estimated printing time (normal mode) = {print_time_day}d {print_time_hour}h {print_time_minute}m {print_time_sec}s") {
+    R.file_start_gcode = "";
+  }
   outFiles[SETTINGS] = strToU8(JSON.stringify(R, null, 4));
   if (removed.some((r) => r.endsWith(".gcode"))) info("Removed the pre-sliced G-code for the original printer. Slice again before printing.");
   if (paintRemapped) info(`Re-mapped painted colors on ${paintRemapped.toLocaleString()} triangles to the new slot numbers.`);
