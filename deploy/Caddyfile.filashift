@@ -32,6 +32,9 @@
 
 	handle {
 		root * /var/www/plateshift
+		# forgive links pasted with chat leftovers stuck on the end, e.g. /filament[filashift] or /guides).
+		@pastejunk path_regexp pastejunk `^(/[^\[\]]*?)(\[[^\]]*\]|[\)\].,;:!'"]+)$`
+		redir @pastejunk {re.pastejunk.1}{?query} permanent
 		redir /filament/ /filament permanent
 		# RFC 9116 security contact: client/public/.well-known/security.txt (file_server serves dot-directories)
 		redir /security.txt /.well-known/security.txt permanent

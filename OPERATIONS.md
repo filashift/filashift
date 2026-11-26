@@ -207,3 +207,6 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - Every integrated branch tip is recorded in `docs/handoffs.tsv` (branch tip -> commit on master -> release). Cherry-picks with conflict fixes change patch IDs, so git alone cannot prove they are included; the ledger does.
 - `scripts/check-handoffs.sh` compares every GitHub `dev/*` branch with the live release-commit.txt and prints PENDING for anything not live (exit 1). The daily health check runs it and reports pending handoffs older than 24 h.
 - After a handoff is live, Ops deletes its GitHub `dev/*` branch (David approved Nov 25 2026). Tips stay archived on the Droplet repo under `refs/archive/dev/<topic>`.
+
+## Pasted-link cleanup redirect (Nov 25 2026)
+- Links shared in chats sometimes arrive with leftovers stuck on the end (`/filament[filashift]`, `/guides)`, `/faq.`). Caddy's `@pastejunk` rule in `deploy/Caddyfile.filashift` 301-redirects them to the clean page and keeps the query string. Real unknown paths still return 404. Server backup before the change: /etc/caddy/Caddyfile.bak-1795666541.
