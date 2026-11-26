@@ -25,6 +25,16 @@ try {
     await p.getByTestId("sample-run").click();
     const samplePanel=p.getByTestId("sample-result");
     await samplePanel.getByRole("heading",{name:title}).waitFor();
+    const settings=samplePanel.getByTestId("summary-profile-settings");
+    assert.match(await settings.locator("p").first().innerText(),/\bnozzle_diameter$/);
+    const toggle=settings.locator("summary");
+    const more=settings.locator("details p");
+    assert.equal(await more.isVisible(),false);
+    await toggle.focus();await toggle.press("Enter");
+    assert.equal(await more.isVisible(),true);
+    assert.equal(Number((await toggle.innerText()).match(/\((\d+)\)/)[1]),(await more.innerText()).split(", ").length);
+    assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth),width);
+    await toggle.press("Enter");
     assert.match(await samplePanel.getByTestId("summary-slot-2").innerText(),/FS lettering/);
     const normal=await exported(p,p.getByTestId("sample-download"));
     assert.deepEqual(normal.slots,[1,2]);

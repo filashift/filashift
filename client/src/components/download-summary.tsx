@@ -23,8 +23,14 @@ export function DownloadSummary({ report, source }: { report: ConvertReport; sou
       </li>)}</ul>}
     {!!source?.hasPaint || !source?.usedKnown || !groups.length ? <p>{T("Part assignments are not verified here. Inspect the sliced preview.")}</p> : null}
     <p><strong>{T("Target profile")}: </strong>{report.target} · {report.process}</p>
-    {report.discarded.length > 0 && <p className="text-xs"><strong>{T("Taken from the printer profile instead")}: </strong>
-      {report.discarded.slice(0, 3).join(", ")}{report.discarded.length > 3 ? "…" : ""}</p>}
+    {report.discarded.length > 0 && <div className="text-xs" data-testid="summary-profile-settings">
+      <p><strong>{T("Taken from the printer profile instead")}: </strong>
+        {report.discarded.slice(0, 3).join(", ")}</p>
+      {report.discarded.length > 3 && <details className="mt-1">
+        <summary className="w-fit cursor-pointer text-primary">{T("Additional settings")} ({report.discarded.length - 3})</summary>
+        <p className="mt-1">{report.discarded.slice(3).join(", ")}</p>
+      </details>}
+    </div>}
     <p className="text-xs text-muted-foreground">{T("Before printing, check the loaded spools, slot assignments, and first layer in your slicer.")}</p>
   </section>;
 }
