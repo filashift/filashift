@@ -89,6 +89,8 @@ export interface Analysis {
   colorChangeLayers: boolean;
   filaments: SourceFilament[];
   usedKnown: boolean;
+  /** Optional display labels from explicit source assignments, not physical spool data. */
+  partLabels?: Record<number, string[]>;
   usedWhy?: string;
   plates: PlateInfo[];
   objectCount: number;

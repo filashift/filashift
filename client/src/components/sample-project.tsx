@@ -3,14 +3,15 @@ import { Button } from "@/components/ui/button";
 import { useT, trReport } from "@/lib/i18n";
 import { ProjectWorker } from "@/lib/project-worker";
 import { defaultMapping } from "@/engine/mapping";
-import type { ConvertReport, PrinterProfile } from "@/engine/types";
+import type { Analysis, ConvertReport, PrinterProfile } from "@/engine/types";
+import { DownloadSummary } from "./download-summary";
 import evidence from "../../public/samples/test-results.json";
 const destinations = evidence.results;
 
 export function SampleProject() {
   const T=useT(), lang=T.lang;
   const [pick,setPick]=useState(0), [busy,setBusy]=useState(false), [error,setError]=useState(false);
-  const [done,setDone]=useState<{url:string; report:ConvertReport}|null>(null);
+  const [done,setDone]=useState<{url:string; report:ConvertReport; source:Analysis}|null>(null);
   const active=useRef<AbortController>(), worker=useRef<ProjectWorker>(), blob=useRef("");
   const {id,slicer,version}=destinations[pick];
   function clear() {
@@ -32,7 +33,7 @@ export function SampleProject() {
       const r=await w.run({kind:"convert",profile,options:{map:defaultMapping(analysis,profile.slots),keepSpeeds:false,recenter:true}},()=>{});
       if(ctl.signal.aborted) return;
       blob.current=URL.createObjectURL(new Blob([new Uint8Array(r.bytes)],{type:"application/octet-stream"}));
-      setDone({url:blob.current,report:r.report});
+      setDone({url:blob.current,report:r.report,source:analysis});
     } catch { if(!ctl.signal.aborted) setError(true); }
     finally { if(!ctl.signal.aborted) {worker.current?.stop();setBusy(false);} }
   }
@@ -47,8 +48,7 @@ export function SampleProject() {
     {error&&<p role="alert">{T("Could not convert the sample. Please try again.")}</p>}
     {done&&<div aria-live="polite" className="mt-4 space-y-2 border-t pt-3" data-testid="sample-result">
       <p><b>{T("Stayed the same: ")}</b>{T("the plate, the FS lettering, and both PLA colors.")}</p>
-      <p><b>{T("Changed: ")}</b>{done.report.target} · {done.report.process}</p>
-      <p>{done.report.filaments.filter(f=>f.from.length).map(f=>`${T("Slot")} ${f.slot}: ${f.type} ${f.color}`).join(" · ")}</p>
+      <DownloadSummary report={done.report} source={done.source} />
       <p><b>{T("Check next: ")}</b>{T("In {slicer}, use File → Open Project (not Import). Check the two color assignments and first layer before printing.",{slicer})}</p>
       {done.report.lines.filter(l=>l.level==="warn").map((l,i)=><p key={i} className="text-xs">{trReport(lang,l.text)}</p>)}
       <a className="inline-block rounded bg-primary px-3 py-2 font-medium text-primary-foreground" href={done.url} download={done.report.outputName} data-testid="sample-download">{T("Download converted project (.3mf)")}</a>

@@ -810,6 +810,18 @@ export function analyze(bytes: Uint8Array, fileName: string, onStage?: (stage: s
   }
   a.hasPaint = use.hasPaint;
   a.usedKnown = !!use.used;
+  if (a.usedKnown && !a.hasPaint) {
+    const labels: Record<number, string[]> = {};
+    for (const obj of objects) {
+      for (const p of obj.parts.length ? obj.parts : [{ subtype: "normal_part", ext: obj.ext, name: obj.name }]) {
+        const i = p.ext ?? obj.ext, name = p.name || obj.name;
+        if (p.subtype !== "normal_part" || !i || i > nfil || !name) continue;
+        const list = labels[i] ??= [];
+        if (list.length < 6 && !list.includes(name)) list.push(name);
+      }
+    }
+    a.partLabels = labels;
+  }
   a.usedWhy = use.why;
   a.colorChangeLayers = !!findEntry(e, "Metadata/custom_gcode_per_layer.xml") &&
     /<layer\b/.test(dec(e[findEntry(e, "Metadata/custom_gcode_per_layer.xml")!]));

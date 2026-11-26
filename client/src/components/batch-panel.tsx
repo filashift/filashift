@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronDown, Download, Eye, Info, Layers, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ConvertReport } from "@/engine/types";
+import type { Analysis, ConvertReport } from "@/engine/types";
+import { DownloadSummary } from "./download-summary";
 import { fmtSize } from "@/components/file-card";
 import { cn } from "@/lib/utils";
 
 export interface BatchItem {
+  source?: Analysis;
   key: string;
   jobId: string;
   fileName: string;
@@ -157,6 +159,7 @@ function BatchRow({ item, index, onPreview }: { item: BatchItem; index: number; 
           </div>
         )}
       </div>
+      {rep && <DownloadSummary report={rep} source={item.source} />}
       {item.error && <p className="mt-2 text-xs text-destructive">{item.error}</p>}
       {open && rep && (
         <ul className="mt-3 space-y-1.5" data-testid={`batch-report-list-${index}`}>

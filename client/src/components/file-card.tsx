@@ -28,6 +28,7 @@ import { bigModelWarning } from "@/lib/big-model";
 import { ProjectFilament } from "@/components/project-filament";
 import { feederFor } from "@/lib/reel-fit";
 import { conversionDetails, openReport } from "@/components/report-dialog";
+import { DownloadSummary } from "./download-summary";
 
 export interface Job {
   stage?: string;
@@ -449,6 +450,7 @@ function ResultPanel({ job, onReset, onPreview, working }: { job: Job; onReset: 
         <summary className="cursor-pointer font-medium">{trReport(lang, review.text)}</summary>
         <ul className="mt-2 list-disc space-y-2 pl-5">{steps.map(l => <li key={l.text}>{trReport(lang, l.text)}</li>)}</ul>
       </details>}
+      <DownloadSummary report={rep} source={job.analysis} />
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <Button asChild className="flex-1" data-testid={`button-download-${job.id}`}>
           <a href={r.url} download={r.name}>

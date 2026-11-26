@@ -1,4 +1,10 @@
 {
+  "What changed?": "Qu’est-ce qui a changé ?",
+  "File filament": "Filament du fichier",
+  "Shared slot": "Emplacement partagé",
+  "Target profile": "Profil cible",
+  "Part assignments are not verified here. Inspect the sliced preview.": "Les affectations par pièce ne sont pas vérifiées ici. Examinez l’aperçu après tranchage.",
+  "Before printing, check the loaded spools, slot assignments, and first layer in your slicer.": "Avant d’imprimer, vérifiez les bobines chargées, les emplacements attribués et la première couche dans votre trancheur.",
   "Shop ELEGOO (affiliate link)": "Acheter chez ELEGOO (lien affilié)",
   "To keep the original size, try rotating the model in your slicer. For separate parts, try Arrange or move some to another plate. Check the layout before slicing.": "Pour conserver la taille d’origine, essayez de faire pivoter le modèle dans le trancheur. Pour des pièces séparées, essayez la disposition automatique ou déplacez-en certaines sur un autre plateau. Vérifiez la disposition avant de trancher.",
   "Partial pass": "Réussite partielle",

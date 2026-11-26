@@ -307,7 +307,7 @@ export default function Home() {
     const targets = [{ id: targetId, main: true }, ...extras.map((id) => ({ id, main: false }))];
     const label = (id: string) => printers.find((p) => p.id === id)?.model || id;
     const items: BatchItem[] = files.flatMap((j) =>
-      targets.map((t) => ({ key: `${j.id}:${t.id}`, jobId: j.id, fileName: j.name, targetId: t.id, target: t.main && nz !== "0.4" ? `${label(t.id)} · ${nz} mm` : label(t.id), status: "queued" as const })),
+      targets.map((t) => ({ key: `${j.id}:${t.id}`, source: j.analysis, jobId: j.id, fileName: j.name, targetId: t.id, target: t.main && nz !== "0.4" ? `${label(t.id)} · ${nz} mm` : label(t.id), status: "queued" as const })),
     );
     batchRef.current = items;
     setBatch(items);

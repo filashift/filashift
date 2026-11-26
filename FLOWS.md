@@ -1,0 +1,3 @@
+# Download summary functional checks
+
+Convert the two-color sample and download an editable 3MF. The orange plate and blue lettering should appear on separate project slots. Upload the same file, deliberately combine both slots, convert, and confirm the summary and downloaded project agree. Adjust the mapping: the old summary must disappear. For painted models show file filaments without attributing paint to named parts. Every completed batch item must show its own result. The detailed report, keyboard download, and four language versions must remain accessible; no report or model leaves the browser.
