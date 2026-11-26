@@ -14,3 +14,4 @@ dev/elegoo-filament-store	a5e07105b955814c119ba6279539f2424e9eae9f	a5e0710	self	
 dev/elegoo-filament-guides	c3241d0a3f25e5f9af5f03f04e483a1169c2e847	5be497e	self	2026-11-25
 dev/file-filament-preview	91b4c38ae2068e714b2a9c7d7c2d8dfefe8f0d47	hold	prototype for QA only; Development said do not deploy (Nov 26 2026)	2026-11-26
 dev/download-change-summary	eb24a9367d83c0667316a206697edada6b7564e9	eb24a93	self	2026-11-26
+dev/flashforge-guide-demo	ca796bc7d3bda84ae989785205160c9f3231a2ef	01ecc14	self	2026-11-26
