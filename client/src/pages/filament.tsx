@@ -297,7 +297,7 @@ export default function Filament() {
               <div className="font-medium">Also check Amazon</div>
               <div className="text-xs text-muted-foreground">Amazon prices change often and aren't included in the list above.</div>
             </div>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="max-w-full flex-wrap whitespace-normal">
               <a href={amazonUrl} target="_blank" rel="sponsored noopener noreferrer" data-testid="link-amazon">
                 Search Amazon <span className="ml-1 text-xs font-normal opacity-75">(affiliate link)</span>
                 <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
@@ -378,7 +378,7 @@ function Offer({ it, rank, cfg, feeder, hit }: { it: Item; rank: number; cfg: Co
   const knownWeight = Number.isFinite(it.kg) && it.kg > 0;
   const bulk = it.n > 1 || it.kg >= 2;
   const packLabel = knownWeight && bulk && !(it.form === "spool" && it.n === 1)
-    ? T("{kg} kg pack total:", { kg: it.kg.toLocaleString(T.lang, { maximumFractionDigits: 6 }) })
+    ? T(it.n > 1 || it.form === "pack" ? "{kg} kg pack total:" : "Total for {kg} kg:", { kg: it.kg.toLocaleString(T.lang, { maximumFractionDigits: 6 }) })
     : null;
   return (
     <li
