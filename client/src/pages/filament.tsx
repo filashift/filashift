@@ -32,6 +32,7 @@ function ago(iso: string) {
 }
 const usd = (n: number) => `$${n.toFixed(2)}`;
 function size(it: Item) {
+  if (!Number.isFinite(it.kg) || it.kg <= 0) return "";
   const kg = (x: number) => (x < 1 ? `${Math.round(x * 1000)} g` : `${+x.toFixed(2)} kg`);
   return it.n > 1 ? `${it.n} × ${kg(it.kg / it.n)}` : kg(it.kg);
 }
@@ -374,6 +375,11 @@ function Offer({ it, rank, cfg, feeder, hit }: { it: Item; rank: number; cfg: Co
   const code = storeCode(it.u, cfg);
   const off = it.was ? Math.round((1 - it.p / it.was) * 100) : 0;
   const colours = it.c.slice(0, 6);
+  const knownWeight = Number.isFinite(it.kg) && it.kg > 0;
+  const bulk = it.n > 1 || it.kg >= 2;
+  const packLabel = knownWeight && bulk && !(it.form === "spool" && it.n === 1)
+    ? T("{kg} kg pack total:", { kg: it.kg.toLocaleString(T.lang, { maximumFractionDigits: 6 }) })
+    : null;
   return (
     <li
       className={cn(
@@ -428,6 +434,7 @@ function Offer({ it, rank, cfg, feeder, hit }: { it: Item; rank: number; cfg: Co
       </div>
       <div className="text-right">
         <div className="font-mono text-sm tabular-nums">{usd(it.ppk)}<span className="text-xs font-normal text-muted-foreground">/kg</span></div>
+        {packLabel && <div translate="no" data-testid="bulk-pack-total-label" className="max-w-36 text-xs text-muted-foreground">{packLabel}</div>}
         <div className="font-mono text-base font-semibold tabular-nums">
           {it.was && <span className="mr-1 line-through">{usd(it.was)}</span>}
           {usd(it.p)}
