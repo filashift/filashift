@@ -224,4 +224,5 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 
 ## Bulk pack total label (Nov 26 2026)
 - On /filament comparison cards, bulk offers (pack count > 1 or total weight 2 kg and up, except an explicit single spool) show "{kg} kg pack total:" above the existing price; the /kg value, price, sorting and affiliate links are unchanged. Missing or invalid weight keeps the bare price. Project-filament suggestions are out of scope. Check: `node scripts/check-bulk-pack-total.mjs` after a build.
+- Follow-up df7922c: "pack total" only when n > 1 or form = pack; other qualifying offers read "Total for {kg} kg:". The Amazon link wraps on narrow screens (ES/FR overflowed at 320 px before).
 - Live feed sweep at release: 2,733 of 6,601 offers qualify; all weights have at most 2 decimals; p/kg matches ppk for all of them. 2,326 of those are n=1 with unknown form (mostly multi-spool bundles, a few single large spools).
