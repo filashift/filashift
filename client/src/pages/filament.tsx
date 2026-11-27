@@ -182,7 +182,7 @@ export default function Filament() {
           ))}
         </div>
 
-        <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-[1.4fr_repeat(5,minmax(0,1fr))]">
+        <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-[1.3fr_repeat(4,minmax(0,1fr))_minmax(13rem,1.2fr)]">
           <div className="relative col-span-2 sm:col-span-3 lg:col-span-1">
             <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Color, brand or product" className="pl-8" data-testid="input-search" />

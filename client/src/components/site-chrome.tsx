@@ -1,5 +1,5 @@
 import { openReport } from "@/components/report-dialog";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { ChevronDown, Download, Globe, Lock, Moon, Sun } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -85,6 +85,24 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const [loc] = useLocation();
   const goSection = useGoSection();
+  const navRef = useRef<HTMLElement>(null);
+  // On narrow screens the nav scrolls sideways; keep the current page's tab fully visible.
+  // Translated labels change tab widths after render, so re-check when the tab resizes.
+  useEffect(() => {
+    const nav = navRef.current, tab = nav?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!nav || !tab) return;
+    const reveal = () => {
+      if (nav.scrollWidth <= nav.clientWidth) return;
+      const n = nav.getBoundingClientRect(), t = tab.getBoundingClientRect();
+      if (t.right > n.right) nav.scrollLeft += t.right - n.right + 8;
+      else if (t.left < n.left) nav.scrollLeft -= n.left - t.left + 8;
+    };
+    reveal();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(reveal);
+    ro.observe(tab); ro.observe(nav);
+    return () => ro.disconnect();
+  }, [loc]);
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 sm:px-6">
@@ -97,6 +115,7 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
           <JtsEmblem className="h-6" />
         </span>
         <nav
+          ref={navRef}
           className="order-3 -mx-1 flex w-full gap-0.5 overflow-x-auto pb-1 [scrollbar-width:none] md:order-none md:mx-0 md:ml-4 md:w-auto md:pb-0"
           aria-label="Main"
         >
@@ -108,7 +127,7 @@ export function SiteHeader({ note }: { note?: ReactNode }) {
             );
             const tid = `nav-${n.href === "/" ? "converter" : (n.href?.slice(1) ?? n.section)}`;
             return n.href ? (
-              <Link key={n.label} href={n.href} className={cls} data-testid={tid} onClick={(event) => {
+              <Link key={n.label} href={n.href} className={cls} data-testid={tid} aria-current={active ? "page" : undefined} onClick={(event) => {
                 if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                 if (n.href === "/") { event.preventDefault(); goSection("converter"); }
                 else cancelSectionJump?.();
