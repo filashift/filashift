@@ -1653,6 +1653,13 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (!pauseG && !po) warn("This printer profile has no pause G-code, so the pauses use M600. Check that your firmware supports it (on Klipper it needs an M600 macro).");
   }
   R.version = fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client;
+  // QIDI Studio CLI falls back to just one shrink entry when this is
+  // absent. Objects assigned to later filaments can then disappear.
+  if (profile.vendor === "Qidi") {
+    const shrink = R.filament_shrink;
+    R.filament_shrink = Array.from({ length: nOut }, (_, j) =>
+      (Array.isArray(shrink) ? shrink[j] : shrink) || "100%");
+  }
   // Flash Studio 1.7.9 evaluates placeholders even in comments. Its stock
   // presets leave this field empty. Never rewrite a custom or multi-line macro.
   if (profile.vendor === "Flashforge" &&
