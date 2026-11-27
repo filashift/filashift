@@ -239,6 +239,10 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - Ops regression: 2,404 conversions (4 corpus files x 601 targets) vs 5d967fe. The 172 Qidi outputs changed only in those two keys; 76 Prusa diffs are generator timestamps; the other 2,156 are identical. QIDI Studio 2.07.02.73 CLI on fresh exports: Q2 15/15 and Plus4 15/15 with per-object tools in every Z band equal to the GUI, 0 bad_alloc; Q1 Pro control 15/15. Orca 2.5.2 Q2 PASS. Virtual bench, not hardware evidence.
 - Still open, separate: QIDI Studio GUI segfaults when a FilaShift Qidi project is reopened while its presets are already saved. The QIDI CLI re-arranges objects on a 21 mm pitch (it is not a FilaShift issue).
 
+## Flashforge store link (Nov 27 2026)
+- The /filament prices page shows a static "Shop Flashforge (affiliate link)" link (https://flashforge.sjv.io/aNg6Nq) next to the ELEGOO link, above the existing affiliate disclosure. It is on that page only, not in guides. It uses no impact.com script or impression tracking, and the visitor's browser makes no third-party request unless they click. PM-approved, off-cycle. Dev handoff dev/flashforge-store-link 0054dcd.
+- Release gate: `node scripts/check-flashforge-store.mjs` (en/es/de/fr, rel=sponsored, disclosure, no script, absent from the other pages) runs after check-elegoo-store in release.sh.
+
 ## Qidi first-open crash: QIDI Studio stamp (Nov 27 2026)
 - QIDI Studio 2.07.02.73 crashed (SIGSEGV) right after the "Customized Preset" OK when it first opened any FilaShift Qidi export. An Ops key bisect isolated the cause: the `Application` metadata in 3D/3dmodel.model. A BambuStudio-* stamp makes QIDI take a load path that crashes. A QIDIStudio-* stamp opens natively. FilaShift, empty and Orca stamps fall back to geometry-only import, so they're rejected. Product decision: use the destination-family stamp (same rule as Bambu/Orca targets).
 - Change: Qidi-vendor targets write Application = QIDIStudio-02.07.02.73. The OrcaSlicer 2.3.1 tag, slice_info and project_settings are unchanged. Release a7f168c (Dev, patch sha256 9a4f72f4...c7cf). Off-cycle release per PM decision (Nov 27).

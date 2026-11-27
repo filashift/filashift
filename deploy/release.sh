@@ -34,6 +34,7 @@ node scripts/check-filament-review-ui.mjs "${TD:-$HOME/td}/x1c_paint.3mf" "${TD:
 node scripts/check-bed-fit-preview.mjs "${TD:-$HOME/td}/x1c_paint.3mf"
 node scripts/check-slicer-first.mjs
 node scripts/check-elegoo-store.mjs
+node scripts/check-flashforge-store.mjs
 node scripts/check-download-summary.mjs
 node scripts/check-flashforge-guide-demo.mjs
 node scripts/check-bulk-pack-total.mjs
