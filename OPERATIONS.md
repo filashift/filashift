@@ -242,7 +242,7 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 ## Filament sort label and phone nav tab (Nov 27 2026)
 - /filament: at lg and wider, the sort column is minmax(13rem,1.2fr), so "Lowest price per kg" (and es/de/fr) fits. Header nav: the current tab carries aria-current="page" and scrolls fully into view inside the sideways phone nav, re-checking on resize. Dev handoff dev/filament-fit-and-partners-check e6c6cc3.
 - Release gate: `node scripts/check-filament-fit.mjs` (after check-flashforge-store).
-- `scripts/check-filament-partners.mjs` (production data check, not a release gate) now matches tied-price offers by link and respects the 1.75 mm default.
+- `scripts/check-filament-partners.mjs` (production data check, not a release gate) now matches tied-price offers by link and respects the 1.75 mm default. Config hosts with no feed offers (referral-only, e.g. shop.polymaker.com) are logged as SKIP (6b26860).
 
 ## Flashforge store link (Nov 27 2026)
 - The /filament prices page shows a static "Shop Flashforge (affiliate link)" link (https://flashforge.sjv.io/aNg6Nq) next to the ELEGOO link, above the existing affiliate disclosure. It is on that page only, not in guides. It uses no impact.com script or impression tracking, and the visitor's browser makes no third-party request unless they click. PM-approved, off-cycle. Dev handoff dev/flashforge-store-link 0054dcd.
