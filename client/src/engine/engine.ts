@@ -1653,12 +1653,16 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
     if (!pauseG && !po) warn("This printer profile has no pause G-code, so the pauses use M600. Check that your firmware supports it (on Klipper it needs an M600 macro).");
   }
   R.version = fam === "bambu" ? STAMP.bambu.client : STAMP.orca.client;
-  // QIDI Studio CLI falls back to just one shrink entry when this is
-  // absent. Objects assigned to later filaments can then disappear.
+  // QIDI Studio CLI needs both vectors sized to the exported filaments:
+  // incomplete shrink can lose layers; short prime volume can misassign tools.
   if (profile.vendor === "Qidi") {
-    const shrink = R.filament_shrink;
-    R.filament_shrink = Array.from({ length: nOut }, (_, j) =>
-      (Array.isArray(shrink) ? shrink[j] : shrink) || "100%");
+    for (const [key, fallback] of [["filament_shrink", "100%"], ["filament_prime_volume", "45"]]) {
+      const preset = R[key];
+      R[key] = Array.from({ length: nOut }, (_, j) => {
+        const value = Array.isArray(preset) ? preset[j] : preset;
+        return value == null || value === "" ? fallback : String(value);
+      });
+    }
   }
   // Flash Studio 1.7.9 evaluates placeholders even in comments. Its stock
   // presets leave this field empty. Never rewrite a custom or multi-line macro.

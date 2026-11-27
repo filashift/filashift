@@ -20,11 +20,20 @@ for (const f of files) {
     const s = settings(p, map);
     assert.equal(s.filament_type.length, Math.max(...map, p.minFilaments || 0), f);
     assert.deepEqual(s.filament_shrink, s.filament_type.map(() => "100%"), f);
+    const preset = settings({ ...p, vendor: "Control" }, map).filament_prime_volume;
+    const expected = s.filament_type.map((_: unknown, j: number) => {
+      const value = Array.isArray(preset) ? preset[j] : preset;
+      return value == null || value === "" ? "45" : String(value);
+    });
+    assert.deepEqual(s.filament_prime_volume, expected, f);
   }
 }
 const q2 = profile("qidi-q2");
 q2.machineValues.filament_shrink = ["99.5%", "101%"];
+q2.machineValues.filament_prime_volume = ["30", 0];
 assert.deepEqual(settings(q2, [1, 4]).filament_shrink, ["99.5%", "101%", "100%", "100%"]);
+assert.deepEqual(settings(q2, [1, 4]).filament_prime_volume, ["30", "0", "45", "45"]);
 const other = profile("flashforge-ad5x");
 assert.equal(settings(other, [1, 4]).filament_shrink, undefined);
+assert.equal(settings(other, [1, 4]).filament_prime_volume, other.machineValues.filament_prime_volume);
 console.log(`PASS: ${files.length} Qidi profiles, 3 slot layouts each; destination values preserved and non-Qidi control unchanged.`);
