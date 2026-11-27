@@ -81,6 +81,10 @@ const BAMBU_RANGES: Record<string, [number | null, number | null]> = {
 export const STAMP = {
   bambu: { app: "BambuStudio-02.09.01.70", client: "02.09.01.70" },
   orca: { app: "BambuStudio-02.08.01.55", client: "02.08.01.55", orca: "2.3.1" },
+  // QIDI Studio sends Bambu-stamped projects down a load path that crashes after the
+  // Customized Preset dialog; a QIDI stamp takes its native path. FilaShift, empty and
+  // Orca stamps fall back to a geometry-only import, so only the vendor prefix changes.
+  qidi: { app: "QIDIStudio-02.07.02.73" },
 };
 export function targetFamily(profile: PrinterProfile): "bambu" | "orca" {
   return /bambu/i.test(profile.slicer) ? "bambu" : "orca";
@@ -883,11 +887,11 @@ function setMeta(xml: string, key: string, value: string | null): string {
   return xml.replace(/(<model\b[^>]*>)/, `$1\n <metadata name="${key}">${value}</metadata>`);
 }
 
-function stampModel(xml: string, fam: "bambu" | "orca"): string {
+function stampModel(xml: string, fam: "bambu" | "orca", qidi = false): string {
   const b = xml.indexOf("<resources");
   const head = b >= 0 ? xml.slice(0, b) : xml;
   const tail = b >= 0 ? xml.slice(b) : "";
-  let h = setMeta(head, "Application", fam === "bambu" ? STAMP.bambu.app : STAMP.orca.app);
+  let h = setMeta(head, "Application", fam === "bambu" ? STAMP.bambu.app : qidi ? STAMP.qidi.app : STAMP.orca.app);
   h = setMeta(h, "OrcaSlicer", fam === "orca" ? STAMP.orca.orca : null);
   if (!/name="BambuStudio:3mfVersion"/.test(h)) h = setMeta(h, "BambuStudio:3mfVersion", "1");
   return h + tail;
@@ -1585,7 +1589,7 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
       continue;
     }
     if (name === rootKey) {
-      let txt = stampModel(rootText, fam);
+      let txt = stampModel(rootText, fam, profile.vendor === "Qidi");
       if (paintNeedsRemap && /paint_color=|mmu_segmentation=/.test(txt)) {
         const r = remapPaintText(txt, newIdx);
         txt = r.text;
