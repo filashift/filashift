@@ -30,19 +30,25 @@ try {
       const stock = page.getByTestId("switch-instock");
       for (const stockOnly of [true,false]) {
         if ((await stock.getAttribute("aria-checked")==="true") !== stockOnly) await stock.click();
-        const ordered = feed.items.filter(i=>(!stockOnly||i.ok) &&
+        // The finder defaults to 1.75 mm filament.
+        const ordered = feed.items.filter(i=>(!stockOnly||i.ok) && i.d === 1.75 &&
           `${i.b} ${i.t} ${i.v} ${i.m} ${i.c.join(" ")}`.toLowerCase().includes(items[0].b.toLowerCase())).sort((a,b)=>a.ppk-b.ppk);
         if (!ordered.length) {assert.match(await page.getByTestId("text-count").innerText(),/0 results/); continue;}
-        for (const [idx, item] of ordered.slice(0,40).entries()) {
+        // Offers with equal price per kg may appear in any order, so match each row
+        // to the offer it links to among the offers tied at that rank's price.
+        const seen = new Set();
+        for (const [idx, expected] of ordered.slice(0,40).entries()) {
           const row=page.getByTestId(`offer-${idx+1}`);
           const label=await row.innerText();
+          const a=page.getByTestId(`link-offer-${idx+1}`), link=new URL(await a.getAttribute("href"));
+          const dest=link.searchParams.has("u")?new URL(link.searchParams.get("u")):link;
+          const key = (u) => { const x = new URL(u); return `${x.origin}${x.pathname}?variant=${x.searchParams.get("variant")}`; };
+          const item = ordered.find(i => i.ppk === expected.ppk && !seen.has(i) && key(i.u) === key(dest.href));
+          assert(item, `rank ${idx+1}: link ${dest.href} is not an offer at $${expected.ppk}/kg`);
+          seen.add(item);
           if (item.v) assert(label.includes(item.v));
           assert.equal(label.includes("Out of stock"),item.ok===false);
           assert.equal(label.includes("Stock not confirmed"),item.ok===null);
-          const a=page.getByTestId(`link-offer-${idx+1}`), link=new URL(await a.getAttribute("href"));
-          const dest=link.searchParams.has("u")?new URL(link.searchParams.get("u")):link;
-          assert.equal(dest.origin+dest.pathname,new URL(item.u).origin+new URL(item.u).pathname);
-          assert.equal(dest.searchParams.get("variant"),new URL(item.u).searchParams.get("variant"));
           if (dest.hostname === "store.sunlu.com") assert.equal(dest.searchParams.get("sca_source"),"filashift-finder");
           if (host===new URL(item.u).host) assert((await a.getAttribute("rel")).includes("sponsored"));
         }
