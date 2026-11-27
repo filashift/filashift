@@ -77,18 +77,18 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "makerworld-to-flashforge",
-    title: "Convert MakerWorld and Bambu Studio 3MF files for Flashforge",
-    meta: "Print MakerWorld 3MF on Flashforge AD5X, AD5M and Creator 5 | FilaShift",
-    desc: "Convert MakerWorld and Bambu Studio 3MF projects for the Flashforge AD5X, Adventurer 5M and Creator 5 without rebuilding colors, plates or settings. Free, private, step by step.",
+    title: "Can I use MakerWorld with a Flashforge printer?",
+    meta: "MakerWorld to Flashforge: how to use a Bambu 3MF | FilaShift",
+    desc: "Start with the MakerWorld print profile, not an STL. See how to map colors for an AD5X or Creator 5 and preview the sliced plate before printing.",
     intro:
-      "MakerWorld projects are saved for Bambu Lab printers. Opening one on a Flashforge usually drops the colors or the settings. FilaShift rewrites the project with Flashforge's own printer and filament profiles and keeps the rest.",
+      "Yes. Download the print profile as a project 3MF, then open it as a project in your slicer and select your Flashforge printer. If the plates and filament assignments look right, slice and preview there. If the colors need remapping, use the steps below.",
     printer: "flashforge-ad5x",
     steps: [
       "On MakerWorld, open the model, choose the print profile you want and download it as a 3MF (not the STL).",
       "Drop the 3MF into FilaShift and choose your Flashforge printer: AD5X, Adventurer 5M / 5M Pro or Creator 5.",
-      "Check the color list. Each project color is matched to one of the four IFS slots (AD5X) or toolheads (Creator 5); change any match you like.",
+      "Match each color to the spool in its IFS slot (AD5X) or toolhead (Creator 5). For an Adventurer 5M or 5M Pro, choose how to handle multiple colors on one filament path.",
       "Click Convert, download the new 3MF and read the report.",
-      OPEN.replace("your slicer", "OrcaSlicer or Orca-Flashforge"),
+      "Open the converted file as a project in your destination slicer. Confirm the printer, nozzle and materials, then re-slice. Check the bed fit and color changes in Preview before printing.",
     ],
     cta: "Convert for the Flashforge AD5X",
     sections: [
@@ -120,24 +120,24 @@ export const GUIDES: Guide[] = [
     ],
     faq: [
       { q: "Does it work the other way, Flashforge to Bambu?", a: "Yes. Drop a Flashforge or Orca-Flashforge project and choose a Bambu Lab printer." },
-      { q: "Do I need Orca-Flashforge?", a: "No. The converted file opens in OrcaSlicer and in Orca-Flashforge." },
+      { q: "Can I convert Bambu G-code for a Flashforge printer?", a: "Use the project 3MF from MakerWorld or Bambu Studio instead. Pre-sliced G-code contains instructions for the original printer. An STL gives you the shape, not the print profile or its filament assignments." },
     ],
-    updated: "2026-11-23",
+    updated: "2026-11-27",
   },
   {
     slug: "makerworld-to-creality",
-    title: "Convert MakerWorld and Bambu Studio 3MF files for Creality printers",
-    meta: "Print MakerWorld 3MF on Creality K1, K2, Hi and Ender-3 V3 | FilaShift",
-    desc: "Convert Bambu Studio and MakerWorld 3MF projects for Creality K1, K2 Plus, Hi with CFS and Ender-3 V3, keeping colors, plates and the designer's settings.",
+    title: "Can I use MakerWorld with a Creality printer?",
+    meta: "MakerWorld to Creality: how to use a print profile | FilaShift",
+    desc: "Download a MakerWorld project 3MF for your Creality printer. Check CFS slots or single-spool colors, then re-slice and preview the plate.",
     intro:
-      "Creality printers use OrcaSlicer-family profiles (OrcaSlicer and Creality Print). FilaShift converts Bambu projects to those profiles and lists every change, so you can print MakerWorld models on a K1, K2 or Ender without starting over.",
+      "Yes. Download the MakerWorld print profile as a project 3MF and open it as a project in your slicer. Select your Creality printer and nozzle. If the plates and colors are correct, re-slice and check the preview. If the filament assignments don't match your setup, follow the conversion steps below.",
     printer: "creality-k2-plus",
     steps: [
       "Download the MakerWorld model as a 3MF with the print profile you want.",
       "Drop it into FilaShift and pick your Creality printer, for example K2 Plus (CFS), Hi (CFS), K1C or Ender-3 V3.",
-      "Match colors to your CFS slots, or use filament-change pauses on single-extruder models.",
+      "If you use CFS, match each color to the spool in its slot. With a single spool, choose one color or use filament-change pauses for colors that start at different heights.",
       "Convert, download and read the report.",
-      OPEN.replace("your slicer", "OrcaSlicer"),
+      "Open the converted file as a project in OrcaSlicer. Confirm the printer and filament presets, re-slice and check the bed fit and color changes in Preview before printing.",
     ],
     cta: "Convert for the Creality K2 Plus",
     sections: [
@@ -158,10 +158,10 @@ export const GUIDES: Guide[] = [
       },
     ],
     faq: [
-      { q: "Does it work with Creality Print?", a: "The converted file is an OrcaSlicer project. Creality Print is based on OrcaSlicer and usually opens it; if it doesn't, use OrcaSlicer." },
+      { q: "Which MakerWorld file should I download for Creality Print?", a: "Choose the print profile's project 3MF. An STL contains the shape but not the profile's filament assignments. Do not send pre-sliced Bambu G-code to your Creality printer. If Creality Print doesn't retain the project setup, try the conversion steps and inspect the result in OrcaSlicer." },
       { q: "Can I move a Creality project to Bambu?", a: "Yes. Drop the Creality Print or OrcaSlicer project and pick a Bambu Lab printer." },
     ],
-    updated: "2026-11-23",
+    updated: "2026-11-27",
   },
   {
     slug: "bambu-to-snapmaker-u1",
