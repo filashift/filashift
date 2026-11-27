@@ -239,6 +239,11 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - Ops regression: 2,404 conversions (4 corpus files x 601 targets) vs 5d967fe. The 172 Qidi outputs changed only in those two keys; 76 Prusa diffs are generator timestamps; the other 2,156 are identical. QIDI Studio 2.07.02.73 CLI on fresh exports: Q2 15/15 and Plus4 15/15 with per-object tools in every Z band equal to the GUI, 0 bad_alloc; Q1 Pro control 15/15. Orca 2.5.2 Q2 PASS. Virtual bench, not hardware evidence.
 - Still open, separate: QIDI Studio GUI segfaults when a FilaShift Qidi project is reopened while its presets are already saved. The QIDI CLI re-arranges objects on a 21 mm pitch (it is not a FilaShift issue).
 
+## Filament sort label and phone nav tab (Nov 27 2026)
+- /filament: at lg and wider, the sort column is minmax(13rem,1.2fr), so "Lowest price per kg" (and es/de/fr) fits. Header nav: the current tab carries aria-current="page" and scrolls fully into view inside the sideways phone nav, re-checking on resize. Dev handoff dev/filament-fit-and-partners-check e6c6cc3.
+- Release gate: `node scripts/check-filament-fit.mjs` (after check-flashforge-store).
+- `scripts/check-filament-partners.mjs` (production data check, not a release gate) now matches tied-price offers by link and respects the 1.75 mm default.
+
 ## Flashforge store link (Nov 27 2026)
 - The /filament prices page shows a static "Shop Flashforge (affiliate link)" link (https://flashforge.sjv.io/aNg6Nq) next to the ELEGOO link, above the existing affiliate disclosure. It is on that page only, not in guides. It uses no impact.com script or impression tracking, and the visitor's browser makes no third-party request unless they click. PM-approved, off-cycle. Dev handoff dev/flashforge-store-link 0054dcd.
 - Release gate: `node scripts/check-flashforge-store.mjs` (en/es/de/fr, rel=sponsored, disclosure, no script, absent from the other pages) runs after check-elegoo-store in release.sh.
