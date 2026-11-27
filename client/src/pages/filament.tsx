@@ -1,5 +1,6 @@
 import { usePageMeta } from "@/lib/seo";
 import { ElegooStoreLink } from "@/components/elegoo-store-link";
+import { FlashforgeStoreLink } from "@/components/flashforge-store-link";
 import { buyingSlug } from "@/lib/filament-buying-guide";
 import { useT } from "@/lib/i18n";
 import { atomicReel, limits, reelSpecs, reelStatus, type Feeder } from "@/lib/reel-fit";
@@ -126,7 +127,10 @@ export default function Filament() {
             </p>
           )}
           <div className="mt-3" translate="no">
-            <ElegooStoreLink />
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <ElegooStoreLink />
+              <FlashforgeStoreLink />
+            </div>
             <p className="mt-1 text-xs text-muted-foreground" data-testid="text-affiliate-disclosure">
               {T("Some links and codes on this page are affiliate links. FilaShift may earn a commission at no extra cost to you; it never changes the price order.")}
             </p>
