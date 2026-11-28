@@ -234,6 +234,9 @@ export function FileCard({
                       {!f.used && <span className="text-xs text-muted-foreground">· unused</span>}
                     </div>
                     {f.preset && <div className="truncate text-xs text-muted-foreground">{f.preset}</div>}
+                    <div translate="no" data-testid={`file-filament-${job.id}-${f.index}`} className="break-words text-xs text-muted-foreground">
+                      {T("File filament")} {f.index}{a.partLabels?.[f.index]?.length ? `: ${a.partLabels[f.index].join(", ")}` : ""}
+                    </div>
                   </div>
                   <Select disabled={working} value={String(v)} onValueChange={(s) => onMap(f.index, parseInt(s))}>
                     <SelectTrigger className="h-9 w-[132px] shrink-0" data-testid={`select-slot-${job.id}-${f.index}`}>
@@ -253,6 +256,7 @@ export function FileCard({
             })}
           </ul>
 
+          <p translate="no" data-testid="physical-slot-note" className="mt-2 text-xs text-muted-foreground">{T("Slots are project assignments. Confirm the loaded spool or toolhead in your slicer; FilaShift cannot see your printer.")}</p>
           <div className="mt-4 rounded-lg bg-muted/60 p-3">
             <div className="mb-2 text-xs text-muted-foreground">{targetName} slots</div>
             <div className="flex flex-wrap gap-2">
