@@ -615,6 +615,5 @@
   "See each filament in your file beside the printer slot it will use, before you convert.": "Voyez chaque filament de votre fichier à côté de l'emplacement de l'imprimante qu'il utilisera, avant la conversion.",
   "Fixed: QIDI Studio could close when opening a converted QIDI project. Convert older QIDI files again.": "Corrigé : QIDI Studio pouvait se fermer à l'ouverture d'un projet QIDI converti. Convertissez à nouveau les anciens fichiers QIDI.",
   "Fixed: some Flashforge projects, including the Creator 5 Pro, failed to slice in Flash Studio's command-line tool.": "Corrigé : certains projets Flashforge, dont la Creator 5 Pro, ne se découpaient pas avec l'outil en ligne de commande de Flash Studio.",
-  "New FAQ answers for QIDI Studio and FlashPrint.": "Nouvelles réponses dans la FAQ sur QIDI Studio et FlashPrint.",
-  "The filament prices page is easier to read on phones and laptops.": "La page des prix des filaments est plus lisible sur téléphone et ordinateur portable."
+  "New FAQ answers for QIDI Studio and FlashPrint.": "Nouvelles réponses dans la FAQ sur QIDI Studio et FlashPrint."
 }

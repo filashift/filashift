@@ -241,6 +241,7 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 
 ## Release notes and badge for 2.2 (Nov 28 2026)
 - After the v2.2.0 release, the header badge and footer release notes still said 2.1 (reported by Maker Feedback). MAJOR_RELEASE is now "2.2". The footer notes list the 2.2 items in en/es/de/fr, and the unused 2.1 note strings were removed. scripts/check-major-release.mjs now expects 2.2. check-i18n-gaps passes.
+- PM decision: the filament prices line was removed from the 2.2 notes (copy only; 2521f3a stays).
 
 ## Creator 5 Pro Flash Studio CLI fix and 2.2.0 (Nov 28 2026)
 - Flashforge Flash Studio 1.7.9 CLI segfaulted on some FilaShift Flashforge exports (Creator 5 Pro and others; 16 of 66 bench slices). Cause: five per-filament override vectors missing from Metadata/project_settings.config. Change: Flashforge targets now write those five keys as "nil", one entry per filament; no existing value changes. Dev handoff dev/c5p-cli-overrides 297b300 (also bumps the version to 2.2.0).
