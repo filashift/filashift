@@ -239,6 +239,11 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - Ops regression: 2,404 conversions (4 corpus files x 601 targets) vs 5d967fe. The 172 Qidi outputs changed only in those two keys; 76 Prusa diffs are generator timestamps; the other 2,156 are identical. QIDI Studio 2.07.02.73 CLI on fresh exports: Q2 15/15 and Plus4 15/15 with per-object tools in every Z band equal to the GUI, 0 bad_alloc; Q1 Pro control 15/15. Orca 2.5.2 Q2 PASS. Virtual bench, not hardware evidence.
 - Still open, separate: QIDI Studio GUI segfaults when a FilaShift Qidi project is reopened while its presets are already saved. The QIDI CLI re-arranges objects on a 21 mm pitch (it is not a FilaShift issue).
 
+## Creator 5 Pro Flash Studio CLI fix and 2.2.0 (Nov 28 2026)
+- Flashforge Flash Studio 1.7.9 CLI segfaulted on some FilaShift Flashforge exports (Creator 5 Pro and others; 16 of 66 bench slices). Cause: five per-filament override vectors missing from Metadata/project_settings.config. Change: Flashforge targets now write those five keys as "nil", one entry per filament; no existing value changes. Dev handoff dev/c5p-cli-overrides 297b300 (also bumps the version to 2.2.0).
+- Gates (virtual bench, not hardware evidence): test-flash-studio-export (extended), test-qidi-shrink and tsc pass. Matrix 4 sources x 601 targets: only the 132 Flashforge outputs differ, and only by those keys. Flash Studio CLI 66/66 slice (base 50/66). C5 Pro nameplate keeps T0/T1 paint and colours. Flash Studio GUI on 5M Pro, AD5X and C5 Pro keeps colours and tools. OrcaSlicer CLI on the 132 Flashforge outputs: same results as base (129 ok, 3 expected mixed PLA/PETG temperature refusals on both).
+- Released off-cycle and tagged v2.2.0 (all 2.2 items shipped).
+
 ## Filament mapping preview (Nov 28 2026)
 - In the file card, each filament-to-slot row shows "File filament N: <named parts>" beside its slot selector. A note under the rows says slots are project assignments and FilaShift cannot see the printer. UI only: there is no engine, mapping or export change. 2.2 item 2. Dev handoff dev/mapping-preview 1a0a002 (integrated onto 15631d2).
 - Release gate: `node scripts/check-file-filament-preview.mjs [OUT_DIR]` (en/es/de/fr, 320/780), after check-qidi-flashprint-faq.
