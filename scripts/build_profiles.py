@@ -90,6 +90,16 @@ def resolver(*pools):
         if j.get("inherits") and depth < 20:
             b = res(j["inherits"], kind, depth + 1)
             if b: base = dict(b)
+        # Bambu Studio 2.9+ moves per-printer G-code (start/end, filament change, layer change,
+        # time-lapse) into "<printer> template <key>" presets listed under "include". Without
+        # them the printer silently inherits fdm_bbl_3dp_002_common's generic G-code.
+        for inc in (j.get("include") or []) if kind == "machine" and depth < 20 else []:
+            t = res(inc, kind, depth + 1) or res(inc, "?", depth + 1)  # template files carry no "type"
+            if t is None:
+                sys.exit(f"{name}: include {inc!r} not found")
+            for k, v in t.items():
+                if not k.startswith("__"):
+                    base[k] = v
         for k, v in j.items():
             if k in ("inherits", "type", "from", "setting_id", "instantiation", "filament_id", "base_id", "name", "description"):
                 continue
