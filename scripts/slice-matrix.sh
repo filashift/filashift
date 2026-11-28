@@ -9,8 +9,16 @@ for f in "$@"; do
   D=$(dirname "$f"); b=$(basename "$f" .3mf); j=$D/$b.json; o=$D/out_$b; rm -rf -- "$o"; mkdir -p "$o"
   sl=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["slicer"])' "$j") || exit 1
   if [[ $sl == "Bambu Studio" ]]; then cli=/tmp/slicers/bambu; elif [[ $sl == "PrusaSlicer" ]]; then cli=${PRUSA_ADAPTER:-/tmp/slicers/prusa}; else cli=/tmp/slicers/orca; fi
-  timeout 400 "$cli" $EXTRA --slice 0 --outputdir "$o" "$f" > "$o/log.txt" 2>&1
-  python3 - "$o" "$b" "$sl" "$f" "$?" <<'PY'
+  # Bambu Studio 2.9.2 two-nozzle slicing (H2D family, X2D) is not deterministic and can abort
+  # (rc 134, sprintf overflow in its filament-total header); retry those up to 3 times and log it.
+  tries=0
+  while :; do
+    timeout 400 "$cli" $EXTRA --slice 0 --outputdir "$o" "$f" > "$o/log.txt" 2>&1; rc=$?
+    [[ $rc == 134 && $sl == "Bambu Studio" && $b =~ __bambu-lab-(h2d|x2d) && $tries -lt 3 ]] || break
+    tries=$((tries+1)); echo "RETRY $b rc=134 attempt $tries" >&2
+    find "$o" -mindepth 1 -delete
+  done
+  python3 - "$o" "$b" "$sl" "$f" "$rc" <<'PY'
 import json,sys,glob,re,zipfile,os
 o,b,sl,f,process_rc=sys.argv[1:]
 try: r=json.load(open(o+'/result.json'))
