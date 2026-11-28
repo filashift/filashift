@@ -614,5 +614,7 @@
   "{n} printers found": "{n} imprimantes trouvées",
   "Showing {shown} of {n}. Add more words to narrow the list.": "{shown} sur {n} affichées. Ajoutez des mots pour affiner la liste.",
   "No supported printer matches that search.": "Aucune imprimante prise en charge ne correspond à cette recherche.",
-  "Request it": "La demander"
+  "Request it": "La demander",
+  "QIDI Studio closes when I open a file I converted with FilaShift. What should I do?": "QIDI Studio se ferme quand j'ouvre un fichier converti avec FilaShift. Que faire ?",
+  "Reload FilaShift and convert the original file again. Files converted before the November 27, 2026 update can close QIDI Studio when opened. In our virtual test with QIDI Studio 2.07.02.73, newly converted files for the Q2, X-Plus 4 and Q1 Pro opened normally.": "Rechargez FilaShift et convertissez à nouveau le fichier d'origine. Les fichiers convertis avant la mise à jour du 27 novembre 2026 peuvent fermer QIDI Studio à l'ouverture. Lors de notre test virtuel avec QIDI Studio 2.07.02.73, les fichiers nouvellement convertis pour les Q2, X-Plus 4 et Q1 Pro se sont ouverts normalement."
 }

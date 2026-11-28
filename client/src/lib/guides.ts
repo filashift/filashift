@@ -121,6 +121,7 @@ export const GUIDES: Guide[] = [
     faq: [
       { q: "Does it work the other way, Flashforge to Bambu?", a: "Yes. Drop a Flashforge or Orca-Flashforge project and choose a Bambu Lab printer." },
       { q: "Can I convert Bambu G-code for a Flashforge printer?", a: "Use the project 3MF from MakerWorld or Bambu Studio instead. Pre-sliced G-code contains instructions for the original printer. An STL gives you the shape, not the print profile or its filament assignments." },
+      { q: "Can I open the converted file in FlashPrint?", a: "Use Flash Studio (Orca-Flashforge) or OrcaSlicer instead. In our virtual test, FlashPrint 5.8.7 did not open FilaShift 3MF projects, and it has no AD5X or Creator 5 Pro profiles." },
     ],
     updated: "2026-11-27",
   },

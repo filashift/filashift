@@ -103,6 +103,7 @@ export const GUIDES_FR: Record<string, GuideText> = {
     faq: [
       { q: "Cela fonctionne-t-il dans l'autre sens, de Flashforge vers Bambu ?", a: "Oui. Déposez un projet Flashforge ou Orca-Flashforge et choisissez une imprimante Bambu Lab." },
       { q: "Ai-je besoin d'Orca-Flashforge ?", a: "Non. Le fichier converti s'ouvre dans OrcaSlicer et dans Orca-Flashforge." },
+      { q: "Puis-je ouvrir le fichier converti dans FlashPrint ?", a: "Utilisez plutôt Flash Studio (Orca-Flashforge) ou OrcaSlicer. Lors de notre test virtuel, FlashPrint 5.8.7 n'a pas ouvert les projets 3MF de FilaShift, et il ne propose aucun profil AD5X ni Creator 5 Pro." },
     ],
   },
   "makerworld-to-creality": {

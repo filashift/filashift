@@ -52,6 +52,9 @@ const FAQ = [
   {
     q: "Does it cost anything?",
     a: "No. FilaShift is free and does not require an account. Some store links on the filament price page are affiliate links that may earn a commission, which helps keep the converter running.",
+  },  {
+    q: "QIDI Studio closes when I open a file I converted with FilaShift. What should I do?",
+    a: "Reload FilaShift and convert the original file again. Files converted before the November 27, 2026 update can close QIDI Studio when opened. In our virtual test with QIDI Studio 2.07.02.73, newly converted files for the Q2, X-Plus 4 and Q1 Pro opened normally.",
   },
 ];
 
