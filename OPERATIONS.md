@@ -239,6 +239,10 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - Ops regression: 2,404 conversions (4 corpus files x 601 targets) vs 5d967fe. The 172 Qidi outputs changed only in those two keys; 76 Prusa diffs are generator timestamps; the other 2,156 are identical. QIDI Studio 2.07.02.73 CLI on fresh exports: Q2 15/15 and Plus4 15/15 with per-object tools in every Z band equal to the GUI, 0 bad_alloc; Q1 Pro control 15/15. Orca 2.5.2 Q2 PASS. Virtual bench, not hardware evidence.
 - Still open, separate: QIDI Studio GUI segfaults when a FilaShift Qidi project is reopened while its presets are already saved. The QIDI CLI re-arranges objects on a 21 mm pitch (it is not a FilaShift issue).
 
+## QIDI re-convert and FlashPrint FAQ entries (Nov 27 2026)
+- /faq gets a final entry: QIDI Studio closing on older converted files, so reload and convert again. It is scoped to the virtual test with QIDI Studio 2.07.02.73 on Q2, X-Plus 4 and Q1 Pro, and has no calendar cutoff, per the Ops review. The MakerWorld to Flashforge guide FAQ adds a FlashPrint entry: use Flash Studio or OrcaSlicer, since FlashPrint 5.8.7 did not open FilaShift 3MFs in the virtual test and has no AD5X or Creator 5 Pro profiles. 2.2 items 4, 6 and 9. Dev handoff dev/qidi-flashprint-faq a516e0c (integrated onto 9b4be53).
+- Release gate: `node scripts/check-qidi-flashprint-faq.mjs`, after check-printers-search.
+
 ## Printers section model search (Nov 27 2026)
 - MF-008: #printers showed only each brand's top model, so the Creator 5 Pro was hard to find. There is now a model search above the brand cards. It matches brand and model words in any order and shows up to 30 matches. Picking one sets the target printer. With no match, it links to a prefilled printer request. An empty search keeps the old view. UI only: there is no converter change and no network request. Dev handoff dev/printers-model-search cf69b55 (2.2 item).
 - Release gate: `node scripts/check-printers-search.mjs` (en/es/de/fr, 390/1280), after check-filament-fit.
