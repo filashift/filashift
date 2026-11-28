@@ -239,6 +239,11 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - Ops regression: 2,404 conversions (4 corpus files x 601 targets) vs 5d967fe. The 172 Qidi outputs changed only in those two keys; 76 Prusa diffs are generator timestamps; the other 2,156 are identical. QIDI Studio 2.07.02.73 CLI on fresh exports: Q2 15/15 and Plus4 15/15 with per-object tools in every Z band equal to the GUI, 0 bad_alloc; Q1 Pro control 15/15. Orca 2.5.2 Q2 PASS. Virtual bench, not hardware evidence.
 - Still open, separate: QIDI Studio GUI segfaults when a FilaShift Qidi project is reopened while its presets are already saved. The QIDI CLI re-arranges objects on a 21 mm pitch (it is not a FilaShift issue).
 
+## Filament mapping preview (Nov 28 2026)
+- In the file card, each filament-to-slot row shows "File filament N: <named parts>" beside its slot selector. A note under the rows says slots are project assignments and FilaShift cannot see the printer. UI only: there is no engine, mapping or export change. 2.2 item 2. Dev handoff dev/mapping-preview 1a0a002 (integrated onto 15631d2).
+- Release gate: `node scripts/check-file-filament-preview.mjs [OUT_DIR]` (en/es/de/fr, 320/780), after check-qidi-flashprint-faq.
+- Ops check (virtual bench): the remapped Creator 5 Pro export (filament 2 on slot 3) sliced with OrcaSlicer 2.5.2 CLI, rc=0. Filament used was 1.76 / 0.00 / 0.92 g, so the lettering is on slot 3.
+
 ## QIDI re-convert and FlashPrint FAQ entries (Nov 27 2026)
 - /faq gets a final entry: QIDI Studio closing on older converted files, so reload and convert again. It is scoped to the virtual test with QIDI Studio 2.07.02.73 on Q2, X-Plus 4 and Q1 Pro, and has no calendar cutoff, per the Ops review. The MakerWorld to Flashforge guide FAQ adds a FlashPrint entry: use Flash Studio or OrcaSlicer, since FlashPrint 5.8.7 did not open FilaShift 3MFs in the virtual test and has no AD5X or Creator 5 Pro profiles. 2.2 items 4, 6 and 9. Dev handoff dev/qidi-flashprint-faq a516e0c (integrated onto 9b4be53).
 - Release gate: `node scripts/check-qidi-flashprint-faq.mjs`, after check-printers-search.
