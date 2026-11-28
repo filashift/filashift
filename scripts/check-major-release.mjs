@@ -15,7 +15,7 @@ for(const mobile of [false,true]){
  if(mobile){const cdp=await ctx.newCDPSession(p);await cdp.send("Emulation.setCPUThrottlingRate",{rate:4})}
  await p.addInitScript(()=>{window.tasks=[];new PerformanceObserver(l=>window.tasks.push(...l.getEntries().map(x=>[x.startTime,x.duration]))).observe({type:"longtask",buffered:true})});
  await p.goto(`${base}/?printer=flashforge-ad5x&lang=${mobile?"es":"en"}`,{waitUntil:"networkidle"});
- assert.match(await p.getByTestId("major-release").innerText(),/2\.1/);
+ assert.match(await p.getByTestId("major-release").innerText(),/2\.2/);
  assert(!assets.some(s=>/\/(?:converter\.worker|assistant)-/.test(s)));
  const load=path=>p.getByTestId("input-file").setInputFiles(path);
  const btn=()=>p.locator('[data-testid^="button-convert-f"]').first();
