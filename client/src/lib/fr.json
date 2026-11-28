@@ -607,5 +607,12 @@
   "OrcaSlicer 2.5.2 kept both slots but displayed both in teal.": "OrcaSlicer 2.5.2 a conservé les deux emplacements, mais les a affichés tous les deux en bleu-vert.",
   "After FilaShift conversion, OrcaSlicer sliced both slots and displayed orange and blue.": "Après conversion avec FilaShift, OrcaSlicer a utilisé les deux emplacements au tranchage et a affiché l’orange et le bleu.",
   "If your slicer keeps what you need, use its printer switch. These previews verify one slice, not a physical print.": "Si votre trancheur conserve ce dont vous avez besoin, utilisez son sélecteur d’imprimante. Ces aperçus vérifient un tranchage, pas une impression physique.",
-  "Try the two-color nameplate": "Essayer la plaque bicolore"
+  "Try the two-color nameplate": "Essayer la plaque bicolore",
+  "Find your printer, e.g. Creator 5 Pro": "Trouvez votre imprimante, p. ex. Creator 5 Pro",
+  "Find your printer": "Trouver votre imprimante",
+  "1 printer found": "1 imprimante trouvée",
+  "{n} printers found": "{n} imprimantes trouvées",
+  "Showing {shown} of {n}. Add more words to narrow the list.": "{shown} sur {n} affichées. Ajoutez des mots pour affiner la liste.",
+  "No supported printer matches that search.": "Aucune imprimante prise en charge ne correspond à cette recherche.",
+  "Request it": "La demander"
 }

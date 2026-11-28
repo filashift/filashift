@@ -1,8 +1,8 @@
 import { useJsonLd, usePageMeta } from "@/lib/seo";
-import { tr, useLang } from "@/lib/i18n";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { tr, useLang, useT } from "@/lib/i18n";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeftRight, Check, Cpu, Download, FolderOpen, Layers, Loader2, Lock, Printer, ShieldCheck, Sparkles, Tag, Upload, X } from "lucide-react";
+import { ArrowLeftRight, Check, Cpu, Download, FolderOpen, Layers, Loader2, Lock, Printer, Search, ShieldCheck, Sparkles, Tag, Upload, X } from "lucide-react";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -978,6 +978,74 @@ function shortModel(model: string, brand: string) {
   return rest.length < 3 ? model : rest;
 }
 
+const fold = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+/** Printers whose brand + model contain every word of the query, in any order ("creator 5 pro", "c5 pro" won't match). */
+export function findPrinters(printers: PrinterIndexEntry[], query: string): PrinterIndexEntry[] {
+  const words = fold(query).split(" ").filter(Boolean);
+  if (!words.length) return [];
+  const hits = printers.filter((p) => {
+    const hay = ` ${fold(`${p.vendor} ${p.model}`)} `;
+    return words.every((w) => hay.includes(` ${w}`));
+  });
+  return hits.sort((a, b) => a.vendor.localeCompare(b.vendor) || a.model.localeCompare(b.model, undefined, { numeric: true }));
+}
+
+function PrinterSearch({ printers, onPick }: { printers: PrinterIndexEntry[]; onPick: (id: string) => void }) {
+  const T = useT();
+  const [q, setQ] = useState("");
+  const hits = useMemo(() => findPrinters(printers, q), [printers, q]);
+  const shown = hits.slice(0, 30);
+  const active = q.trim().length > 0;
+  return (
+    <div className="mb-4">
+      <div className="relative max-w-md">
+        <Search aria-hidden="true" className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Find your printer, e.g. Creator 5 Pro"
+          aria-label="Find your printer"
+          className="pl-8"
+          data-testid="input-printers-search"
+        />
+      </div>
+      <p className="sr-only" aria-live="polite" data-testid="text-printers-search-count">
+        {active ? T(hits.length === 1 ? "1 printer found" : "{n} printers found", { n: hits.length }) : ""}
+      </p>
+      {active && (hits.length ? (
+        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3" data-testid="list-printers-search">
+          {shown.map((p) => (
+            <li key={p.id}>
+              <button
+                type="button"
+                onClick={() => onPick(p.id)}
+                className="group flex w-full items-baseline justify-between gap-2 rounded-xl border border-card-border bg-card px-3 py-2.5 text-left transition-colors hover:border-primary/50 hover:bg-primary/[0.04]"
+                data-testid={`printers-search-${p.id}`}
+              >
+                <span className="min-w-0 truncate text-sm font-medium group-hover:text-primary" translate="no">{p.model}</span>
+                <span className="shrink-0 font-mono text-xs text-muted-foreground">{Math.round(p.bed[0])}×{Math.round(p.bed[1])} · {p.slots}</span>
+              </button>
+            </li>
+          ))}
+          {hits.length > shown.length && (
+            <li className="self-center text-xs text-muted-foreground sm:col-span-2 lg:col-span-3">
+              {T("Showing {shown} of {n}. Add more words to narrow the list.", { shown: shown.length, n: hits.length })}
+            </li>
+          )}
+        </ul>
+      ) : (
+        <p className="mt-3 text-sm text-muted-foreground" data-testid="text-printers-search-empty">
+          {T("No supported printer matches that search.")}{" "}
+          <button type="button" className="underline hover:text-foreground" onClick={() => openPrinterRequest(q.trim())} data-testid="link-printers-search-request">
+            {T("Request it")}
+          </button>
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function Brands({ printers, onPick }: { printers: PrinterIndexEntry[]; onPick: (id: string) => void }) {
   const byBrand = new Map<string, PrinterIndexEntry[]>();
   for (const p of printers) byBrand.set(p.vendor, [...(byBrand.get(p.vendor) || []), p]);
@@ -991,6 +1059,7 @@ function Brands({ printers, onPick }: { printers: PrinterIndexEntry[]; onPick: (
         <Link href="/tested" className="font-medium text-primary underline" data-testid="link-tested-results">See the slicer test results for every printer</Link>
         <button type="button" className="text-muted-foreground underline hover:text-foreground" onClick={() => openPrinterRequest()} data-testid="link-request-printer">Printer not listed? Request it</button>
       </p>
+      <PrinterSearch printers={printers} onPick={onPick} />
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {brands.map(([brand, list]) => {
           const pick = list.find((p) => p.popular) || list[0];
