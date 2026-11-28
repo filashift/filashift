@@ -36,6 +36,7 @@ node scripts/check-slicer-first.mjs
 node scripts/check-elegoo-store.mjs
 node scripts/check-flashforge-store.mjs
 node scripts/check-filament-fit.mjs
+node scripts/check-printers-search.mjs
 node scripts/check-download-summary.mjs
 node scripts/check-flashforge-guide-demo.mjs
 node scripts/check-bulk-pack-total.mjs
