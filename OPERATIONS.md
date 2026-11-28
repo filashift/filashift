@@ -289,6 +289,7 @@ These checks are a virtual bench, not hardware evidence. They don't show adhesio
   - Model extrusions stay inside `printable_area` (2 mm margin) and under `printable_height`.
   - Every `T<n>` the file calls exists (profile `slots`).
   - Each extruding nozzle was heated to at least 170 C. This covers start macros such as `START_PRINT EXTRUDER_TEMP=` and `G9111 extruderTemp=`, and Bambu M620/M621 tool changes.
+  - Bambu files that use M620/M621 tool changes only need a print temperature set at some point, because the firmware heats or swaps hot ends on `T<n>`.
   - No nozzle target exceeds the filament's top range by more than 10 C.
   - Every planned pause or color change in `custom_gcode_per_layer.xml` reaches the G-code, and the printer has a pause command.
   - Machine G-code is reported as warnings, not failures. That covers purge lines, wipes, flushes, layer-change G-code and slicer `Custom` blocks.

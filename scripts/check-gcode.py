@@ -80,6 +80,14 @@ def near(pt, poly, margin):
     return False
 
 
+def first_cmd(v):
+    for ln in (v or "").replace("\\n", "\n").splitlines():
+        ln = ln.split(";")[0].strip()
+        if ln:
+            return ln.split()[0].upper()
+    return ""
+
+
 def expected_pauses(project, plate):
     try:
         z = zipfile.ZipFile(project)
@@ -120,13 +128,11 @@ def check(path, profile=None, project=None, plate=1):
     if h.get("single_extruder_multi_material") == "1" or (profile and profile.get("extruders") == 1 and nozzles > 1 and profile.get("slots", 1) > 1):
         nozzles = 1  # MMU/AMS style: many filament slots feed one hot end
     hi = max(nums(h.get("nozzle_temperature_range_high")) or [0])
-    pause_cmd = ""
-    for ln in h.get("machine_pause_gcode", "").replace("\\n", "\n").splitlines():
-        ln = ln.split(";")[0].strip()
-        if ln:
-            pause_cmd = ln.split()[0].upper()
-            break
+    pause_cmd = first_cmd(h.get("machine_pause_gcode", ""))
 
+    # the slicer writes machine_pause_gcode for planned pauses and color_change_gcode for color
+    # changes; without either, fall back to the common pause commands
+    pause_cmds = {c for c in (pause_cmd, first_cmd(h.get("color_change_gcode", ""))) if c} or {"M600", "M601", "PAUSE"}
     absxyz, abse = True, True
     pos = {"X": 0.0, "Y": 0.0, "Z": 0.0, "E": 0.0}
     tool = 0
@@ -135,6 +141,7 @@ def check(path, profile=None, project=None, plate=1):
     feature, machine = None, True   # everything before the first layer is machine G-code
     tools_called, extruded_tools = set(), set()
     out_model, out_machine, out_tower, cold, cold_machine, hot_machine = [], [], [], [], [], []
+    ever_hot = 0.0
     bambu_tc = re.search(r"^M620 S\d", text, re.M) is not None
     maxz_model = 0.0
     pauses = 0
@@ -192,9 +199,12 @@ def check(path, profile=None, project=None, plate=1):
             w = dict(WORD.findall(up[4:]))
             if "S" in w:
                 t = int(float(w["T"])) if "T" in w else tool
+                if nozzles == 1 and not bambu_tc and "T" in w and t != tool:
+                    continue  # one hot end: a T<n> other than the active tool is a heater it doesn't use
                 if bambu_tc:  # Bambu tool changers address heads as M104 I<n>, nozzles as T<n>
                     key = ("I", int(float(w["I"]))) if "I" in w else ("T", t)
                     target[key] = float(w["S"])
+                    ever_hot = max(ever_hot, float(w["S"]) if float(w["S"]) <= (hi or 999) + HOT_SLACK else 0)
                 else:
                     target[noz(t)] = float(w["S"])
                 if hi and float(w["S"]) > hi + HOT_SLACK:
@@ -203,7 +213,7 @@ def check(path, profile=None, project=None, plate=1):
                         hot_machine.append(msg)   # e.g. vendor nozzle-cleaning flush in start G-code
                     else:
                         fails.append(msg)
-        elif cmd in ("M600", "M601", "PAUSE") or (pause_cmd and cmd == pause_cmd and cmd not in ("M400",)) or re.match(r"^M400\s+U1\b", up):
+        elif (cmd in pause_cmds and cmd != "M400") or (pause_cmd == "M400" and re.match(r"^M400\s+U1\b", up)):
             if layer_seen:
                 pauses += 1
         if cmd not in ("M104", "M109"):
@@ -241,7 +251,9 @@ def check(path, profile=None, project=None, plate=1):
                         out_model.append((n, p))
                 # Bambu M620/M621 tool changes reheat nozzles in firmware (M104 T there is a
                 # physical-nozzle index, not the filament), so only require some nozzle to be hot
-                cur = max(target.values() or [0]) if bambu_tc else target.get(noz(tool), 0)
+                # (H2C/H3C/P3C hot ends are swapped and reheated by the firmware on T<n>), so for
+                # Bambu files only require that a print temperature was set at some point
+                cur = max(ever_hot, max(target.values() or [0])) if bambu_tc else target.get(noz(tool), 0)
                 if cur < COLD:
                     (cold_machine if machine or not feature else cold).append((n, tool, cur))
             pos = new
