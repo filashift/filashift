@@ -282,3 +282,22 @@ Open issue: the manufacturer's Windows Wonderprint-Orca 2.3.2 CLI rejected the s
 - Defect-triggered regression (PO agreement, Nov 27 2026; see "Defect-triggered regression" in the Project Files product/FilaShift-core-working-agreement.md): a confirmed or recurring defect triggers PO evidence gathering and a coverage check before any fix exists. The PO sends missing coverage straight to Ops. Ops runs the baseline, records expected vs actual behavior, the test location and the evidence in the existing ledger (product/Virtual-bench-brand-results.md for the virtual bench), and reports to the PO. The PO then follows through to fix, retest and release or hold, without needing the PM to prompt. Reuse open tests or requests rather than duplicating them. A reproducible defect is tracked as a known failure, never as a pass. Release authority and release-gate policy are unchanged.
 - Added now: `check-download-summary.mjs`, `check-flashforge-guide-demo.mjs`, `check-bulk-pack-total.mjs`. Nov 26: `test-flash-studio-export.ts`. Nov 27: `test-qidi-shrink.ts`.
 - Not gated (they need production, staging or private fixtures): check-asset-cache, check-assistant, check-default-printer, check-filament-partners, check-guide-seo, check-major-release, check-mobile-intake, check-pageview-client, check-single-spool, check-spanish-mobile-spools. Run them by hand when their area changes.
+
+## Virtual printer checks (Nov 28 2026)
+These checks are a virtual bench, not hardware evidence. They don't show adhesion, flow, clogs or toolhead collisions.
+- `scripts/check-gcode.py file.gcode --profile client/public/profiles/<id>.json --project converted.3mf --plate N` checks sliced G-code against the target printer:
+  - Model extrusions stay inside `printable_area` (2 mm margin) and under `printable_height`.
+  - Every `T<n>` the file calls exists (profile `slots`).
+  - Each extruding nozzle was heated to at least 170 C. This covers start macros such as `START_PRINT EXTRUDER_TEMP=` and `G9111 extruderTemp=`, and Bambu M620/M621 tool changes.
+  - No nozzle target exceeds the filament's top range by more than 10 C.
+  - Every planned pause or color change in `custom_gcode_per_layer.xml` reaches the G-code, and the printer has a pause command.
+  - Machine G-code is reported as warnings, not failures. That covers purge lines, wipes, flushes, layer-change G-code and slicer `Custom` blocks.
+  - Exit codes: 0 pass, 1 fail, 2 input error.
+  - Self-test: `python3 scripts/test-check-gcode.py` (12 synthetic cases, no slicer needed).
+- `CHECK_GCODE=1 scripts/slice-matrix.sh …` runs the checker after every slice and prints a `check <file> plate N:` line. `CLEAN_GCODE=1` deletes G-code afterwards; a full 2-sample matrix otherwise needs several GB. Default output is unchanged.
+- `scripts/klipper-replay.py file.gcode printer.cfg [macros.cfg …]` is a spike that replays G-code through Klipper's batch mode.
+  - It builds a batch config from the vendor's motion limits and macro names.
+  - Klipper then rejects moves outside `position_min`/`position_max`, over-extrusion past `max_extrude_cross_section` or `max_extrude_only_distance`, and commands the firmware doesn't know.
+  - Homing, probing and temperature waits can't run in batch mode, so they are replaced, and vendor macros become no-op stubs.
+  - Setup: `git clone --depth 1 https://github.com/Klipper3d/klipper /tmp/klipper`, `printf 'CONFIG_MACH_LINUX=y\n' > .config`, `make olddefconfig && make`, then `pip install --user greenlet cffi jinja2 pyserial`.
+  - Tried so far only with the Sovol SV08 config from github.com/Sovol3d/SV08 (`home/sovol/printer_data/config/printer.cfg` and `Macro.cfg`).

@@ -3,6 +3,8 @@
 # usage: slice-matrix.sh file.3mf  (one file; run many with xargs -P)
 # json "slicer" == "PrusaSlicer" uses /tmp/slicers/prusa (text G-code); its line also reports the tool changes
 # (T0..Tn), colour changes (M600) and whether the project carries painted triangles (mmu_segmentation).
+# CHECK_GCODE=1 also runs scripts/check-gcode.py (virtual printer checks) on every plate's G-code;
+# CLEAN_GCODE=1 deletes the G-code afterwards to save disk.
 for f in "$@"; do
   D=$(dirname "$f"); b=$(basename "$f" .3mf); j=$D/$b.json; o=$D/out_$b; rm -rf -- "$o"; mkdir -p "$o"
   sl=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["slicer"])' "$j") || exit 1
@@ -33,4 +35,12 @@ if g and r.get('return_code')==0:
     info=f"wall={h('wall_loops')} infill={h('sparse_infill_density')} printer={h('printer_model')} bed={h('curr_bed_type')} cols={h('filament_colour')}"
 print(f"{b:55s} {sl[:5]} rc={r.get('return_code')} {'' if r.get('return_code')==0 else r.get('error_string','')[:90]} {info}")
 PY
+  if [[ $CHECK_GCODE == 1 ]]; then
+    id=${b##*__}; pf="$(dirname "$0")/../client/public/profiles/$id.json"; [[ -f $pf ]] || pf=
+    for g in "$o"/plate_*.gcode; do
+      [[ -f $g ]] || continue; pl=$(basename "$g" .gcode); pl=${pl#plate_}
+      echo "  check $b plate $pl: $(python3 "$(dirname "$0")/check-gcode.py" "$g" ${pf:+--profile "$pf"} --project "$f" --plate "$pl" | tr '\n' '|')"
+    done
+  fi
+  if [[ $CLEAN_GCODE == 1 ]]; then rm -f "$o"/*.gcode; fi
 done
