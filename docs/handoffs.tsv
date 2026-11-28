@@ -25,3 +25,5 @@ dev/printers-model-search	cf69b557f726484874faf7b8e169fe5bac8b98d2	cf69b55	self	
 dev/qidi-flashprint-faq	a516e0c77caafcbe8d1b40f0fecec14ba3b50599	5f9a996	self	2026-11-27
 dev/mapping-preview	1a0a002e380a6fb591478347cad138fb94537ae5	4f9ad67	self	2026-11-28
 dev/c5p-cli-overrides	297b3007a3fac3c0f447d2db8d0ecf78805e173d	5c1b09a	self	2026-11-28
+dev/bambu-machine-gcode-templates	69152f8c2eaeed4f19a7aebd90549f4145d78466	69152f8	self	2026-11-28
+dev/gcode-checker	d739171c89649921cc15208ad7c8bd40629c1e2e	c2bbc32	self	2026-11-28

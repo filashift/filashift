@@ -30,6 +30,8 @@ python3 scripts/test-tested-catalog.py
 npx tsx scripts/test-filament-review.ts
 npx --no-install tsx scripts/test-flash-studio-export.ts
 npx --no-install tsx scripts/test-qidi-shrink.ts
+python3 scripts/test-bambu-machine-gcode.py
+python3 scripts/test-check-gcode.py
 node scripts/check-filament-review-ui.mjs "${TD:-$HOME/td}/x1c_paint.3mf" "${TD:-$HOME/td}/ad5x_project.3mf"
 node scripts/check-bed-fit-preview.mjs "${TD:-$HOME/td}/x1c_paint.3mf"
 node scripts/check-slicer-first.mjs
