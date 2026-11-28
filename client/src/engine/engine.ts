@@ -55,6 +55,8 @@ const RENAMES: Record<string, string> = RULES.RENAMES;
 const RANGES: Record<string, [number | null, number | null]> = RULES.RANGES as any;
 const FIX_DEFAULT: Record<string, string> = RULES.FIX_DEFAULT;
 const FIL_OVERRIDES: string[] = RULES.FIL_OVERRIDES;
+/** Per-filament override keys Flash Studio 1.7.9 expects in a project; see the Flashforge block in convert(). */
+const FF_FIL_OVERRIDE_NIL = ["filament_long_retractions_when_cut", "filament_retract_lift_above", "filament_retract_lift_below", "filament_retract_lift_enforce", "filament_retraction_distances_when_cut"] as const;
 const MOTION_RE = /(_speed|_acceleration|_jerk)$/;
 const PLATE_KEYS: Record<string, string> = {
   "Textured PEI Plate": "textured_plate_temp",
@@ -1666,6 +1668,16 @@ export function convert(loaded: Loaded, profile: PrinterProfile, opts: ConvertOp
         const value = Array.isArray(preset) ? preset[j] : preset;
         return value == null || value === "" ? fallback : String(value);
       });
+    }
+  }
+  // Flash Studio 1.7.9's command line dereferences null in
+  // update_values_to_printer_extruders_for_multiple_filaments when these per-filament
+  // override vectors are missing (Creator 5 Pro bench, Nov 27). Its own saved projects
+  // carry them as "nil" (no override, printer value applies), so pad to that.
+  if (profile.vendor === "Flashforge") {
+    for (const key of FF_FIL_OVERRIDE_NIL) {
+      const v = R[key];
+      R[key] = Array.from({ length: nOut }, (_, j) => (Array.isArray(v) && v[j] != null && v[j] !== "" ? String(v[j]) : "nil"));
     }
   }
   // Flash Studio 1.7.9 evaluates placeholders even in comments. Its stock
